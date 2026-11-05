@@ -12,16 +12,22 @@ public final class ReputationBookScreen extends Screen {
     private final String history;
     private final int suspicion;
     private final int historyPages;
+    private final int[] factions = new int[6];
     private final int pageCount;
     private static final int[] RANKS = {-100,-80,-60,-20,0,100,120,140,160,180,200};
     private int page;
     private Button previousButton;
     private Button nextButton;
 
-    public ReputationBookScreen(int score, int suspicion, String history) {
+    public ReputationBookScreen(int score, int suspicion, String history, String factionData) {
         super(Component.translatable("reputation.book.title"));
         this.score = Math.max(-100, Math.min(200, score));
         this.history = history == null ? "" : history;
+        String[] parts = (factionData == null ? "" : factionData).split(",");
+        for (int i = 0; i < Math.min(parts.length, factions.length); i++) {
+            try { factions[i] = Math.max(-100, Math.min(200, Integer.parseInt(parts[i]))); }
+            catch (NumberFormatException ignored) { factions[i] = 0; }
+        }
         this.historyPages = this.history.split("\\n").length > 8 ? 2 : 1;
         this.pageCount = 5 + historyPages;
         this.suspicion = suspicion;
@@ -107,7 +113,11 @@ public final class ReputationBookScreen extends Screen {
             }
         } else if (page == historyPages + 2) {
             heading(graphics, "factions", left, top);
-            line(graphics, "factions_pending", left, top + 57);
+            for (int i = 0; i < factions.length; i++) {
+                graphics.drawString(font, Component.translatable("reputation.faction." + ReputationMod.FACTIONS[i]), left + 16, top + 53 + i * 16, 0xFFE4D6BB);
+                String value = (factions[i] > 0 ? "+" : "") + factions[i];
+                graphics.drawString(font, value, left + 196, top + 53 + i * 16, factions[i] < 0 ? 0xFFE47A7A : 0xFFFFD46B);
+            }
         } else if (page == historyPages + 3) {
             heading(graphics, "quests", left, top);
             line(graphics, "quests_pending", left, top + 57);
