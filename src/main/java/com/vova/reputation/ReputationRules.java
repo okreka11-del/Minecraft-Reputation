@@ -32,7 +32,7 @@ public final class ReputationRules {
     private static void interact(PlayerInteractEvent.EntityInteract event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         int score = player.getData(ReputationMod.REP);
-        if (score <= 0 && event.getTarget() instanceof Villager) {
+        if (score < 0 && event.getTarget() instanceof Villager) {
             event.setCanceled(true);
             player.displayClientMessage(Component.translatable("reputation.message.trade_refused"), true);
         } else if (score >= 101 && event.getTarget() instanceof Villager villager) {
@@ -42,7 +42,7 @@ public final class ReputationRules {
                 offer.addToSpecialPriceDiff(discount);
             }
             player.displayClientMessage(Component.translatable("reputation.hero.discount"), true);
-        } else if (score <= 0 && event.getTarget() instanceof Animal) {
+        } else if (score < 0 && event.getTarget() instanceof Animal) {
             event.setCanceled(true);
             player.displayClientMessage(Component.translatable("reputation.message.animal_afraid"), true);
         }
@@ -82,7 +82,7 @@ public final class ReputationRules {
         boolean village = !player.serverLevel().getEntitiesOfClass(Villager.class,
             new net.minecraft.world.phys.AABB(pos).inflate(24)).isEmpty();
         if (!village) return;
-        if (score <= 0) {
+        if (score < 0) {
             event.setCanceled(true);
             player.displayClientMessage(Component.translatable("reputation.message.village_protected"), true);
         } else if (score < 151) {
