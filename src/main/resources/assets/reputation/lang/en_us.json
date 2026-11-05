@@ -34,5 +34,15 @@
   "reputation.dragon.absent": "The dragon is too far away.",
   "reputation.dragon.hello": "Dragon: Greetings, hero. You came in peace, and so shall I.",
   "reputation.dragon.how": "Dragon: Eternity is long, but I enjoy your company today.",
-  "reputation.dragon.portal": "Dragon: The way home is open. Return whenever you wish."
+  "reputation.dragon.portal": "Dragon: The way home is open. Return whenever you wish.",
+  "reputation.dragon.outlaw": "Dragon: You rejected the light. I see destruction in you, yet darkness also demands choices.",
+  "reputation.dragon.help": "Dragon: Tell me what you seek, mortal. I am listening.",
+  "reputation.dragon.friend": "Dragon: Help? Even kings of darkness must pay for it.",
+  "reputation.dragon.unknown": "Dragon: Friendship is not born from fear.",
+  "reputation.dragon.dark_hello": "Dragon: Your words are unusual. Tell me more.",
+  "reputation.dragon.dark_how": "Dragon: Greetings, lord of chaos.",
+  "reputation.dragon.dark_help": "Dragon: My eternity is darker than yours.",
+  "reputation.dragon.dark_friend": "Dragon: I do not serve you, but I will listen.",
+  "reputation.dragon.dark_unknown": "Dragon: We are not friends. Not yet.",
+  "reputation.dragon.dark_extra": "Dragon: Darkness has heard your words."
 }
