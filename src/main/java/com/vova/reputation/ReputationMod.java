@@ -151,8 +151,8 @@ public final class ReputationMod {
         LivingEntity victim = event.getEntity();
         if (!(event.getSource().getEntity() instanceof ServerPlayer killer)) return;
         if (victim instanceof Villager) {
-            adjust(killer, -20, "killed villager");
-            adjustFaction(killer, 0, -20);
+            adjust(killer, -2, "killed villager");
+            adjustFaction(killer, 0, -2);
         } else if (victim instanceof ServerPlayer defeated) {
             if (killer.getUUID().equals(defeated.getUUID())) return;
             long now = killer.server.overworld().getGameTime();
@@ -174,7 +174,7 @@ public final class ReputationMod {
                 adjust(killer, 1, "defeated monster");
                 adjustFaction(killer, 3, -1);
                 advanceHunterQuest(killer);
-                if (killer.getData(REP) >= 151) killer.giveExperiencePoints(3);
+                if (killer.getData(REP) >= 151) killer.giveExperiencePoints(1);
                 REWARD_COOLDOWN.put(killer.getUUID(), now);
             }
         }
