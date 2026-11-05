@@ -135,5 +135,12 @@
   "reputation.book.hunter_done": "Completed: 10 / 10",
   "reputation.book.hunter_reward": "Reward: +10 reputation, 50 XP",
   "reputation.quest.hunter.complete": "Hunter quest completed! +10 reputation and 50 XP.",
-  "reputation.reason.hunter_quest": "Hunter quest"
+  "reputation.reason.hunter_quest": "Hunter quest",
+  "reputation.journal.tab.score": "Reputation",
+  "reputation.journal.tab.factions": "Factions",
+  "reputation.journal.tab.quests": "Quests",
+  "reputation.journal.tab.settlements": "Settlements",
+  "reputation.journal.tab.unlocks": "Benefits",
+  "reputation.journal.tab.actions": "History",
+  "reputation.journal.tab.help": "Help"
 }
