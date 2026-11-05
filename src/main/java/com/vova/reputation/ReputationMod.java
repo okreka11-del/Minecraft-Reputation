@@ -30,7 +30,7 @@ public final class ReputationMod {
     private static final DeferredRegister<AttachmentType<?>> ATTACHMENTS =
         DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, ID);
     public static final Supplier<AttachmentType<Integer>> REP = ATTACHMENTS.register("score",
-        () -> AttachmentType.builder(() -> 100).serialize(Codec.INT).copyOnDeath().build());
+        () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().build());
     public static final Supplier<AttachmentType<Integer>> SUSPICION = ATTACHMENTS.register("suspicion",
         () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().build());
 
@@ -52,13 +52,18 @@ public final class ReputationMod {
         NeoForge.EVENT_BUS.addListener(ReputationHeroEvents::tick);
     }
 
-    private static String rank(int score) {
-        if (score >= 151) return "reputation.rank.legend";
-        if (score >= 101) return "reputation.rank.trusted";
-        if (score >= 51) return "reputation.rank.neutral";
-        if (score >= 1) return "reputation.rank.outcast";
-        if (score >= -49) return "reputation.rank.wanted";
-        return "reputation.rank.nemesis";
+    public static String rank(int score) {
+        if (score >= 200) return "reputation.rank.hero_of_light";
+        if (score >= 180) return "reputation.rank.best_ally";
+        if (score >= 160) return "reputation.rank.good_ally";
+        if (score >= 140) return "reputation.rank.reliable_ally";
+        if (score >= 120) return "reputation.rank.ally";
+        if (score >= 100) return "reputation.rank.acquaintance";
+        if (score >= 0) return "reputation.rank.neutral";
+        if (score >= -20) return "reputation.rank.unfriendly";
+        if (score >= -60) return "reputation.rank.enemy";
+        if (score >= -80) return "reputation.rank.villain";
+        return "reputation.rank.dark_lord";
     }
 
     public static void adjust(ServerPlayer player, int delta, String reason) {
