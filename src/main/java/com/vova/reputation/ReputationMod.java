@@ -1,23 +1,27 @@
 package com.vova.reputation;
 
-import com.mojang.serialization.Codec;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.serialization.Codec;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.npc.Villager;
-import net.minecraft.world.entity.animal.Animal;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 @Mod(ReputationMod.ID)
@@ -30,10 +34,23 @@ public final class ReputationMod {
     public static final Supplier<AttachmentType<Integer>> SUSPICION = ATTACHMENTS.register("suspicion",
         () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().build());
 
+    // Server-local anti-farm cooldowns. These are deliberately not persisted.
+    private static final Map<UUID, Long> REWARD_COOLDOWN = new HashMap<>();
+
     public ReputationMod(IEventBus bus) {
         ATTACHMENTS.register(bus);
         NeoForge.EVENT_BUS.addListener(ReputationMod::commands);
         NeoForge.EVENT_BUS.addListener(ReputationMod::onDeath);
+        NeoForge.EVENT_BUS.addListener(ReputationMod::onPlayerTick);
+    }
+
+    private static String rank(int score) {
+        if (score >= 151) return "Legend";
+        if (score >= 101) return "Trusted";
+        if (score >= 51) return "Neutral";
+        if (score >= 1) return "Outcast";
+        if (score >= -49) return "Wanted";
+        return "Nemesis";
     }
 
     private static void change(ServerPlayer player, int delta, String reason) {
@@ -41,8 +58,8 @@ public final class ReputationMod {
         int after = Math.max(-100, Math.min(200, before + delta));
         if (before == after) return;
         player.setData(REP, after);
-        player.sendSystemMessage(Component.literal("Reputation " + (after - before > 0 ? "+" : "")
-            + (after - before) + " (" + reason + ") -> " + after), true);
+        player.sendSystemMessage(Component.literal("Reputation " + (after > before ? "+" : "")
+            + (after - before) + " (" + reason + ") -> " + after + " [" + rank(after) + "]"), true);
     }
 
     private static void onDeath(LivingDeathEvent event) {
@@ -50,10 +67,53 @@ public final class ReputationMod {
         if (!(event.getSource().getEntity() instanceof ServerPlayer killer)) return;
         if (victim instanceof Villager) {
             change(killer, -20, "killed villager");
+        } else if (victim instanceof ServerPlayer) {
+            change(killer, -30, "killed player");
         } else if (victim instanceof Animal) {
             change(killer, -2, "killed animal");
         } else if (victim instanceof Monster) {
-            change(killer, 1, "defeated monster");
+            long now = killer.level().getGameTime();
+            long last = REWARD_COOLDOWN.getOrDefault(killer.getUUID(), Long.MIN_VALUE / 2);
+            if (now - last >= 100) {
+                change(killer, 1, "defeated monster");
+                REWARD_COOLDOWN.put(killer.getUUID(), now);
+            }
+        }
+    }
+
+    private static void onPlayerTick(PlayerTickEvent.Post event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        long time = player.level().getGameTime();
+        if (time % 40 != 0) return;
+        int score = player.getData(REP);
+
+        // Villagers physically flee from notorious players.
+        if (score <= 0) {
+            for (Villager villager : player.level().getEntitiesOfClass(Villager.class,
+                    player.getBoundingBox().inflate(12))) {
+                double dx = villager.getX() - player.getX();
+                double dz = villager.getZ() - player.getZ();
+                double length = Math.max(0.1, Math.sqrt(dx * dx + dz * dz));
+                villager.getNavigation().moveTo(villager.getX() + dx / length * 9,
+                    villager.getY(), villager.getZ() + dz / length * 9, 1.25);
+            }
+        }
+
+        // Hostile monsters ignore heroes, and prioritize nearby notorious players.
+        for (Monster monster : player.level().getEntitiesOfClass(Monster.class,
+                player.getBoundingBox().inflate(16))) {
+            if (score >= 151 && monster.getTarget() == player) {
+                monster.setTarget(null);
+            } else if (score <= -50 && (monster.getTarget() == null ||
+                    (monster.getTarget() instanceof ServerPlayer other &&
+                        other.getData(REP) > score))) {
+                monster.setTarget(player);
+            }
+        }
+
+        if (time % 200 == 0) {
+            player.sendSystemMessage(Component.literal("Reputation " + score + " / 200 | "
+                + rank(score) + " | Suspicion " + player.getData(SUSPICION)), true);
         }
     }
 
@@ -62,7 +122,12 @@ public final class ReputationMod {
             .then(Commands.literal("get").executes(ctx -> {
                 var player = ctx.getSource().getPlayerOrException();
                 player.sendSystemMessage(Component.literal("Reputation: " + player.getData(REP)
-                    + " / Suspicion: " + player.getData(SUSPICION)));
+                    + " [" + rank(player.getData(REP)) + "] / Suspicion: " + player.getData(SUSPICION)));
+                return 1;
+            }))
+            .then(Commands.literal("help").executes(ctx -> {
+                ctx.getSource().sendSuccess(() -> Component.literal(
+                    "/reputation get | /reputation set <value> (OP) | /reputation add <delta> (OP) | /reputation suspicion <value> (OP)"), false);
                 return 1;
             }))
             .then(Commands.literal("set").requires(source -> source.hasPermission(2))
@@ -71,6 +136,20 @@ public final class ReputationMod {
                     int value = IntegerArgumentType.getInteger(ctx, "value");
                     player.setData(REP, value);
                     player.sendSystemMessage(Component.literal("Reputation set to " + value));
+                    return value;
+                })))
+            .then(Commands.literal("add").requires(source -> source.hasPermission(2))
+                .then(Commands.argument("delta", IntegerArgumentType.integer(-300, 300)).executes(ctx -> {
+                    var player = ctx.getSource().getPlayerOrException();
+                    change(player, IntegerArgumentType.getInteger(ctx, "delta"), "admin");
+                    return 1;
+                })))
+            .then(Commands.literal("suspicion").requires(source -> source.hasPermission(2))
+                .then(Commands.argument("value", IntegerArgumentType.integer(0, 100)).executes(ctx -> {
+                    var player = ctx.getSource().getPlayerOrException();
+                    int value = IntegerArgumentType.getInteger(ctx, "value");
+                    player.setData(SUSPICION, value);
+                    player.sendSystemMessage(Component.literal("Suspicion set to " + value));
                     return value;
                 }))));
     }
