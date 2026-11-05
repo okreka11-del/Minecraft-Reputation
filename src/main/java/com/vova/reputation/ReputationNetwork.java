@@ -43,9 +43,21 @@ public final class ReputationNetwork {
         @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
     }
 
+    public record JournalRequest() implements CustomPacketPayload {
+        public static final Type<JournalRequest> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(ReputationMod.ID, "journal_request"));
+        public static final StreamCodec<FriendlyByteBuf, JournalRequest> STREAM_CODEC =
+            StreamCodec.unit(new JournalRequest());
+        @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
+    }
+
     @SubscribeEvent
     public static void register(RegisterPayloadHandlersEvent event) {
         var registrar = event.registrar("1");
+        registrar.playToServer(JournalRequest.TYPE, JournalRequest.STREAM_CODEC,
+            (payload, context) -> context.enqueueWork(() -> {
+                if (context.player() instanceof ServerPlayer player) openBook(player);
+            }));
         registrar.playToClient(ScoreSync.TYPE, ScoreSync.STREAM_CODEC,
             (payload, context) -> context.enqueueWork(() -> ReputationHud.updateScore(payload.score())));
         registrar.playToClient(BookSync.TYPE, BookSync.STREAM_CODEC,
