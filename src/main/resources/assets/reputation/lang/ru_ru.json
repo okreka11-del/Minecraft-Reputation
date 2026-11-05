@@ -1,0 +1,23 @@
+{
+  "reputation.rank.legend": "Легенда",
+  "reputation.rank.trusted": "Уважаемый",
+  "reputation.rank.neutral": "Нейтральный",
+  "reputation.rank.outcast": "Изгой",
+  "reputation.rank.wanted": "В розыске",
+  "reputation.rank.nemesis": "Враг общества",
+  "reputation.message.change": "Репутация %1$s (%2$s) → %3$s [%4$s]",
+  "reputation.message.status": "Репутация: %1$s [%2$s] | Подозрение: %3$s",
+  "reputation.message.help": "/reputation get — статус | set <число> — установить | add <число> — изменить | suspicion <число> — подозрение (команды изменения требуют OP)",
+  "reputation.message.set": "Репутация установлена: %s",
+  "reputation.message.suspicion": "Подозрение установлено: %s",
+  "reputation.message.trade_refused": "Жители отказываются с тобой торговать!",
+  "reputation.message.animal_afraid": "Животное боится тебя и отказывается от еды.",
+  "reputation.message.village_protected": "Ты не можешь разрушать блоки в деревне!",
+  "reputation.hud.label": "РЕПУТАЦИЯ",
+  "reputation.reason.killed_villager": "убийство жителя",
+  "reputation.reason.killed_player": "убийство игрока",
+  "reputation.reason.killed_animal": "убийство животного",
+  "reputation.reason.defeated_monster": "победа над монстром",
+  "reputation.reason.damaged_village": "разрушение в деревне",
+  "reputation.reason.admin": "команда администратора"
+}
