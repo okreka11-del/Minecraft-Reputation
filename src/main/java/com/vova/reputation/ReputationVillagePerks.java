@@ -29,6 +29,6 @@ public final class ReputationVillagePerks {
         var holder = player.server.getAdvancements().get(id);
         if (holder == null) return;
         var progress = player.getAdvancements().getOrStartProgress(holder);
-        if (!progress.isDone()) player.getAdvancements().award(holder, "reputation");
+        if (!progress.isDone()) player.getAdvancements().award(holder, "reached");
     }
 }
