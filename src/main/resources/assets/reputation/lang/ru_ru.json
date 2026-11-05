@@ -20,5 +20,13 @@
   "reputation.reason.defeated_monster": "победа над монстром",
   "reputation.reason.damaged_village": "разрушение в деревне",
   "reputation.reason.admin": "команда администратора",
-  "reputation.message.gift": "Ты получил подарок за хорошую репутацию!"
+  "reputation.message.gift": "Ты получил подарок за хорошую репутацию!",
+  "reputation.hero.gift": "Подарок от %s!",
+  "reputation.hero.donor.golem": "железного голема",
+  "reputation.hero.donor.enderman": "эндермена",
+  "reputation.hero.donor.blaze": "ифрита",
+  "reputation.hero.donor.wither_skeleton": "скелета-иссушителя",
+  "reputation.hero.donor.piglin": "пиглина",
+  "reputation.hero.donor.horse": "лошади",
+  "reputation.hero.donor.villager": "жителя"
 }
