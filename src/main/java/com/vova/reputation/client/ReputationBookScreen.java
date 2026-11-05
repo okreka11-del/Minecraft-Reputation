@@ -11,7 +11,7 @@ public final class ReputationBookScreen extends Screen {
     private final int score;
     private final String history;
     private final int suspicion;
-    private static final int PAGE_COUNT = 6;
+    private static final int PAGE_COUNT = 7;
     private static final int[] RANKS = {-100,-80,-60,-20,0,100,120,140,160,180,200};
     private int page;
     private Button previousButton;
@@ -27,12 +27,13 @@ public final class ReputationBookScreen extends Screen {
     @Override
     protected void init() {
         int center = width / 2;
+        int controlsY = height / 2 + 83;
         previousButton = addRenderableWidget(Button.builder(Component.literal("<"), b -> changePage(-1))
-            .bounds(center - 110, height - 42, 44, 20).build());
+            .bounds(center - 110, controlsY, 44, 20).build());
         nextButton = addRenderableWidget(Button.builder(Component.literal(">"), b -> changePage(1))
-            .bounds(center + 66, height - 42, 44, 20).build());
+            .bounds(center + 66, controlsY, 44, 20).build());
         addRenderableWidget(Button.builder(Component.translatable("gui.done"), b -> onClose())
-            .bounds(center - 48, height - 42, 96, 20).build());
+            .bounds(center - 48, controlsY, 96, 20).build());
         updateNavigation();
     }
 
@@ -72,13 +73,14 @@ public final class ReputationBookScreen extends Screen {
             graphics.fill(left + 16, top + 94, left + 16 + filled, top + 105,
                 score < 0 ? 0xFFB4485A : 0xFFE0BB55);
             graphics.drawString(font, Component.translatable("reputation.book.range"), left + 16, top + 114, 0xFFAAAAAA);
-        } else if (page == 1) {
+        } else if (page == 1 || page == 2) {
             heading(graphics, "actions", left, top);
             if (history.isEmpty()) {
                 line(graphics, "empty", left, top + 53);
             } else {
                 String[] lines = history.split("\\n");
-                for (int i = 0; i < Math.min(8, lines.length); i++) {
+                int start = (page - 1) * 8;
+                for (int i = start; i < Math.min(start + 8, lines.length); i++) {
                     String[] parts = lines[i].split(" \\| ", 3);
                     Component entry = parts.length == 3
                         ? Component.literal(parts[0] + "  ")
@@ -87,10 +89,10 @@ public final class ReputationBookScreen extends Screen {
                         : Component.literal(lines[i]);
                     String label = entry.getString();
                     if (font.width(label) > 215) label = font.plainSubstrByWidth(label, 207) + "...";
-                    graphics.drawString(font, label, left + 16, top + 49 + i * 13, 0xFFE4D6BB);
+                    graphics.drawString(font, label, left + 16, top + 49 + (i - start) * 13, 0xFFE4D6BB);
                 }
             }
-        } else if (page == 2) {
+        } else if (page == 3) {
             heading(graphics, "ranks", left, top);
             for (int i = 0; i < RANKS.length; i++) {
                 int y = top + 49 + i * 9;
@@ -100,10 +102,10 @@ public final class ReputationBookScreen extends Screen {
                 graphics.drawString(font, label, left + 16, y,
                     key.equals(ReputationMod.rank(score)) ? 0xFFFFD46B : 0xFFD5C9B5);
             }
-        } else if (page == 3) {
+        } else if (page == 4) {
             heading(graphics, "factions", left, top);
             line(graphics, "factions_pending", left, top + 57);
-        } else if (page == 4) {
+        } else if (page == 5) {
             heading(graphics, "quests", left, top);
             line(graphics, "quests_pending", left, top + 57);
             line(graphics, "settlements_pending", left, top + 79);
