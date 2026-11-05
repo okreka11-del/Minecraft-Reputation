@@ -104,5 +104,16 @@
   "reputation.book.empty": "Пока нет записей",
   "reputation.book.future": "Будущие главы",
   "reputation.book.chapters": "Фракции, задания и поселения",
-  "reputation.book.unfinished": "Пока не реализовано"
+  "reputation.book.unfinished": "Пока не реализовано",
+  "reputation.book.suspicion": "Подозрение: %s",
+  "reputation.book.ranks": "Все звания",
+  "reputation.book.factions": "Отношения с фракциями",
+  "reputation.book.factions_pending": "Отдельная репутация фракций пока не ведётся.",
+  "reputation.book.quests": "Задания и поселения",
+  "reputation.book.quests_pending": "Отслеживание заданий пока недоступно.",
+  "reputation.book.settlements_pending": "Статус поселений пока недоступен.",
+  "reputation.book.help": "Справка",
+  "reputation.book.help_book": "/reputation book — открыть книгу",
+  "reputation.book.help_history": "/reputation history — история",
+  "reputation.book.help_score": "/reputation get — текущая репутация"
 }
