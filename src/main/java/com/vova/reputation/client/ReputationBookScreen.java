@@ -38,8 +38,10 @@ public final class ReputationBookScreen extends Screen {
     }
 
     private void geometry() {
-        scale = Math.min(1.0f, Math.min((width - 12f) / W, (height - 12f) / H));
-        scale = Math.max(0.1f, scale);
+        // Never enlarge the pixel font with a fractional GUI transform.
+        // When the window is smaller, use the largest fitting scale.
+        float fit = Math.min((width - 12f) / W, (height - 12f) / H);
+        scale = fit >= 1f ? 1f : Math.max(0.1f, fit);
         ox = Math.round((width - W * scale) / 2f);
         oy = Math.round((height - H * scale) / 2f);
     }
@@ -96,8 +98,8 @@ public final class ReputationBookScreen extends Screen {
     private void text(GuiGraphics g, String s, int x, int y, int color) {
         int max = x < 340 ? 200 : 210;
         String shown = font.width(s) > max ? font.plainSubstrByWidth(s, max - 10) + "..." : s;
-        g.drawString(font, shown, x + 1, y, 0x665B4228, false);
-        g.drawString(font, shown, x, y, color, true);
+        // One crisp text pass: the old translucent offset made glyphs look doubled.
+        g.drawString(font, shown, x, y, color, false);
     }
     private void tr(GuiGraphics g, String key, int x, int y, Object... args) {
         text(g, Component.translatable(key, args).getString(), x, y, INK);
@@ -152,6 +154,30 @@ public final class ReputationBookScreen extends Screen {
         g.pose().popPose();
         // Buttons are positioned in actual GUI coordinates for correct mouse hitboxes.
         super.render(g, mouseX, mouseY, partialTick);
+    }
+
+    @Override public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (button == 0 && scale > 0f) {
+            double x = (mouseX - ox) / scale;
+            double y = (mouseY - oy) / scale;
+            // The book itself is an interactive table of contents: click a page heading.
+            if (section == 0 && x >= 373 && x <= 550 && y >= 58 && y <= 95) {
+                section = 2;
+                historyPage = 0;
+                return true;
+            }
+            if (section == 0 && x >= 373 && x <= 550 && y >= 184 && y <= 225) {
+                section = 5;
+                historyPage = 0;
+                return true;
+            }
+            if (section == 0 && x >= 137 && x <= 320 && y >= 170 && y <= 207) {
+                section = 4;
+                historyPage = 0;
+                return true;
+            }
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     private void scorePage(GuiGraphics g) {
