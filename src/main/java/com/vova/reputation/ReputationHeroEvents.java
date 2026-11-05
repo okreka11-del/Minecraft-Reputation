@@ -45,7 +45,8 @@ public final class ReputationHeroEvents {
 
         // Do not cancel hostile targeting: heroes of Light are deliberately hunted.
 
-        long day = player.getServer().overworld().getDayTime() / 24000L;
+        // Match monster rewards: monotonic game time prevents /time set from resetting gift limits.
+        long day = time / 24000L;
         if (player.getData(ReputationMod.GIFT_DAY) != day) {
             player.setData(ReputationMod.GIFT_DAY, day);
             player.setData(ReputationMod.GIFT_COUNT, 0);
