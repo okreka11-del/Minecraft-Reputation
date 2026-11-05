@@ -1,35 +1,36 @@
-# Minecraft Reputation — 0.2.0-alpha
+# Minecraft Reputation — 0.3.0-alpha
 
-Minecraft Java 1.21.1 / NeoForge, Java 21.
+Minecraft Java 1.21.1, NeoForge, Java 21.
 
-## Features
-- Per-player reputation (starts 100, range -100..200) and suspicion (starts 0, range 0..100).
-- Both values persist through death and world reloads.
-- Six reputation tiers: Legend (151..200), Trusted (101..150), Neutral (51..100), Outcast (1..50), Wanted (-49..0), Nemesis (-100..-50).
-- Killing a hostile monster: +1, with a five-second cooldown per player to discourage farming.
-- Killing an animal: -2; villager: -20; another player: -30.
-- Villagers flee players at reputation 0 or below, display angry particles, and display happy particles around legendary players.
-- Cows, pigs and sheep flee players at reputation 0 or below. At -50 or lower, nearby animals emit slime-like spit particles and briefly slow the player. At 151 or higher, animals display heart particles.\n- Monsters drop their current target when it is a player with reputation 151 or higher (checked periodically).
-- Monsters target nearby players at reputation -50 or lower when they have no target or a higher-reputation player as target.
-- Periodic action-bar display of reputation, rank and suspicion.
+## Reputation
+- Individual score starts at 100, range -100 to 200, persists through death.
+- Killing hostile mobs +1 (five-second reward cooldown), animals -2, villagers -20, players -30.
+- Six ranks and commands: `/reputation get`, `help`, `set`, `add`, `suspicion`.
 
-## Commands
-- `/reputation get`
-- `/reputation help`
-- `/reputation set <value>` (OP)
-- `/reputation add <delta>` (OP)
-- `/reputation suspicion <value>` (OP)
+## World reactions
+- Villagers flee notorious players; reputation 0 or below blocks villager trading.
+- Cows, pigs and sheep flee notorious players, and animal interaction/feeding is blocked at reputation 0 or below, even when holding food.
+- At -50 or below, animals produce CLOUD vapor-like particles and briefly slow nearby players.
+- At -50 or below, monsters and iron golems deal 3x incoming damage to the player.
+- Iron golems target nearby notorious players.
+- At 151 or above, hostile mobs clear their target if it is the renowned player; pillagers also try to target other monsters. Vanilla AI may reassign targets.
+- At 151 or above, villagers show happy particles and animals show hearts.
+- Village block breaking is canceled for score 0 or below. The temporary village detector uses nearby villagers (24-block radius), not actual village boundaries.
+- For score 1..150, breaking blocks near villagers costs 1 reputation per block. At 151+ there is no penalty.
+- A client HUD draws a fixed upper-left bar rather than the previous periodic actionbar text.
 
-## Testing checklist
-1. Download the successful `minecraft-reputation-jar` artifact from GitHub Actions and extract the JAR.
-2. Place it in the `mods` folder of a Minecraft 1.21.1 NeoForge installation. Remove older versions.
-3. Create a world with cheats and test `/reputation get`.
-4. Kill a zombie, a cow, and a villager; verify score changes.
-5. Run `/reputation set 0` near villagers, cows, pigs and sheep; watch them move away.\n6. Run `/reputation set -100` and stand near animals to test slime-spit particles and slowness.\n7. Run `/reputation set 200` near villagers and animals to test happy/heart particles.
-6. Run `/reputation set -100` near hostile monsters; observe targeting.
-7. Run `/reputation set 200` near hostile monsters; observe whether targeting is cleared.
-8. Test `/reputation add -10` and `/reputation suspicion 70`.
-9. Test death and reload persistence.
+## Known limitations / tests
+**This code has not yet been verified to compile or run in GitHub Actions.**
+- Multiplayer client synchronization of the HUD reputation score is not implemented/verified; the client may display its default value.
+- Existing vanilla AI may override mob targeting and navigation.
+- Pillagers' vanilla hostility may override the alliance logic; damage from pillagers is canceled for players at 151+.
+- Animal breeding by existing in-love animals or other means is not comprehensively prevented; feeding interaction is blocked.
+- Vapor is implemented with CLOUD particles, not a physical projectile.
+- Village protection is proximity-based, not ownership-aware.
 
-## Known limitations
-This is an experimental alpha. Villager flight and monster targeting are basic server-side behaviors; vanilla AI may override them. A true client-rendered HUD, projectile spit, animal attacks, trading discounts, witness system, suspicion investigations, trials and custom NPCs are not implemented. Multiplayer behaviors need further testing. A successful CI build has not yet been verified for this update.
+## Suggested test
+1. Install the newly built JAR in Minecraft 1.21.1 NeoForge (remove older JARs).
+2. Set reputation to -100 and test villager trading, feeding cows/sheep/pigs, golem aggression, monster damage and block breaking near villagers.
+3. Set reputation to 200 and test pillager hostility, animal hearts, villager happiness and breaking village blocks.
+4. Check upper-left HUD in singleplayer and multiplayer, and whether it updates after `/reputation set`.
+5. Report any build errors or unexpected AI behavior with screenshots/logs.
