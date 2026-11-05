@@ -20,6 +20,10 @@ import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import net.minecraft.world.level.block.entity.SignBlockEntity;
+import net.minecraft.world.level.block.WallSignBlock;
+import net.minecraft.core.Direction;
 
 /**
  * Persistent, bounded village occupation. No existing blocks are overwritten:
@@ -44,6 +48,8 @@ public final class ReputationSettlements {
         public int stage;
         public long nextBuild;
         public boolean houseBuilt;
+        public UUID houseOwner;
+        public String houseOwnerName = "";
         public int structuresBuilt;
         public int decorationsBuilt;
         public Village(BlockPos center, boolean occupied, int stage, long nextBuild) {
@@ -62,6 +68,8 @@ public final class ReputationSettlements {
                 Village village = new Village(new BlockPos(v.getInt("X"), v.getInt("Y"), v.getInt("Z")),
                     v.getBoolean("Occupied"), v.getInt("Stage"), v.getLong("NextBuild"));
                 village.houseBuilt = v.getBoolean("HouseBuilt");
+                if (v.hasUUID("HouseOwner")) village.houseOwner = v.getUUID("HouseOwner");
+                village.houseOwnerName = v.getString("HouseOwnerName");
                 village.structuresBuilt = v.getInt("StructuresBuilt");
                 village.decorationsBuilt = v.getInt("DecorationsBuilt");
                 data.villages.add(village);
@@ -79,6 +87,8 @@ public final class ReputationSettlements {
                 entry.putInt("Stage", v.stage);
                 entry.putLong("NextBuild", v.nextBuild);
                 entry.putBoolean("HouseBuilt", v.houseBuilt);
+                if (v.houseOwner != null) entry.putUUID("HouseOwner", v.houseOwner);
+                entry.putString("HouseOwnerName", v.houseOwnerName);
                 entry.putInt("StructuresBuilt", v.structuresBuilt);
                 entry.putInt("DecorationsBuilt", v.decorationsBuilt);
                 list.add(entry);
@@ -165,23 +175,31 @@ public final class ReputationSettlements {
             saved.setDirty();
         }
         if (village.occupied) return;
-        if (player.getData(ReputationMod.REP) < 0) return;
-        if (village.houseBuilt) return;
+        if (player.getData(ReputationMod.REP) < 151) return;
+        if (village.houseBuilt) {
+            if (player.getUUID().equals(village.houseOwner) && !village.houseOwnerName.equals(player.getGameProfile().getName())) {
+                village.houseOwnerName = player.getGameProfile().getName();
+                saved.setDirty();
+            }
+            return;
+        }
         // Try nearby positions rather than replacing any existing terrain or buildings.
         int[][] offsets = {{24,0},{-24,0},{0,24},{0,-24},{30,12},{-30,-12},{12,-30},{-12,30},{35,0},{-35,0},{0,35},{0,-35},{28,28},{-28,28},{28,-28},{-28,-28}};
         for (int[] offset : offsets) {
             BlockPos site = village.center.offset(offset[0], 0, offset[1]);
             BlockPos base = level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, site);
-            if (Math.abs(base.getY() - village.center.getY()) <= 6 && placeCottage(level, base)) {
+            if (Math.abs(base.getY() - village.center.getY()) <= 6 && placeCottage(level, base, player.getGameProfile().getName())) {
                 village.houseBuilt = true;
+                village.houseOwner = player.getUUID();
+                village.houseOwnerName = player.getGameProfile().getName();
                 saved.setDirty();
-                player.sendSystemMessage(Component.literal("A welcome cottage has appeared in the village!"));
+                player.sendSystemMessage(Component.literal("Your hero house has been built in the village!"));
                 return;
             }
         }
     }
 
-    private static boolean placeCottage(ServerLevel level, BlockPos base) {
+    private static boolean placeCottage(ServerLevel level, BlockPos base, String ownerName) {
         // Validate every block before placing anything; no overwrites.
         for (int x = -3; x <= 3; x++) for (int z = -3; z <= 3; z++) {
             BlockPos column = base.offset(x, 0, z);
@@ -204,6 +222,19 @@ public final class ReputationSettlements {
         level.setBlockAndUpdate(base.offset(0, 1, 1), Blocks.CRAFTING_TABLE.defaultBlockState());
         level.setBlockAndUpdate(base.offset(1, 1, 1), Blocks.CHEST.defaultBlockState());
         level.setBlockAndUpdate(base.offset(-1, 1, 1), Blocks.RED_BED.defaultBlockState());
+        BlockPos signPos = base.offset(1, 2, -4);
+        // A wall sign is attached outside the entrance, on the north-facing wall.
+        if (level.hasChunkAt(signPos) && level.getBlockState(signPos).isAir()) {
+            level.setBlockAndUpdate(signPos, Blocks.OAK_WALL_SIGN.defaultBlockState()
+                .setValue(WallSignBlock.FACING, Direction.NORTH));
+            if (level.getBlockEntity(signPos) instanceof SignBlockEntity sign) {
+                sign.setText(sign.getFrontText()
+                    .setMessage(0, Component.literal("HERO HOUSE"))
+                    .setMessage(1, Component.literal(ownerName.length() > 15 ? ownerName.substring(0, 15) : ownerName)), true);
+                sign.setChanged();
+                level.sendBlockUpdated(signPos, level.getBlockState(signPos), level.getBlockState(signPos), 3);
+            }
+        }
         return true;
     }
 
