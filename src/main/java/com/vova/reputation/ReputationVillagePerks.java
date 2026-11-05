@@ -15,11 +15,15 @@ public final class ReputationVillagePerks {
         int score = player.getData(ReputationMod.REP);
         if (score >= 200) grant(player, "hero_of_light");
         if (score <= -100) grant(player, "lord_of_darkness");
-        if (!ReputationSettlements.isInVillage(player, false) && !ReputationSettlements.isInVillage(player, true)) return;
-        if (score >= 160) {
+        // Light bonuses belong to liberated villages; Dark bonuses to occupied ones.
+        // Never grant an opposing faction's settlement perks just for being nearby.
+        boolean free = score >= 160 && ReputationSettlements.isInVillage(player, false);
+        boolean occupied = score <= -80 && ReputationSettlements.isInVillage(player, true);
+        if (!free && !occupied) return;
+        if (free) {
             player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 240, 0, true, true));
             if (score >= 200) player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 240, 0, true, true));
-        } else if (score <= -80) {
+        } else if (occupied) {
             player.addEffect(new MobEffectInstance(MobEffects.DIG_SPEED, 240, 0, true, true));
             if (score <= -100) player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 240, 0, true, true));
         }
