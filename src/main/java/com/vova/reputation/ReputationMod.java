@@ -184,7 +184,8 @@ public final class ReputationMod {
         } else if (victim instanceof Monster) {
             // Use the server-wide overworld clock so dimension travel cannot reset cooldown timing.
             long now = killer.server.overworld().getGameTime();
-            long day = killer.server.overworld().getDayTime() / 24000L;
+            // Use monotonic server game time: /time set must not reset daily anti-farm limits.
+            long day = now / 24000L;
             if (killer.getData(REWARD_DAY) != day) {
                 killer.setData(REWARD_DAY, day);
                 killer.setData(REWARD_COUNT, 0);
