@@ -19,5 +19,6 @@
   "reputation.reason.killed_animal": "killed animal",
   "reputation.reason.defeated_monster": "defeated monster",
   "reputation.reason.damaged_village": "damaged village",
-  "reputation.reason.admin": "admin command"
+  "reputation.reason.admin": "admin command",
+  "reputation.message.gift": "You received a gift for your good reputation!"
 }
