@@ -80,6 +80,13 @@ public final class ReputationSettlements {
         return level.getDataStorage().computeIfAbsent(new SavedData.Factory<>(Data::new, Data::load, null), SAVE_ID);
     }
 
+    /** Server-authoritative summary for the player's nearest registered settlement. */
+    public static String nearbyStatus(ServerPlayer player) {
+        Village village = closest(data(player.serverLevel()), player.blockPosition(), 96);
+        if (village == null) return "none";
+        return (village.occupied ? "occupied" : "free") + ":" + village.stage;
+    }
+
     private static Village closest(Data data, BlockPos position, int radius) {
         Village best = null;
         double distance = (double) radius * radius;
