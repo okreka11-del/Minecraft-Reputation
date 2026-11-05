@@ -44,9 +44,7 @@ public final class ReputationHeroEvents {
             }
         }
 
-        for (Monster monster : level.getEntitiesOfClass(Monster.class, player.getBoundingBox().inflate(20))) {
-            if (monster.getTarget() == player) monster.setTarget(null);
-        }
+        // Do not cancel hostile targeting: heroes of Light are deliberately hunted.
 
         long day = player.getServer().overworld().getDayTime() / 24000L;
         if (GIFT_DAY.getOrDefault(player.getUUID(), -1L) != day) {
