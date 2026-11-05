@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.HashMap;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.ChatFormatting;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Animal;
@@ -47,6 +49,21 @@ public final class ReputationRules {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         int score = player.getData(ReputationMod.REP);
         int[] factions = ReputationMod.factionStandings(player);
+        if (event.getTarget() instanceof Villager && !player.isShiftKeyDown()) {
+            event.setCanceled(true);
+            String greeting = (score < 0 || factions[0] <= -40)
+                ? "Житель: Я тебе не доверяю."
+                : score >= 120 || factions[0] >= 60
+                    ? "Житель: С возвращением, друг!"
+                    : "Житель: Приветствую, путник!";
+            player.sendSystemMessage(Component.literal(greeting));
+            player.sendSystemMessage(Component.literal("[Поговорить]").withStyle(style -> style.withColor(ChatFormatting.YELLOW)
+                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/reputation talk")))
+                .append(Component.literal("  [Квесты]").withStyle(style -> style.withColor(ChatFormatting.GREEN)
+                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/reputation quest"))))
+                .append(Component.literal("  [Торговля: Shift + ПКМ]").withStyle(ChatFormatting.AQUA)));
+            return;
+        }
         // Faction relationships influence interactions without overwriting global reputation.
         if ((score < 0 || factions[0] <= -40) && event.getTarget() instanceof Villager) {
             event.setCanceled(true);
