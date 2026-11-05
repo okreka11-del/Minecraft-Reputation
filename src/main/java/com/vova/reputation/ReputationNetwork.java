@@ -3,6 +3,7 @@ package com.vova.reputation;
 import com.vova.reputation.client.ReputationHud;
 import com.vova.reputation.client.ReputationBookScreen;
 import com.vova.reputation.client.ReputationDialogueScreen;
+import com.vova.reputation.client.ReputationVillageScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -67,9 +68,38 @@ public final class ReputationNetwork {
                 buf -> new DialogueAction(buf.readInt(), buf.readInt()));
         @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
     }
+    public record VillageRequest() implements CustomPacketPayload {
+        public static final Type<VillageRequest> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(ReputationMod.ID, "village_request"));
+        public static final StreamCodec<FriendlyByteBuf, VillageRequest> STREAM_CODEC =
+            StreamCodec.unit(new VillageRequest());
+        @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
+    }
+    public record VillageSync(String status, int stage, int buildings, int villagers, int standing, int score)
+            implements CustomPacketPayload {
+        public static final Type<VillageSync> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(ReputationMod.ID, "village_sync"));
+        public static final StreamCodec<FriendlyByteBuf, VillageSync> STREAM_CODEC =
+            StreamCodec.of((buf, p) -> {
+                buf.writeUtf(p.status(), 128);
+                buf.writeInt(p.stage()); buf.writeInt(p.buildings()); buf.writeInt(p.villagers());
+                buf.writeInt(p.standing()); buf.writeInt(p.score());
+            }, buf -> new VillageSync(buf.readUtf(128), buf.readInt(), buf.readInt(), buf.readInt(),
+                buf.readInt(), buf.readInt()));
+        @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
+    }
+
     @SubscribeEvent
     public static void register(RegisterPayloadHandlersEvent event) {
         var registrar = event.registrar("1");
+        registrar.playToServer(VillageRequest.TYPE, VillageRequest.STREAM_CODEC,
+            (payload, context) -> context.enqueueWork(() -> {
+                if (context.player() instanceof ServerPlayer player) ReputationSettlements.sendOverview(player);
+            }));
+        registrar.playToClient(VillageSync.TYPE, VillageSync.STREAM_CODEC,
+            (payload, context) -> context.enqueueWork(() ->
+                Minecraft.getInstance().setScreen(new ReputationVillageScreen(payload.status(), payload.stage(),
+                    payload.buildings(), payload.villagers(), payload.standing(), payload.score()))));
         registrar.playToServer(JournalRequest.TYPE, JournalRequest.STREAM_CODEC,
             (payload, context) -> context.enqueueWork(() -> {
                 if (context.player() instanceof ServerPlayer player) openBook(player);
@@ -106,6 +136,11 @@ public final class ReputationNetwork {
             : score >= 100 ? "Рады видеть союзника!"
             : "Приветствую, путник!";
         PacketDistributor.sendToPlayer(player, new DialogueOpen(villager.getId(), score, greeting));
+    }
+
+    public static void sendVillage(ServerPlayer player, String status, int stage, int buildings, int villagers) {
+        PacketDistributor.sendToPlayer(player, new VillageSync(status, stage, buildings, villagers,
+            ReputationMod.factionStandings(player)[0], player.getData(ReputationMod.REP)));
     }
 
     public static void openBook(ServerPlayer player) {
