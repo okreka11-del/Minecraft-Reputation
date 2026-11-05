@@ -57,7 +57,6 @@ public final class ReputationBookScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        super.render(graphics, mouseX, mouseY, partialTick);
         int left = width / 2 - 126;
         int top = height / 2 - 98;
         graphics.fill(left - 2, top - 2, left + 254, top + 178, 0xFF6B4D2B);
@@ -115,6 +114,8 @@ public final class ReputationBookScreen extends Screen {
             line(graphics, "help_score", left, top + 98);
         }
         graphics.drawCenteredString(font, (page + 1) + " / " + PAGE_COUNT, width / 2, top + 151, 0xFFB99148);
+        // Render interactive buttons last so the parchment panel cannot cover them.
+        super.render(graphics, mouseX, mouseY, partialTick);
     }
 
     private void heading(GuiGraphics graphics, String key, int left, int top) {
