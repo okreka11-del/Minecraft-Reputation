@@ -30,6 +30,27 @@ public final class ReputationWorldEvents {
         AABB vicinity = player.getBoundingBox().inflate(12);
 
         for (Villager villager : level.getEntitiesOfClass(Villager.class, vicinity)) {
+            // Trading offers are rebuilt when the merchant screen opens.
+            // Apply reputation prices while the player is actually trading.
+            if (villager.getTradingPlayer() instanceof ServerPlayer customer) {
+                int customerScore = customer.getData(ReputationMod.REP);
+                int discount = customerScore >= 200 ? -12
+                    : customerScore >= 151 ? -8
+                    : customerScore >= 101 ? -4
+                    : customerScore <= -80 ? 12
+                    : customerScore <= 0 ? 6 : 0;
+                for (net.minecraft.world.item.trading.MerchantOffer offer : villager.getOffers()) {
+                    offer.resetSpecialPriceDiff();
+                    if (discount != 0) offer.addToSpecialPriceDiff(discount);
+                }
+                // Merchant menus synchronize offers when the player opens them;
+                // refresh the displayed offers when reputation discounts change.
+                if (customer.containerMenu instanceof net.minecraft.world.inventory.MerchantMenu menu) {
+                    menu.setOffers(villager.getOffers());
+                    customer.containerMenu.broadcastChanges();
+                }
+            }
+
             if (score <= 0) {
                 double dx = villager.getX() - player.getX();
                 double dz = villager.getZ() - player.getZ();
