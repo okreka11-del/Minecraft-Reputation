@@ -14,6 +14,8 @@ public final class ReputationBookScreen extends Screen {
     private static final int PAGE_COUNT = 6;
     private static final int[] RANKS = {-100,-80,-60,-20,0,100,120,140,160,180,200};
     private int page;
+    private Button previousButton;
+    private Button nextButton;
 
     public ReputationBookScreen(int score, int suspicion, String history) {
         super(Component.translatable("reputation.book.title"));
@@ -25,12 +27,32 @@ public final class ReputationBookScreen extends Screen {
     @Override
     protected void init() {
         int center = width / 2;
-        addRenderableWidget(Button.builder(Component.literal("<"), b -> page = Math.max(0, page - 1))
+        previousButton = addRenderableWidget(Button.builder(Component.literal("<"), b -> changePage(-1))
             .bounds(center - 110, height - 42, 44, 20).build());
-        addRenderableWidget(Button.builder(Component.literal(">"), b -> page = Math.min(PAGE_COUNT - 1, page + 1))
+        nextButton = addRenderableWidget(Button.builder(Component.literal(">"), b -> changePage(1))
             .bounds(center + 66, height - 42, 44, 20).build());
         addRenderableWidget(Button.builder(Component.translatable("gui.done"), b -> onClose())
             .bounds(center - 48, height - 42, 96, 20).build());
+        updateNavigation();
+    }
+
+    private void changePage(int offset) {
+        page = Math.max(0, Math.min(PAGE_COUNT - 1, page + offset));
+        updateNavigation();
+    }
+
+    private void updateNavigation() {
+        if (previousButton != null) previousButton.active = page > 0;
+        if (nextButton != null) nextButton.active = page < PAGE_COUNT - 1;
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (keyCode == 263 || keyCode == 262) {
+            changePage(keyCode == 263 ? -1 : 1);
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override
@@ -38,8 +60,10 @@ public final class ReputationBookScreen extends Screen {
         super.render(graphics, mouseX, mouseY, partialTick);
         int left = width / 2 - 126;
         int top = height / 2 - 98;
+        graphics.fill(left - 2, top - 2, left + 254, top + 178, 0xFF6B4D2B);
         graphics.fill(left, top, left + 252, top + 176, 0xF0181413);
         graphics.fill(left + 3, top + 3, left + 249, top + 6, 0xFFB99148);
+        graphics.fill(left + 125, top + 26, left + 127, top + 141, 0xFF40312A);
         graphics.drawCenteredString(font, title, width / 2, top + 12, 0xFFFFDA8A);
         if (page == 0) {
             line(graphics, "score", left, top + 36, score);
