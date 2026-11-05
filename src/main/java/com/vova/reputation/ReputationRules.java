@@ -86,15 +86,19 @@ public final class ReputationRules {
         LivingEntity victim = event.getEntity();
         if (!(victim instanceof ServerPlayer player)) return;
         int score = player.getData(ReputationMod.REP);
-        if ((score <= -80 && ReputationMod.factionStandings(player)[1] >= 0 && event.getSource().getEntity() instanceof Pillager)
-                || (score >= 151 && event.getSource().getEntity() instanceof Monster)
-                || (score == 200 && event.getSource().getEntity() instanceof EnderDragon)) {
+        // Light heroes attract monsters; being targeted must NOT grant immunity.
+        // Dark-aligned players can be spared by their allied pillagers only.
+        if (score <= -80 && ReputationMod.factionStandings(player)[1] >= 0
+                && event.getSource().getEntity() instanceof Pillager) {
             event.setCanceled(true);
             return;
         }
-        if (score <= -50 && (event.getSource().getEntity() instanceof Monster
-                || event.getSource().getEntity() instanceof IronGolem)) {
-            event.setAmount(event.getAmount() * 3.0f);
+        if (event.getSource().getEntity() instanceof Monster && score <= -40) {
+            // Infamous players are less vulnerable to ordinary hostile mobs.
+            event.setAmount(event.getAmount() * (score <= -80 ? 0.5f : 0.75f));
+        } else if (event.getSource().getEntity() instanceof IronGolem && score <= -50) {
+            // Golems still defend villages against villains.
+            event.setAmount(event.getAmount() * 1.5f);
         }
     }
 
