@@ -77,7 +77,7 @@ public final class ReputationSettlements {
     }
 
     private static Data data(ServerLevel level) {
-        return level.getDataStorage().computeIfAbsent(new SavedData.Factory<>(Data::new, Data::load), SAVE_ID);
+        return level.getDataStorage().computeIfAbsent(new SavedData.Factory<>(Data::new, Data::load, null), SAVE_ID);
     }
 
     private static Village closest(Data data, BlockPos position, int radius) {
