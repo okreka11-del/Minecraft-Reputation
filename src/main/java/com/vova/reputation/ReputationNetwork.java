@@ -2,6 +2,7 @@ package com.vova.reputation;
 
 import com.vova.reputation.client.ReputationHud;
 import com.vova.reputation.client.ReputationBookScreen;
+import com.vova.reputation.client.ReputationDialogueScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -51,6 +52,21 @@ public final class ReputationNetwork {
         @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
     }
 
+    public record DialogueOpen(int entityId, int score, String greeting) implements CustomPacketPayload {
+        public static final Type<DialogueOpen> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(ReputationMod.ID, "dialogue_open"));
+        public static final StreamCodec<FriendlyByteBuf, DialogueOpen> STREAM_CODEC =
+            StreamCodec.of((buf, p) -> {
+                buf.writeInt(p.entityId()); buf.writeInt(p.score()); buf.writeUtf(p.greeting(), 256);
+            }, buf -> new DialogueOpen(buf.readInt(), buf.readInt(), buf.readUtf(256)));
+        @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
+    }
+    public record DialogueAction(int entityId, int action) implements CustomPacketPayload {
+        public static final Type<DialogueAction> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(ReputationMod.ID, "dialogue_action"));
+        public static final StreamCodec<FriendlyByteBuf, DialogueAction> STREAM_CODEC =
+            StreamCodec.of((buf, p) -> { buf.writeInt(p.entityId()); buf.writeInt(p.action()); },
+                buf -> new DialogueAction(buf.readInt(), buf.readInt()));
+        @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
+    }
     @SubscribeEvent
     public static void register(RegisterPayloadHandlersEvent event) {
         var registrar = event.registrar("1");
@@ -58,11 +74,38 @@ public final class ReputationNetwork {
             (payload, context) -> context.enqueueWork(() -> {
                 if (context.player() instanceof ServerPlayer player) openBook(player);
             }));
+        registrar.playToClient(DialogueOpen.TYPE, DialogueOpen.STREAM_CODEC,
+            (payload, context) -> context.enqueueWork(() ->
+                Minecraft.getInstance().setScreen(new ReputationDialogueScreen(payload.entityId(), payload.score(), payload.greeting()))));
+        registrar.playToServer(DialogueAction.TYPE, DialogueAction.STREAM_CODEC,
+            (payload, context) -> context.enqueueWork(() -> {
+                if (!(context.player() instanceof ServerPlayer player) || payload.action() != 1) return;
+                var entity = player.serverLevel().getEntity(payload.entityId());
+                if (entity instanceof net.minecraft.world.entity.npc.Villager villager
+                        && player.distanceToSqr(villager) <= 64
+                        && player.getData(ReputationMod.REP) >= 0
+                        && ReputationMod.factionStandings(player)[0] > -40) {
+                    villager.startTrading(player);
+                    player.openTradingScreen(villager, villager.getDisplayName(), villager.getVillagerData().getLevel());
+                }
+            }));
         registrar.playToClient(ScoreSync.TYPE, ScoreSync.STREAM_CODEC,
             (payload, context) -> context.enqueueWork(() -> ReputationHud.updateScore(payload.score())));
         registrar.playToClient(BookSync.TYPE, BookSync.STREAM_CODEC,
             (payload, context) -> context.enqueueWork(() ->
                 Minecraft.getInstance().setScreen(new ReputationBookScreen(payload.score(), payload.suspicion(), payload.history(), payload.factions(), payload.settlement(), payload.hunterProgress(), payload.hunterCompleted()))));
+    }
+
+    public static void openDialogue(ServerPlayer player, net.minecraft.world.entity.npc.Villager villager) {
+        int score = player.getData(ReputationMod.REP);
+        int standing = ReputationMod.factionStandings(player)[0];
+        String greeting = score <= -80 ? "Прошу, пощади нас..."
+            : score < 0 || standing <= -40 ? "Я тебе не доверяю."
+            : score >= 200 ? "Герой Света! Добро пожаловать!"
+            : score >= 151 ? "Наш защитник вернулся!"
+            : score >= 100 ? "Рады видеть союзника!"
+            : "Приветствую, путник!";
+        PacketDistributor.sendToPlayer(player, new DialogueOpen(villager.getId(), score, greeting));
     }
 
     public static void openBook(ServerPlayer player) {
