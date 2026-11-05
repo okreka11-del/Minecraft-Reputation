@@ -174,7 +174,9 @@ public final class ReputationWorldEvents {
                 // Only idle monsters may acquire a hero through reputation AI.
                 if (monster.getTarget() == null)
                     monster.setTarget(player);
-                if (!(monster instanceof Creeper))
+                // Navigation must also respect existing targets; otherwise the mob
+                // abandons its current fight to path toward a different hero.
+                if (monster.getTarget() == player && !(monster instanceof Creeper))
                     monster.getNavigation().moveTo(player, score >= 200 ? 1.45 : 1.2);
             } else if (score <= -40) {
                 // Villains are less attractive targets even before full dark allegiance.
