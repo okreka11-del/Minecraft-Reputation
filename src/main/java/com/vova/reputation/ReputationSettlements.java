@@ -179,6 +179,7 @@ public final class ReputationSettlements {
         if (village.houseBuilt) {
             if (player.getUUID().equals(village.houseOwner) && !village.houseOwnerName.equals(player.getGameProfile().getName())) {
                 village.houseOwnerName = player.getGameProfile().getName();
+                // Older houses have no stored position, so do not guess a sign location.
                 saved.setDirty();
             }
             return;
