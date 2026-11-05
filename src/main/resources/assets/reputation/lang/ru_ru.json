@@ -115,5 +115,11 @@
   "reputation.book.help": "Справка",
   "reputation.book.help_book": "/reputation book — открыть книгу",
   "reputation.book.help_history": "/reputation history — история",
-  "reputation.book.help_score": "/reputation get — текущая репутация"
+  "reputation.book.help_score": "/reputation get — текущая репутация",
+  "reputation.faction.villagers": "Жители",
+  "reputation.faction.pillagers": "Разбойники",
+  "reputation.faction.animals": "Животные",
+  "reputation.faction.monsters": "Монстры",
+  "reputation.faction.golems": "Големы",
+  "reputation.faction.dragon": "Дракон"
 }
