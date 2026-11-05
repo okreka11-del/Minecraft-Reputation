@@ -44,6 +44,7 @@ public final class ReputationMod {
         NeoForge.EVENT_BUS.addListener(ReputationMod::onPlayerTick);
         ReputationRules.register();
         NeoForge.EVENT_BUS.addListener(ReputationWorldEvents::onPlayerTick);
+        NeoForge.EVENT_BUS.addListener(ReputationRewards::tick);
     }
 
     private static String rank(int score) {
@@ -78,6 +79,7 @@ public final class ReputationMod {
             long last = REWARD_COOLDOWN.getOrDefault(killer.getUUID(), Long.MIN_VALUE / 2);
             if (now - last >= 100) {
                 adjust(killer, 1, "defeated monster");
+                if (killer.getData(REP) >= 151) killer.giveExperiencePoints(3);
                 REWARD_COOLDOWN.put(killer.getUUID(), now);
             }
         }
