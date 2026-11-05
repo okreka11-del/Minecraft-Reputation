@@ -28,5 +28,11 @@
   "reputation.hero.donor.wither_skeleton": "wither skeleton",
   "reputation.hero.donor.piglin": "piglin",
   "reputation.hero.donor.horse": "horse",
-  "reputation.hero.donor.villager": "villager"
+  "reputation.hero.donor.villager": "villager",
+  "reputation.hero.discount": "The villager offers a reputation discount!",
+  "reputation.dragon.unworthy": "Dragon: You have not earned my trust.",
+  "reputation.dragon.absent": "The dragon is too far away.",
+  "reputation.dragon.hello": "Dragon: Greetings, hero. You came in peace, and so shall I.",
+  "reputation.dragon.how": "Dragon: Eternity is long, but I enjoy your company today.",
+  "reputation.dragon.portal": "Dragon: The way home is open. Return whenever you wish."
 }
