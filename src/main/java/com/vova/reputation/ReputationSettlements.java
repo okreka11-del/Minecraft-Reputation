@@ -121,8 +121,58 @@ public final class ReputationSettlements {
                 player.sendSystemMessage(Component.literal("Settlement registered. Its state will persist."));
                 return 1;
             }))
+            .then(Commands.literal("house").executes(ctx -> buildHouse(ctx.getSource().getPlayerOrException())))
             .then(Commands.literal("capture").executes(ctx -> change(ctx.getSource().getPlayerOrException(), true)))
             .then(Commands.literal("liberate").executes(ctx -> change(ctx.getSource().getPlayerOrException(), false))));
+    }
+
+
+    /** Build a compact 7x7 cottage only in a completely unobstructed, loaded area. */
+    private static int buildHouse(ServerPlayer player) {
+        ServerLevel level = player.serverLevel();
+        Data saved = data(level);
+        Village village = closest(saved, player.blockPosition(), 96);
+        if (village == null) {
+            player.sendSystemMessage(Component.literal("Register a settlement first: /settlement register"));
+            return 0;
+        }
+        if (player.getData(ReputationMod.REP) < 0) {
+            player.sendSystemMessage(Component.literal("Villagers will not build for a hostile player."));
+            return 0;
+        }
+        BlockPos base = player.blockPosition().offset(9, 0, 0);
+        // Require a level, clear footprint; never destroy blocks, containers or structures.
+        for (int x = -3; x <= 3; x++) for (int z = -3; z <= 3; z++) {
+            BlockPos column = base.offset(x, 0, z);
+            if (!level.hasChunkAt(column) || !level.getBlockState(column.below()).isSolidRender(level, column.below())) {
+                player.sendSystemMessage(Component.literal("House requires flat solid ground and loaded chunks."));
+                return 0;
+            }
+            for (int y = 0; y <= 5; y++) {
+                if (!level.getBlockState(column.above(y)).isAir()) {
+                    player.sendSystemMessage(Component.literal("House site is obstructed. Move to a clear 7x7 area."));
+                    return 0;
+                }
+            }
+        }
+        for (int x = -3; x <= 3; x++) for (int z = -3; z <= 3; z++) {
+            BlockPos floor = base.offset(x, 0, z);
+            level.setBlockAndUpdate(floor, Blocks.OAK_PLANKS.defaultBlockState());
+            boolean wall = Math.abs(x) == 3 || Math.abs(z) == 3;
+            for (int y = 1; y <= 3; y++) {
+                if (!wall) continue;
+                boolean doorway = x == 0 && z == -3 && y <= 2;
+                boolean window = y == 2 && ((Math.abs(x) == 3 && z == 0) || (Math.abs(z) == 3 && x == 0));
+                if (!doorway) level.setBlockAndUpdate(floor.above(y),
+                    window ? Blocks.GLASS_PANE.defaultBlockState() : Blocks.OAK_PLANKS.defaultBlockState());
+            }
+            level.setBlockAndUpdate(floor.above(4), Blocks.SPRUCE_PLANKS.defaultBlockState());
+        }
+        level.setBlockAndUpdate(base.offset(0, 1, 1), Blocks.CRAFTING_TABLE.defaultBlockState());
+        level.setBlockAndUpdate(base.offset(1, 1, 1), Blocks.CHEST.defaultBlockState());
+        level.setBlockAndUpdate(base.offset(-1, 1, 1), Blocks.RED_BED.defaultBlockState());
+        player.sendSystemMessage(Component.literal("Village cottage built at " + base.toShortString()));
+        return 1;
     }
 
     private static int change(ServerPlayer player, boolean capture) {
