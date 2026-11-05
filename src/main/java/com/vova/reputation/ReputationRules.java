@@ -40,7 +40,7 @@ public final class ReputationRules {
         LivingEntity victim = event.getEntity();
         if (!(victim instanceof ServerPlayer player)) return;
         int score = player.getData(ReputationMod.REP);
-        if (score >= 151 && event.getSource().getEntity() instanceof Pillager) {
+        if (score <= -80 && event.getSource().getEntity() instanceof Pillager) {
             event.setCanceled(true);
             return;
         }
