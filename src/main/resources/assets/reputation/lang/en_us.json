@@ -96,5 +96,13 @@
   "reputation.rank.good_ally": "Good Ally",
   "reputation.rank.best_ally": "Best Ally",
   "reputation.rank.hero_of_light": "Hero of Light",
-  "reputation.hud.ranks": "Reputation ranks  •  −100 ... +200"
+  "reputation.hud.ranks": "Reputation ranks  •  −100 ... +200",
+  "reputation.book.title": "Reputation Journal",
+  "reputation.book.score": "Score: %s",
+  "reputation.book.range": "Range: -100 to +200",
+  "reputation.book.actions": "Recent actions",
+  "reputation.book.empty": "No recorded changes",
+  "reputation.book.future": "Future chapters",
+  "reputation.book.chapters": "Factions, quests and settlements",
+  "reputation.book.unfinished": "Not yet implemented"
 }
