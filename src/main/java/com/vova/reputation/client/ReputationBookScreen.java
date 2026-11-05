@@ -11,7 +11,8 @@ public final class ReputationBookScreen extends Screen {
     private final int score;
     private final String history;
     private final int suspicion;
-    private static final int PAGE_COUNT = 7;
+    private final int historyPages;
+    private final int pageCount;
     private static final int[] RANKS = {-100,-80,-60,-20,0,100,120,140,160,180,200};
     private int page;
     private Button previousButton;
@@ -21,6 +22,8 @@ public final class ReputationBookScreen extends Screen {
         super(Component.translatable("reputation.book.title"));
         this.score = Math.max(-100, Math.min(200, score));
         this.history = history == null ? "" : history;
+        this.historyPages = this.history.split("\\n").length > 8 ? 2 : 1;
+        this.pageCount = 5 + historyPages;
         this.suspicion = suspicion;
     }
 
@@ -38,13 +41,13 @@ public final class ReputationBookScreen extends Screen {
     }
 
     private void changePage(int offset) {
-        page = Math.max(0, Math.min(PAGE_COUNT - 1, page + offset));
+        page = Math.max(0, Math.min(pageCount - 1, page + offset));
         updateNavigation();
     }
 
     private void updateNavigation() {
         if (previousButton != null) previousButton.active = page > 0;
-        if (nextButton != null) nextButton.active = page < PAGE_COUNT - 1;
+        if (nextButton != null) nextButton.active = page < pageCount - 1;
     }
 
     @Override
@@ -73,7 +76,7 @@ public final class ReputationBookScreen extends Screen {
             graphics.fill(left + 16, top + 94, left + 16 + filled, top + 105,
                 score < 0 ? 0xFFB4485A : 0xFFE0BB55);
             graphics.drawString(font, Component.translatable("reputation.book.range"), left + 16, top + 114, 0xFFAAAAAA);
-        } else if (page == 1 || page == 2) {
+        } else if (page >= 1 && page <= historyPages) {
             heading(graphics, "actions", left, top);
             if (history.isEmpty()) {
                 line(graphics, "empty", left, top + 53);
@@ -92,7 +95,7 @@ public final class ReputationBookScreen extends Screen {
                     graphics.drawString(font, label, left + 16, top + 49 + (i - start) * 13, 0xFFE4D6BB);
                 }
             }
-        } else if (page == 3) {
+        } else if (page == historyPages + 1) {
             heading(graphics, "ranks", left, top);
             for (int i = 0; i < RANKS.length; i++) {
                 int y = top + 49 + i * 9;
@@ -102,10 +105,10 @@ public final class ReputationBookScreen extends Screen {
                 graphics.drawString(font, label, left + 16, y,
                     key.equals(ReputationMod.rank(score)) ? 0xFFFFD46B : 0xFFD5C9B5);
             }
-        } else if (page == 4) {
+        } else if (page == historyPages + 2) {
             heading(graphics, "factions", left, top);
             line(graphics, "factions_pending", left, top + 57);
-        } else if (page == 5) {
+        } else if (page == historyPages + 3) {
             heading(graphics, "quests", left, top);
             line(graphics, "quests_pending", left, top + 57);
             line(graphics, "settlements_pending", left, top + 79);
@@ -115,7 +118,7 @@ public final class ReputationBookScreen extends Screen {
             line(graphics, "help_history", left, top + 76);
             line(graphics, "help_score", left, top + 98);
         }
-        graphics.drawCenteredString(font, (page + 1) + " / " + PAGE_COUNT, width / 2, top + 151, 0xFFB99148);
+        graphics.drawCenteredString(font, (page + 1) + " / " + pageCount, width / 2, top + 151, 0xFFB99148);
         // Render interactive buttons last so the parchment panel cannot cover them.
         super.render(graphics, mouseX, mouseY, partialTick);
     }
