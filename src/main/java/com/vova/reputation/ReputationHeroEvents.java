@@ -36,7 +36,7 @@ public final class ReputationHeroEvents {
         if (reputation < 151) return;
 
         for (Animal animal : level.getEntitiesOfClass(Animal.class, player.getBoundingBox().inflate(10))) {
-            if (animal.distanceToSqr(player) > 9 && animal.getNavigation().isDone()) {
+            if (animal.distanceToSqr(player) > 9) {
                 animal.getNavigation().moveTo(player, 1.0);
             }
         }
