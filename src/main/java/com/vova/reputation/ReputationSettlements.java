@@ -303,6 +303,22 @@ public final class ReputationSettlements {
                     level.setBlockAndUpdate(base, Blocks.OAK_FENCE.defaultBlockState());
                     level.setBlockAndUpdate(base.above(), Blocks.LANTERN.defaultBlockState());
                 }
+                case 4 -> {
+                    level.setBlockAndUpdate(base, Blocks.COBBLESTONE.defaultBlockState());
+                    level.setBlockAndUpdate(base.above(), Blocks.POTTED_POPPY.defaultBlockState());
+                }
+                case 5 -> {
+                    level.setBlockAndUpdate(base, Blocks.BARREL.defaultBlockState());
+                    level.setBlockAndUpdate(base.above(), Blocks.POTTED_FERN.defaultBlockState());
+                }
+                case 6 -> {
+                    level.setBlockAndUpdate(base, Blocks.OAK_LOG.defaultBlockState());
+                    level.setBlockAndUpdate(base.above(), Blocks.BEE_NEST.defaultBlockState());
+                }
+                case 7 -> {
+                    level.setBlockAndUpdate(base, Blocks.STONE_BRICKS.defaultBlockState());
+                    level.setBlockAndUpdate(base.above(), Blocks.POTTED_DANDELION.defaultBlockState());
+                }
                 default -> {
                     level.setBlockAndUpdate(base, Blocks.MOSSY_COBBLESTONE.defaultBlockState());
                     level.setBlockAndUpdate(base.above(), Blocks.OAK_FENCE.defaultBlockState());
@@ -355,7 +371,7 @@ public final class ReputationSettlements {
             welcomeHouse(level, player, data);
         }
         for (Village village : data.villages) {
-            if (village.houseBuilt && village.decorationsBuilt < 4
+            if (village.houseBuilt && village.decorationsBuilt < 8
                     && level.getGameTime() >= village.nextBuild
                     && placeDecoration(level, village)) {
                 village.decorationsBuilt++;
