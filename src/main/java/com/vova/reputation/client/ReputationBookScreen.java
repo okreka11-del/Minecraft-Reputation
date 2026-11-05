@@ -121,7 +121,7 @@ public final class ReputationBookScreen extends Screen {
     }
 
     @Override public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        renderBackground(g, mouseX, mouseY, partialTick);
+        g.fill(0, 0, width, height, 0xB0100B10);
         geometry();
         g.pose().pushPose();
         g.pose().translate(ox, oy, 0);
