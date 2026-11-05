@@ -3,9 +3,9 @@ loaderVersion="[4,)"
 license="MIT"
 [[mods]]
 modId="reputation"
-version="${file.jarVersion}"
+version="0.2.0-alpha"
 displayName="Minecraft Reputation"
-description='''Personal reputation system (early alpha).'''
+description='''Personal reputation system with mob reactions (alpha).'''
 [[dependencies.reputation]]
 modId="neoforge"
 type="required"
