@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "WWW",
+    "MTM",
+    " W "
+  ],
+  "key": {
+    "W": {
+      "item": "minecraft:oak_planks"
+    },
+    "M": {
+      "item": "minecraft:paper"
+    },
+    "T": {
+      "item": "minecraft:blue_wool"
+    }
+  },
+  "result": {
+    "id": "reputation:diplomat_table",
+    "count": 1
+  }
+}
