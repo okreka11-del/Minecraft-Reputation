@@ -19,5 +19,6 @@
   "reputation.reason.killed_animal": "убийство животного",
   "reputation.reason.defeated_monster": "победа над монстром",
   "reputation.reason.damaged_village": "разрушение в деревне",
-  "reputation.reason.admin": "команда администратора"
+  "reputation.reason.admin": "команда администратора",
+  "reputation.message.gift": "Ты получил подарок за хорошую репутацию!"
 }
