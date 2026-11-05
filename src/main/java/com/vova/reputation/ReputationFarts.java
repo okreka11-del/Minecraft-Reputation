@@ -17,6 +17,7 @@ public final class ReputationFarts {
         long previous = LAST.getOrDefault(player.getUUID(), -1000L);
         if (now - previous < 30) return;
         LAST.put(player.getUUID(), now);
+        ReputationMod.adjust(player, -1, "farted");
         player.serverLevel().playSound(null, player.getX(), player.getY(), player.getZ(),
             SoundEvents.PANDA_SNEEZE, SoundSource.PLAYERS, 1.0f, 0.55f);
         player.serverLevel().sendParticles(ParticleTypes.CLOUD,
