@@ -60,6 +60,7 @@ public final class ReputationMod {
         int after = Math.max(-100, Math.min(200, before + delta));
         if (before == after) return;
         player.setData(REP, after);
+        ReputationNetwork.sync(player);
         player.sendSystemMessage(Component.translatable("reputation.message.change", (after > before ? "+" : "") + (after - before), Component.translatable("reputation.reason." + reason.replace(" ", "_")), after, Component.translatable(rank(after))), true);
     }
 
@@ -85,7 +86,8 @@ public final class ReputationMod {
     private static void onPlayerTick(PlayerTickEvent.Post event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         long time = player.level().getGameTime();
-        if (time % 40 != 0) return;
+        if (time % 20 != 0) return;
+        ReputationNetwork.sync(player);
         int score = player.getData(REP);
 
 
@@ -107,6 +109,7 @@ public final class ReputationMod {
                     var player = ctx.getSource().getPlayerOrException();
                     int value = IntegerArgumentType.getInteger(ctx, "value");
                     player.setData(REP, value);
+                    ReputationNetwork.sync(player);
                     player.sendSystemMessage(Component.translatable("reputation.message.set", value));
                     return value;
                 })))
