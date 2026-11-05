@@ -44,7 +44,7 @@ public final class ReputationMod {
         NeoForge.EVENT_BUS.addListener(ReputationMod::onPlayerTick);
         ReputationRules.register();
         NeoForge.EVENT_BUS.addListener(ReputationWorldEvents::onPlayerTick);
-        NeoForge.EVENT_BUS.addListener(ReputationRewards::tick);
+        NeoForge.EVENT_BUS.addListener(ReputationHeroEvents::tick);
     }
 
     private static String rank(int score) {
