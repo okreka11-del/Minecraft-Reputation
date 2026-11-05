@@ -172,7 +172,7 @@ public final class ReputationSettlements {
         for (int[] offset : offsets) {
             BlockPos site = village.center.offset(offset[0], 0, offset[1]);
             BlockPos base = level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, site);
-            if (placeCottage(level, base)) {
+            if (Math.abs(base.getY() - village.center.getY()) <= 6 && placeCottage(level, base)) {
                 village.houseBuilt = true;
                 saved.setDirty();
                 player.sendSystemMessage(Component.literal("A welcome cottage has appeared in the village!"));
@@ -211,7 +211,7 @@ public final class ReputationSettlements {
     private static boolean placeVillageStructure(ServerLevel level, Village village) {
         if (village.structuresBuilt >= 6) return false;
         int kind = village.structuresBuilt;
-        int[][] offsets = {{21,0},{-21,0},{0,21},{0,-21},{23,13},{-23,-13},{38,8},{-38,8},{8,38},{8,-38},{-38,-18},{38,-18}};
+        int[][] offsets = {{21,0},{-21,0},{0,21},{0,-21},{23,13},{-23,-13},{38,8},{-38,8},{8,38},{8,-38},{-38,-18},{38,-18},{28,24},{-28,24},{24,-28},{-24,-28}};
         for (int[] offset : offsets) {
             BlockPos base = level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 village.center.offset(offset[0], 0, offset[1]));
@@ -371,6 +371,8 @@ public final class ReputationSettlements {
             welcomeHouse(level, player, data);
         }
         for (Village village : data.villages) {
+            // Independent construction timer: legacy stage progression must not prevent buildings.
+            if (village.stage < 3) { village.stage = 3; data.setDirty(); }
             if (village.houseBuilt && village.decorationsBuilt < 8
                     && level.getGameTime() >= village.nextBuild
                     && placeDecoration(level, village)) {
