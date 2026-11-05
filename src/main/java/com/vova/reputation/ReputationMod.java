@@ -103,6 +103,7 @@ public final class ReputationMod {
         ReputationSettlements.register();
         ReputationSpecialists.register();
         NeoForge.EVENT_BUS.addListener(ReputationWorldEvents::onPlayerTick);
+        NeoForge.EVENT_BUS.addListener(ReputationVillageEffects::tick);
         NeoForge.EVENT_BUS.addListener(ReputationHeroEvents::tick);
     }
 
@@ -134,7 +135,16 @@ public final class ReputationMod {
         }
         player.setData(HISTORY, history.toString());
         ReputationNetwork.sync(player);
+        grantMilestone(player, after);
         player.sendSystemMessage(Component.translatable("reputation.message.change", (after > before ? "+" : "") + (after - before), Component.translatable("reputation.reason." + reason.replace(" ", "_")), after, Component.translatable(rank(after))), true);
+    }
+
+    private static void grantMilestone(ServerPlayer player, int score) {
+        String id = score >= 200 ? "hero_of_light" : score <= -100 ? "lord_of_darkness" : null;
+        if (id == null) return;
+        var advancement = player.server.getAdvancements().get(
+            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(ID, id));
+        if (advancement != null) player.getAdvancements().award(advancement, "reached");
     }
 
     private static void onDeath(LivingDeathEvent event) {
@@ -176,8 +186,7 @@ public final class ReputationMod {
         if (time % 20 != 0) return;
         ReputationNetwork.sync(player);
         int score = player.getData(REP);
-
-
+        if (score == 200 || score == -100) grantMilestone(player, score);
     }
 
     private static void commands(RegisterCommandsEvent event) {
@@ -247,6 +256,7 @@ public final class ReputationMod {
                     int value = IntegerArgumentType.getInteger(ctx, "value");
                     player.setData(REP, value);
                     ReputationNetwork.sync(player);
+                    grantMilestone(player, value);
                     player.sendSystemMessage(Component.translatable("reputation.message.set", value));
                     return value;
                 })))
