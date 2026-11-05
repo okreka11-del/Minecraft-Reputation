@@ -80,16 +80,18 @@ public final class ReputationWorldEvents {
 
         // High reputation discourages hostile targeting, low reputation attracts it.
         for (Monster monster : level.getEntitiesOfClass(Monster.class, player.getBoundingBox().inflate(18))) {
-            if (score >= 151 && monster.getTarget() == player) {
+            if (score <= -80 && monster instanceof Pillager && monster.getTarget() == player) {
                 monster.setTarget(null);
-            } else if (score <= -50 && (monster.getTarget() == null
+            } else if (score >= 151 && !(monster instanceof Pillager) && monster.getTarget() == player) {
+                monster.setTarget(null);
+            } else if (score <= -50 && !(monster instanceof Pillager) && (monster.getTarget() == null
                     || (monster.getTarget() instanceof ServerPlayer target
                         && target.getData(ReputationMod.REP) > score))) {
                 monster.setTarget(player);
             }
         }
         // Pillagers become allies of renowned players and target hostile monsters.
-        if (score >= 151) {
+        if (score <= -80) {
             for (Pillager pillager : level.getEntitiesOfClass(Pillager.class, vicinity)) {
                 if (pillager.getTarget() == player) pillager.setTarget(null);
                 if (pillager.getTarget() == null) {
