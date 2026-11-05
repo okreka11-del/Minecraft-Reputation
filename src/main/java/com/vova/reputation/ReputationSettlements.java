@@ -41,6 +41,7 @@ public final class ReputationSettlements {
         public boolean occupied;
         public int stage;
         public long nextBuild;
+        public boolean houseBuilt;
         public Village(BlockPos center, boolean occupied, int stage, long nextBuild) {
             this.center = center; this.occupied = occupied;
             this.stage = stage; this.nextBuild = nextBuild;
@@ -54,8 +55,10 @@ public final class ReputationSettlements {
             ListTag list = tag.getList("Villages", Tag.TAG_COMPOUND);
             for (int i = 0; i < list.size(); i++) {
                 CompoundTag v = list.getCompound(i);
-                data.villages.add(new Village(new BlockPos(v.getInt("X"), v.getInt("Y"), v.getInt("Z")),
-                    v.getBoolean("Occupied"), v.getInt("Stage"), v.getLong("NextBuild")));
+                Village village = new Village(new BlockPos(v.getInt("X"), v.getInt("Y"), v.getInt("Z")),
+                    v.getBoolean("Occupied"), v.getInt("Stage"), v.getLong("NextBuild"));
+                village.houseBuilt = v.getBoolean("HouseBuilt");
+                data.villages.add(village);
             }
             return data;
         }
@@ -69,6 +72,7 @@ public final class ReputationSettlements {
                 entry.putBoolean("Occupied", v.occupied);
                 entry.putInt("Stage", v.stage);
                 entry.putLong("NextBuild", v.nextBuild);
+                entry.putBoolean("HouseBuilt", v.houseBuilt);
                 list.add(entry);
             }
             tag.put("Villages", list);
@@ -121,39 +125,43 @@ public final class ReputationSettlements {
                 player.sendSystemMessage(Component.literal("Settlement registered. Its state will persist."));
                 return 1;
             }))
-            .then(Commands.literal("house").executes(ctx -> buildHouse(ctx.getSource().getPlayerOrException())))
             .then(Commands.literal("capture").executes(ctx -> change(ctx.getSource().getPlayerOrException(), true)))
             .then(Commands.literal("liberate").executes(ctx -> change(ctx.getSource().getPlayerOrException(), false))));
     }
 
 
-    /** Build a compact 7x7 cottage only in a completely unobstructed, loaded area. */
-    private static int buildHouse(ServerPlayer player) {
-        ServerLevel level = player.serverLevel();
-        Data saved = data(level);
-        Village village = closest(saved, player.blockPosition(), 96);
+    /** A one-time village welcome cottage. Triggered by entering a populated village. */
+    private static void welcomeHouse(ServerLevel level, ServerPlayer player, Data saved) {
+        Village village = closest(saved, player.blockPosition(), 48);
         if (village == null) {
-            player.sendSystemMessage(Component.literal("Register a settlement first: /settlement register"));
-            return 0;
+            if (saved.villages.size() >= MAX_VILLAGES) return;
+            if (level.getEntitiesOfClass(Villager.class, player.getBoundingBox().inflate(28)).size() < 2) return;
+            village = new Village(player.blockPosition(), false, 0, level.getGameTime());
+            saved.villages.add(village);
+            saved.setDirty();
         }
-        if (player.getData(ReputationMod.REP) < 0) {
-            player.sendSystemMessage(Component.literal("Villagers will not build for a hostile player."));
-            return 0;
+        if (village.houseBuilt || village.occupied) return;
+        if (player.getData(ReputationMod.REP) < 0) return;
+        // Try nearby positions rather than replacing any existing terrain or buildings.
+        int[][] offsets = {{10,0},{-10,0},{0,10},{0,-10},{14,8},{-14,-8},{8,-14},{-8,14}};
+        for (int[] offset : offsets) {
+            BlockPos site = village.center.offset(offset[0], 0, offset[1]);
+            BlockPos base = level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, site);
+            if (placeCottage(level, base)) {
+                village.houseBuilt = true;
+                saved.setDirty();
+                player.sendSystemMessage(Component.literal("A welcome cottage has appeared in the village!"));
+                return;
+            }
         }
-        BlockPos base = player.blockPosition().offset(9, 0, 0);
-        // Require a level, clear footprint; never destroy blocks, containers or structures.
+    }
+
+    private static boolean placeCottage(ServerLevel level, BlockPos base) {
+        // Validate every block before placing anything; no overwrites.
         for (int x = -3; x <= 3; x++) for (int z = -3; z <= 3; z++) {
             BlockPos column = base.offset(x, 0, z);
-            if (!level.hasChunkAt(column) || !level.getBlockState(column.below()).isSolidRender(level, column.below())) {
-                player.sendSystemMessage(Component.literal("House requires flat solid ground and loaded chunks."));
-                return 0;
-            }
-            for (int y = 0; y <= 5; y++) {
-                if (!level.getBlockState(column.above(y)).isAir()) {
-                    player.sendSystemMessage(Component.literal("House site is obstructed. Move to a clear 7x7 area."));
-                    return 0;
-                }
-            }
+            if (!level.hasChunkAt(column) || !level.getBlockState(column.below()).isSolidRender(level, column.below())) return false;
+            for (int y = 0; y <= 5; y++) if (!level.getBlockState(column.above(y)).isAir()) return false;
         }
         for (int x = -3; x <= 3; x++) for (int z = -3; z <= 3; z++) {
             BlockPos floor = base.offset(x, 0, z);
@@ -171,8 +179,7 @@ public final class ReputationSettlements {
         level.setBlockAndUpdate(base.offset(0, 1, 1), Blocks.CRAFTING_TABLE.defaultBlockState());
         level.setBlockAndUpdate(base.offset(1, 1, 1), Blocks.CHEST.defaultBlockState());
         level.setBlockAndUpdate(base.offset(-1, 1, 1), Blocks.RED_BED.defaultBlockState());
-        player.sendSystemMessage(Component.literal("Village cottage built at " + base.toShortString()));
-        return 1;
+        return true;
     }
 
     private static int change(ServerPlayer player, boolean capture) {
@@ -211,6 +218,10 @@ public final class ReputationSettlements {
         if (!(event.getLevel() instanceof ServerLevel level)) return;
         if (level.getGameTime() % 200 != 0) return;
         Data data = data(level);
+        // Run the entry detector at most once per 200 ticks per player.
+        for (ServerPlayer player : level.players()) {
+            if ((level.getGameTime() + player.getId()) % 200 == 0) welcomeHouse(level, player, data);
+        }
         for (Village village : data.villages) {
             if (village.stage >= 3 || level.getGameTime() < village.nextBuild
                 || !level.hasChunkAt(village.center)) continue;
