@@ -42,6 +42,7 @@ public final class ReputationSettlements {
         public int stage;
         public long nextBuild;
         public boolean houseBuilt;
+        public int structuresBuilt;
         public Village(BlockPos center, boolean occupied, int stage, long nextBuild) {
             this.center = center; this.occupied = occupied;
             this.stage = stage; this.nextBuild = nextBuild;
@@ -58,6 +59,7 @@ public final class ReputationSettlements {
                 Village village = new Village(new BlockPos(v.getInt("X"), v.getInt("Y"), v.getInt("Z")),
                     v.getBoolean("Occupied"), v.getInt("Stage"), v.getLong("NextBuild"));
                 village.houseBuilt = v.getBoolean("HouseBuilt");
+                village.structuresBuilt = v.getInt("StructuresBuilt");
                 data.villages.add(village);
             }
             return data;
@@ -73,6 +75,7 @@ public final class ReputationSettlements {
                 entry.putInt("Stage", v.stage);
                 entry.putLong("NextBuild", v.nextBuild);
                 entry.putBoolean("HouseBuilt", v.houseBuilt);
+                entry.putInt("StructuresBuilt", v.structuresBuilt);
                 list.add(entry);
             }
             tag.put("Villages", list);
@@ -89,6 +92,17 @@ public final class ReputationSettlements {
         Village village = closest(data(player.serverLevel()), player.blockPosition(), 96);
         if (village == null) return "none";
         return (village.occupied ? "occupied" : "free") + ":" + village.stage;
+    }
+
+    public static void sendOverview(ServerPlayer player) {
+        ServerLevel level = player.serverLevel();
+        Village village = closest(data(level), player.blockPosition(), 96);
+        int villagers = level.getEntitiesOfClass(Villager.class, player.getBoundingBox().inflate(48)).size();
+        ReputationNetwork.sendVillage(player,
+            village == null ? "Нет поселения поблизости" : village.occupied ? "Захвачена" : "Свободна",
+            village == null ? 0 : village.stage,
+            village == null ? 0 : village.structuresBuilt + (village.houseBuilt ? 1 : 0),
+            villagers);
     }
 
     private static Village closest(Data data, BlockPos position, int radius) {
@@ -140,8 +154,9 @@ public final class ReputationSettlements {
             saved.villages.add(village);
             saved.setDirty();
         }
-        if (village.houseBuilt || village.occupied) return;
+        if (village.occupied) return;
         if (player.getData(ReputationMod.REP) < 0) return;
+        if (village.houseBuilt) return;
         // Try nearby positions rather than replacing any existing terrain or buildings.
         int[][] offsets = {{10,0},{-10,0},{0,10},{0,-10},{14,8},{-14,-8},{8,-14},{-8,14}};
         for (int[] offset : offsets) {
@@ -179,6 +194,52 @@ public final class ReputationSettlements {
         level.setBlockAndUpdate(base.offset(0, 1, 1), Blocks.CRAFTING_TABLE.defaultBlockState());
         level.setBlockAndUpdate(base.offset(1, 1, 1), Blocks.CHEST.defaultBlockState());
         level.setBlockAndUpdate(base.offset(-1, 1, 1), Blocks.RED_BED.defaultBlockState());
+        return true;
+    }
+
+    /** One additional structure per visit stage, with a strict clear-footprint check. */
+    private static boolean placeVillageStructure(ServerLevel level, Village village) {
+        if (village.structuresBuilt >= 3) return false;
+        int kind = village.structuresBuilt;
+        int[][] offsets = {{21,0},{-21,0},{0,21},{0,-21},{23,13},{-23,-13}};
+        for (int[] offset : offsets) {
+            BlockPos base = level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                village.center.offset(offset[0], 0, offset[1]));
+            if (!clearSite(level, base, 2, 5)) continue;
+            // Market stall, watch post and supply depot; all are non-destructive.
+            for (int x = -2; x <= 2; x++) for (int z = -2; z <= 2; z++) {
+                BlockPos pos = base.offset(x, 0, z);
+                level.setBlockAndUpdate(pos, kind == 2 ? Blocks.SPRUCE_PLANKS.defaultBlockState()
+                    : Blocks.OAK_PLANKS.defaultBlockState());
+                if (Math.abs(x) == 2 && Math.abs(z) == 2) {
+                    for (int y = 1; y <= (kind == 1 ? 4 : 3); y++)
+                        level.setBlockAndUpdate(pos.above(y), Blocks.OAK_FENCE.defaultBlockState());
+                }
+                if (kind != 2 && (Math.abs(x) == 2 || Math.abs(z) == 2))
+                    level.setBlockAndUpdate(pos.above(kind == 1 ? 5 : 4),
+                        kind == 1 ? Blocks.SPRUCE_SLAB.defaultBlockState() : Blocks.RED_WOOL.defaultBlockState());
+            }
+            if (kind == 0) {
+                level.setBlockAndUpdate(base.above(), Blocks.BARREL.defaultBlockState());
+                level.setBlockAndUpdate(base.offset(1,1,0), Blocks.CRAFTING_TABLE.defaultBlockState());
+            } else if (kind == 1) {
+                level.setBlockAndUpdate(base.above(), Blocks.LADDER.defaultBlockState()
+                    .setValue(net.minecraft.world.level.block.LadderBlock.FACING, net.minecraft.core.Direction.NORTH));
+            } else {
+                level.setBlockAndUpdate(base.above(), Blocks.CHEST.defaultBlockState());
+                level.setBlockAndUpdate(base.offset(1,1,0), Blocks.BARREL.defaultBlockState());
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean clearSite(ServerLevel level, BlockPos base, int radius, int height) {
+        for (int x = -radius; x <= radius; x++) for (int z = -radius; z <= radius; z++) {
+            BlockPos p = base.offset(x, 0, z);
+            if (!level.hasChunkAt(p) || !level.getBlockState(p.below()).isSolidRender(level, p.below())) return false;
+            for (int y = 0; y <= height; y++) if (!level.getBlockState(p.above(y)).isAir()) return false;
+        }
         return true;
     }
 
@@ -223,6 +284,13 @@ public final class ReputationSettlements {
             welcomeHouse(level, player, data);
         }
         for (Village village : data.villages) {
+            if (village.houseBuilt && village.structuresBuilt < 3
+                    && level.getGameTime() >= village.nextBuild && level.hasChunkAt(village.center)
+                    && placeVillageStructure(level, village)) {
+                village.structuresBuilt++;
+                village.nextBuild = level.getGameTime() + 12000;
+                data.setDirty();
+            }
             if (village.stage >= 3 || level.getGameTime() < village.nextBuild
                 || !level.hasChunkAt(village.center)) continue;
             int placed = buildStage(level, village);
