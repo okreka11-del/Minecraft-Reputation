@@ -34,3 +34,23 @@ Minecraft Java 1.21.1, NeoForge, Java 21.
 3. Set reputation to 200 and test pillager hostility, animal hearts, villager happiness and breaking village blocks.
 4. Check upper-left HUD in singleplayer and multiplayer, and whether it updates after `/reputation set`.
 5. Report any build errors or unexpected AI behavior with screenshots/logs.
+
+
+## Settlement prototype (November 2026)
+
+This branch includes a **server-side prototype**, not a finished village overhaul.
+
+* An operator standing near villagers registers a settlement with `/settlement register` (requires permission level 2). Registered settlement centres, faction ownership and build stages persist through `SavedData` in the dimension.
+* `/settlement status` displays the closest registered settlement within 96 blocks.
+* At reputation **−80 or lower**, `/settlement capture` starts occupation when at least three pillagers are nearby. At reputation **+151 or higher**, `/settlement liberate` starts liberation once nearby pillagers are defeated. **These are early test conditions, not a finished raid/victory detector.**
+* Every Minecraft day, the settlement attempts one non-destructive stage of small fence/lookout decorations (up to three stages). Existing blocks are **never replaced**. This is deliberately **not yet** a full fortress conversion, automatic world generation or building restoration.
+* Operator commands `/specialist guard`, `/specialist builder`, `/specialist armorer` assign persistent roles to the nearest villager (first two) or pillager (last) within six blocks. Guards rally nearby iron golems when pillagers attack; builders repair injured golems once per day; pillager armorers periodically grant nearby pillagers brief Resistance I. These are **functional behaviors**, but do not yet include unique models, workstations, housing, schedules, profession registration, or trading.
+* The prototype avoids scanning all entities in the world: specialist work only runs around active players. Decoration placement checks loaded chunks, solid ground and empty space.
+
+### Verification status
+
+Code changes are committed to GitHub. A full NeoForge Gradle build and Minecraft runtime test **have not been verified** in the current environment. The GitHub Actions workflow attempts a Java 21 Gradle build on pushes; check its latest result before treating a downloadable artifact as a working JAR. No independent Minecraft client/server smoke test has been completed.
+
+### Planned next stage
+
+Register real professions and job-site blocks with textures and loot tables; integrate generated structures into village world generation; make occupation depend on actual raid victory and village state; persist builder tasks; add protected player-owned building regions, NPC pathfinding and proper trading screens; test multiplayer and dimension loading.
