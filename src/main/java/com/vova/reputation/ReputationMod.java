@@ -193,10 +193,10 @@ public final class ReputationMod {
                 killer.setData(REWARD_COUNT, killer.getData(REWARD_COUNT) + 1);
                 adjust(killer, 1, "defeated monster");
                 adjustFaction(killer, 3, -1);
-                advanceHunterQuest(killer);
                 if (killer.getData(REP) >= 151) killer.giveExperiencePoints(1);
-
             }
+            // Daily reward limit must never block progression of the one-time hunter quest.
+            advanceHunterQuest(killer);
         }
     }
 
