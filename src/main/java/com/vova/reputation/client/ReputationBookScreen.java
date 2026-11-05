@@ -30,7 +30,7 @@ public final class ReputationBookScreen extends Screen {
             try { factions[i] = Math.max(-100, Math.min(200, Integer.parseInt(parts[i]))); }
             catch (NumberFormatException ignored) { factions[i] = 0; }
         }
-        this.historyPages = this.history.split("\\n").length > 8 ? 2 : 1;
+        this.historyPages = Math.max(1, (this.history.isEmpty() ? 0 : this.history.split("\\n").length + 7) / 8);
         this.pageCount = 5 + historyPages;
         this.suspicion = suspicion;
     }
@@ -38,7 +38,7 @@ public final class ReputationBookScreen extends Screen {
     @Override
     protected void init() {
         int center = width / 2;
-        int controlsY = height / 2 + 83;
+        int controlsY = Math.min(height - 24, height / 2 + 83);
         previousButton = addRenderableWidget(Button.builder(Component.literal("<"), b -> changePage(-1))
             .bounds(center - 110, controlsY, 44, 20).build());
         nextButton = addRenderableWidget(Button.builder(Component.literal(">"), b -> changePage(1))
@@ -70,7 +70,7 @@ public final class ReputationBookScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         int left = width / 2 - 126;
-        int top = height / 2 - 98;
+        int top = Math.max(5, height / 2 - 98);
         graphics.fill(left - 2, top - 2, left + 254, top + 178, 0xFF6B4D2B);
         graphics.fill(left, top, left + 252, top + 176, 0xF0181413);
         graphics.fill(left + 3, top + 3, left + 249, top + 6, 0xFFB99148);
