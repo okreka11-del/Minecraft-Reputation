@@ -94,6 +94,8 @@ public final class ReputationMod {
     private static final long PVP_COOLDOWN_TICKS = 1200L;
     public static final Supplier<AttachmentType<Long>> REWARD_DAY = ATTACHMENTS.register("reward_day", () -> AttachmentType.builder(() -> -1L).serialize(Codec.LONG).copyOnDeath().build());
     public static final Supplier<AttachmentType<Integer>> REWARD_COUNT = ATTACHMENTS.register("reward_count", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().build());
+    public static final Supplier<AttachmentType<Long>> GIFT_DAY = ATTACHMENTS.register("gift_day", () -> AttachmentType.builder(() -> -1L).serialize(Codec.LONG).copyOnDeath().build());
+    public static final Supplier<AttachmentType<Integer>> GIFT_COUNT = ATTACHMENTS.register("gift_count", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().build());
 
     public ReputationMod(IEventBus bus) {
         ATTACHMENTS.register(bus);
