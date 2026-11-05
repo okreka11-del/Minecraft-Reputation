@@ -23,10 +23,12 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - name: Make Gradle wrapper executable
-        run: chmod +x ./gradlew
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.2.1'
       - name: Build mod
-        run: ./gradlew --no-daemon clean build
+        run: gradle --no-daemon clean build --stacktrace
       - name: Upload single mod JAR
         uses: actions/upload-artifact@v4
         with:
