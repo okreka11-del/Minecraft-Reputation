@@ -34,11 +34,16 @@ public final class ReputationWorldEvents {
             // Apply reputation prices while the player is actually trading.
             if (villager.getTradingPlayer() instanceof ServerPlayer customer) {
                 int customerScore = customer.getData(ReputationMod.REP);
+                int villageStanding = ReputationMod.factionStandings(customer)[0];
                 int discount = customerScore >= 200 ? -12
                     : customerScore >= 151 ? -8
                     : customerScore >= 101 ? -4
                     : customerScore <= -80 ? 12
                     : customerScore < 0 ? 6 : 0;
+                // Independent village standing changes the final merchant price.
+                discount += villageStanding >= 100 ? -5 : villageStanding >= 40 ? -2
+                    : villageStanding <= -60 ? 9 : villageStanding <= -20 ? 4 : 0;
+                discount = Math.max(-16, Math.min(16, discount));
                 for (net.minecraft.world.item.trading.MerchantOffer offer : villager.getOffers()) {
                     offer.resetSpecialPriceDiff();
                     if (discount != 0) offer.addToSpecialPriceDiff(discount);
@@ -51,7 +56,8 @@ public final class ReputationWorldEvents {
                 }
             }
 
-            if (score < 0) {
+            int villageStanding = ReputationMod.factionStandings(player)[0];
+            if (score < 0 || villageStanding <= -40) {
                 double dx = villager.getX() - player.getX();
                 double dz = villager.getZ() - player.getZ();
                 double distance = Math.max(0.1, Math.sqrt(dx * dx + dz * dz));
@@ -62,7 +68,7 @@ public final class ReputationWorldEvents {
                     score <= -50 ? 1.5 : 1.2);
                 if (tick % 120 < 40) level.sendParticles(ParticleTypes.ANGRY_VILLAGER,
                     villager.getX(), villager.getY() + 1.8, villager.getZ(), 2, 0.3, 0.2, 0.3, 0.02);
-            } else if (score >= 151 && tick % 200 < 40) {
+            } else if ((score >= 151 || villageStanding >= 80) && tick % 200 < 40) {
                 level.sendParticles(ParticleTypes.HAPPY_VILLAGER,
                     villager.getX(), villager.getY() + 1.8, villager.getZ(), 2, 0.3, 0.2, 0.3, 0.02);
             }
