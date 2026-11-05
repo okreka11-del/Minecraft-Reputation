@@ -2,6 +2,8 @@ package com.vova.reputation;
 
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.entity.monster.Pillager;
+import net.minecraft.world.entity.monster.EnderMan;
+import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -27,6 +29,9 @@ public final class ReputationWorldEvents {
         if ((tick + player.getId()) % 40 != 0) return;
 
         int score = player.getData(ReputationMod.REP);
+        int[] standing = ReputationMod.factionStandings(player);
+        boolean light = score >= 120 && standing[2] >= -20;
+        boolean dark = score <= -80 && standing[3] >= -60;
         AABB vicinity = player.getBoundingBox().inflate(12);
 
         for (Villager villager : level.getEntitiesOfClass(Villager.class, vicinity)) {
@@ -75,7 +80,11 @@ public final class ReputationWorldEvents {
         }
 
         for (Animal animal : level.getEntitiesOfClass(Animal.class, vicinity)) {
-            if (score >= 151) {
+            if (light) {
+                if (animal.distanceToSqr(player) > 12 && animal.distanceToSqr(player) < 100
+                    && !animal.isVehicle()) {
+                    animal.getNavigation().moveTo(player, 0.85);
+                }
                 if (tick % 200 < 40) level.sendParticles(ParticleTypes.HEART,
                     animal.getX(), animal.getY() + animal.getBbHeight(), animal.getZ(),
                     1, 0.2, 0.2, 0.2, 0.01);
@@ -103,30 +112,49 @@ public final class ReputationWorldEvents {
         for (IronGolem golem : level.getEntitiesOfClass(IronGolem.class, vicinity)) {
             if (score <= -50) golem.setTarget(player);
             else if (golem.getTarget() == player) golem.setTarget(null);
+            if (light && golem.getTarget() == null && golem.distanceToSqr(player) < 100) {
+                Monster attacker = level.getEntitiesOfClass(Monster.class, golem.getBoundingBox().inflate(12),
+                    m -> m.getTarget() == player && !(m instanceof Creeper)).stream().findFirst().orElse(null);
+                if (attacker != null) golem.setTarget(attacker);
+            }
         }
 
-        // High reputation discourages hostile targeting, low reputation attracts it.
+        // Light: neutral endermen forgive existing aggression, but direct provocation can restart it.
+        if (light) {
+            for (EnderMan enderman : level.getEntitiesOfClass(EnderMan.class, vicinity)) {
+                if (enderman.getTarget() == player) {
+                    enderman.setTarget(null);
+                    enderman.setPersistentAngerTarget(null);
+                    enderman.setRemainingPersistentAngerTime(0);
+                }
+            }
+        }
+
+        // Dark allegiance: eligible hostile mobs stop attacking their master and follow nearby.
+        // Creepers and bosses are excluded from forced navigation/targeting for safety.
         for (Monster monster : level.getEntitiesOfClass(Monster.class, player.getBoundingBox().inflate(18))) {
-            if (score <= -80 && monster instanceof Pillager && monster.getTarget() == player) {
-                monster.setTarget(null);
-            } else if (score >= 151 && !(monster instanceof Pillager) && monster.getTarget() == player) {
-                monster.setTarget(null);
-            } else if (score <= -50 && !(monster instanceof Pillager) && (monster.getTarget() == null
+            if (monster instanceof net.minecraft.world.entity.boss.wither.WitherBoss) continue;
+            if (dark) {
+                if (monster.getTarget() == player) monster.setTarget(null);
+                if (!(monster instanceof Creeper)) {
+                    if (monster.getTarget() == null && monster.distanceToSqr(player) > 16
+                            && monster.distanceToSqr(player) < 196) {
+                        monster.getNavigation().moveTo(player, 1.05);
+                    }
+                    // Defend the dark player against a nearby attacker; never target other allies.
+                    if (monster.getTarget() == null) {
+                        Monster enemy = level.getEntitiesOfClass(Monster.class,
+                            monster.getBoundingBox().inflate(10),
+                            m -> m != monster && m.getTarget() == player && !(m instanceof Creeper))
+                            .stream().findFirst().orElse(null);
+                        if (enemy != null) monster.setTarget(enemy);
+                    }
+                }
+            } else if (score <= -50 && !(monster instanceof Pillager)
+                    && (monster.getTarget() == null
                     || (monster.getTarget() instanceof ServerPlayer target
                         && target.getData(ReputationMod.REP) > score))) {
                 monster.setTarget(player);
-            }
-        }
-        // Pillagers become allies of renowned players and target hostile monsters.
-        if (score <= -80) {
-            for (Pillager pillager : level.getEntitiesOfClass(Pillager.class, vicinity)) {
-                if (pillager.getTarget() == player) pillager.setTarget(null);
-                if (pillager.getTarget() == null) {
-                    Monster enemy = level.getEntitiesOfClass(Monster.class,
-                        pillager.getBoundingBox().inflate(10), m -> !(m instanceof Pillager))
-                        .stream().findFirst().orElse(null);
-                    if (enemy != null) pillager.setTarget(enemy);
-                }
             }
         }
     }
