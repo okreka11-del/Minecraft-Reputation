@@ -47,7 +47,7 @@ public final class ReputationBookScreen extends Screen {
             if (history.isEmpty()) {
                 graphics.drawString(font, Component.literal("No recorded changes"), left + 16, top + 53, 0xFFAAAAAA);
             } else {
-                String[] lines = history.split("\\n");
+                String[] lines = history.split("\n");
                 for (int i = 0; i < Math.min(10, lines.length); i++) {
                     String line = lines[i];
                     if (font.width(line) > 216) line = font.plainSubstrByWidth(line, 210) + "...";
