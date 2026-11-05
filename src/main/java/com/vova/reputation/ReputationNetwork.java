@@ -27,7 +27,7 @@ public final class ReputationNetwork {
         @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
     }
 
-    public record BookSync(int score, int suspicion, String history) implements CustomPacketPayload {
+    public record BookSync(int score, int suspicion, String history, String factions) implements CustomPacketPayload {
         public static final Type<BookSync> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(ReputationMod.ID, "book_sync"));
         public static final StreamCodec<FriendlyByteBuf, BookSync> STREAM_CODEC =
@@ -35,7 +35,8 @@ public final class ReputationNetwork {
                 buf.writeInt(packet.score());
                 buf.writeInt(packet.suspicion());
                 buf.writeUtf(packet.history(), 4096);
-            }, buf -> new BookSync(buf.readInt(), buf.readInt(), buf.readUtf(4096)));
+                buf.writeUtf(packet.factions(), 128);
+            }, buf -> new BookSync(buf.readInt(), buf.readInt(), buf.readUtf(4096), buf.readUtf(128)));
         @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
     }
 
@@ -46,12 +47,12 @@ public final class ReputationNetwork {
             (payload, context) -> context.enqueueWork(() -> ReputationHud.updateScore(payload.score())));
         registrar.playToClient(BookSync.TYPE, BookSync.STREAM_CODEC,
             (payload, context) -> context.enqueueWork(() ->
-                Minecraft.getInstance().setScreen(new ReputationBookScreen(payload.score(), payload.suspicion(), payload.history()))));
+                Minecraft.getInstance().setScreen(new ReputationBookScreen(payload.score(), payload.suspicion(), payload.history(), payload.factions()))));
     }
 
     public static void openBook(ServerPlayer player) {
         PacketDistributor.sendToPlayer(player,
-            new BookSync(player.getData(ReputationMod.REP), player.getData(ReputationMod.SUSPICION), player.getData(ReputationMod.HISTORY)));
+            new BookSync(player.getData(ReputationMod.REP), player.getData(ReputationMod.SUSPICION), player.getData(ReputationMod.HISTORY), player.getData(ReputationMod.FACTION_STANDINGS)));
     }
 
     public static void sync(ServerPlayer player) {
