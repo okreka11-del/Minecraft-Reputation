@@ -42,6 +42,7 @@ public final class ReputationMod {
         NeoForge.EVENT_BUS.addListener(ReputationMod::commands);
         NeoForge.EVENT_BUS.addListener(ReputationMod::onDeath);
         NeoForge.EVENT_BUS.addListener(ReputationMod::onPlayerTick);
+        ReputationRules.register();
         NeoForge.EVENT_BUS.addListener(ReputationWorldEvents::onPlayerTick);
     }
 
@@ -54,7 +55,7 @@ public final class ReputationMod {
         return "Nemesis";
     }
 
-    private static void change(ServerPlayer player, int delta, String reason) {
+    public static void adjust(ServerPlayer player, int delta, String reason) {
         int before = player.getData(REP);
         int after = Math.max(-100, Math.min(200, before + delta));
         if (before == after) return;
@@ -67,7 +68,7 @@ public final class ReputationMod {
         LivingEntity victim = event.getEntity();
         if (!(event.getSource().getEntity() instanceof ServerPlayer killer)) return;
         if (victim instanceof Villager) {
-            change(killer, -20, "killed villager");
+            adjust(killer, -20, "killed villager");
         } else if (victim instanceof ServerPlayer) {
             change(killer, -30, "killed player");
         } else if (victim instanceof Animal) {
@@ -88,10 +89,7 @@ public final class ReputationMod {
         if (time % 40 != 0) return;
         int score = player.getData(REP);
 
-        if (time % 200 == 0) {
-            player.sendSystemMessage(Component.literal("Reputation " + score + " / 200 | "
-                + rank(score) + " | Suspicion " + player.getData(SUSPICION)), true);
-        }
+
     }
 
     private static void commands(RegisterCommandsEvent event) {
@@ -118,7 +116,7 @@ public final class ReputationMod {
             .then(Commands.literal("add").requires(source -> source.hasPermission(2))
                 .then(Commands.argument("delta", IntegerArgumentType.integer(-300, 300)).executes(ctx -> {
                     var player = ctx.getSource().getPlayerOrException();
-                    change(player, IntegerArgumentType.getInteger(ctx, "delta"), "admin");
+                    adjust(player, IntegerArgumentType.getInteger(ctx, "delta"), "admin");
                     return 1;
                 })))
             .then(Commands.literal("suspicion").requires(source -> source.hasPermission(2))
