@@ -20,6 +20,8 @@ public final class ReputationFarts {
         player.serverLevel().playSound(null, player.getX(), player.getY(), player.getZ(),
             SoundEvents.PANDA_SNEEZE, SoundSource.PLAYERS, 1.0f, 0.55f);
         player.serverLevel().sendParticles(ParticleTypes.CLOUD,
-            player.getX(), player.getY() + 0.3, player.getZ(), 3, 0.15, 0.08, 0.15, 0.01);
+            player.getX(), player.getY() + 0.3, player.getZ(), 12, 0.2, 0.12, 0.2, 0.025);
+        player.serverLevel().sendParticles(ParticleTypes.POOF,
+            player.getX(), player.getY() + 0.4, player.getZ(), 8, 0.2, 0.16, 0.2, 0.02);
     }
 }
