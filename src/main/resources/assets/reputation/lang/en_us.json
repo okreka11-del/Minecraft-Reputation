@@ -13,7 +13,7 @@
   "reputation.message.trade_refused": "Villagers refuse to trade with you!",
   "reputation.message.animal_afraid": "The animal fears you and refuses food.",
   "reputation.message.village_protected": "You cannot break blocks in the village!",
-  "reputation.hud.label": "REPUTATION",
+  "reputation.hud.label": "Reputation",
   "reputation.reason.killed_villager": "killed villager",
   "reputation.reason.killed_player": "killed player",
   "reputation.reason.killed_animal": "killed animal",
@@ -85,5 +85,16 @@
   "block.reputation.recruitment_board": "Recruitment Board",
   "block.reputation.trophy_counter": "Trophy Counter",
   "block.reputation.dark_alchemy_reactor": "Dark Alchemy Reactor",
-  "message.reputation.profession_assigned": "Assigned profession: %s"
+  "message.reputation.profession_assigned": "Assigned profession: %s",
+  "reputation.rank.dark_lord": "Dark Lord",
+  "reputation.rank.villain": "Villain",
+  "reputation.rank.enemy": "Enemy",
+  "reputation.rank.unfriendly": "Unfriendly",
+  "reputation.rank.acquaintance": "Acquaintance",
+  "reputation.rank.ally": "Ally",
+  "reputation.rank.reliable_ally": "Reliable Ally",
+  "reputation.rank.good_ally": "Good Ally",
+  "reputation.rank.best_ally": "Best Ally",
+  "reputation.rank.hero_of_light": "Hero of Light",
+  "reputation.hud.ranks": "Reputation ranks  •  −100 ... +200"
 }
