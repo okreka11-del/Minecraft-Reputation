@@ -109,7 +109,7 @@ public final class ReputationMod {
         ReputationSettlements.register();
         ReputationSpecialists.register();
         NeoForge.EVENT_BUS.addListener(ReputationWorldEvents::onPlayerTick);
-        NeoForge.EVENT_BUS.addListener(ReputationVillageEffects::tick);
+        // ReputationVillagePerks is registered via ReputationSettlements; no duplicate effect tick.
         NeoForge.EVENT_BUS.addListener(ReputationHeroEvents::tick);
     }
 
