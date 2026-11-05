@@ -24,6 +24,8 @@ import java.util.UUID;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
 import net.minecraft.world.level.block.WallSignBlock;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.BedBlock;
+import net.minecraft.world.level.block.state.properties.BedPart;
 
 /**
  * Persistent, bounded village occupation. No existing blocks are overwritten:
@@ -165,12 +167,12 @@ public final class ReputationSettlements {
         event.getDispatcher().register(Commands.literal("herohouse")
             .then(Commands.literal("locate").executes(ctx -> {
                 ServerPlayer player = ctx.getSource().getPlayerOrException();
-                HeroHouse house = ownHouse(data(player.serverLevel()), player.getUUID());
+                HeroHouse house = ownHouse(data(player.server.overworld()), player.getUUID());
                 if (house == null) {
-                    player.sendSystemMessage(Component.literal("You do not own a hero house in this dimension."));
+                    player.sendSystemMessage(Component.literal("No registered hero house found in the Overworld."));
                     return 0;
                 }
-                player.sendSystemMessage(Component.literal("Your hero house: " + house.position.getX() + " " + house.position.getY() + " " + house.position.getZ()));
+                player.sendSystemMessage(Component.literal("Your Overworld hero house: " + house.position.getX() + " " + house.position.getY() + " " + house.position.getZ()));
                 return 1;
             })));
         event.getDispatcher().register(Commands.literal("settlement")
@@ -210,9 +212,15 @@ public final class ReputationSettlements {
         BlockPos signPos = house.position.offset(1, 2, -4);
         if (!level.hasChunkAt(signPos)) return;
         if (level.getBlockEntity(signPos) instanceof SignBlockEntity sign) {
+            String first = name.length() > 15 ? name.substring(0, 8) : name;
+            String second = name.length() > 15 ? name.substring(8) : "";
+            if (sign.getFrontText().getMessage(0, false).getString().equals("HERO HOUSE")
+                    && sign.getFrontText().getMessage(1, false).getString().equals(first)
+                    && sign.getFrontText().getMessage(2, false).getString().equals(second)) return;
             sign.setText(sign.getFrontText()
                 .setMessage(0, Component.literal("HERO HOUSE"))
-                .setMessage(1, Component.literal(name)), true);
+                .setMessage(1, Component.literal(first))
+                .setMessage(2, Component.literal(second)), true);
             sign.setChanged();
             level.sendBlockUpdated(signPos, level.getBlockState(signPos), level.getBlockState(signPos), 3);
         }
@@ -220,17 +228,35 @@ public final class ReputationSettlements {
 
     /** Each eligible player receives at most one house per dimension, regardless of village. */
     private static void welcomeHouse(ServerLevel level, ServerPlayer player, Data saved) {
+        // Houses are unique to players on this server, never recreated in the Nether or End.
+        if (level != player.server.overworld()) return;
         HeroHouse existing = ownHouse(saved, player.getUUID());
         if (existing != null) {
             String name = player.getGameProfile().getName();
             if (!existing.name.equals(name)) {
                 existing.name = name;
                 saved.setDirty();
-                refreshSign(level, existing, name);
             }
+            // Recheck after chunk load: a rename can happen while the sign is unloaded.
+            refreshSign(level, existing, name);
             return;
         }
         if (player.getData(ReputationMod.REP) < 151) return;
+        // Backward-compatibility: adopt a previously owned cottage if its footprint remains.
+        for (Village old : saved.villages) {
+            if (old.houseBuilt && player.getUUID().equals(old.houseOwner)) {
+                BlockPos site = findLegacyHouse(level, old);
+                if (site != null) {
+                    HeroHouse migrated = new HeroHouse(player.getUUID(), site, player.getGameProfile().getName());
+                    saved.heroHouses.add(migrated);
+                    saved.setDirty();
+                    refreshSign(level, migrated, migrated.name);
+                    player.sendSystemMessage(Component.literal("Your existing hero house was recovered. Use /herohouse locate."));
+                }
+                // Never generate a duplicate if the legacy home is temporarily unloaded/modified.
+                return;
+            }
+        }
         Village village = closest(saved, player.blockPosition(), VILLAGE_SEPARATION);
         if (village == null) {
             if (saved.villages.size() >= MAX_VILLAGES) return;
@@ -260,7 +286,27 @@ public final class ReputationSettlements {
         }
     }
 
+    /** Recognize only our original cottage, never claim an arbitrary nearby player build. */
+    private static BlockPos findLegacyHouse(ServerLevel level, Village village) {
+        int[][] offsets = {{24,0},{-24,0},{0,24},{0,-24},{30,12},{-30,-12},
+            {12,-30},{-12,30},{35,0},{-35,0},{0,35},{0,-35},
+            {28,28},{-28,28},{28,-28},{-28,-28},{42,12},{-42,12},
+            {12,42},{12,-42},{48,0},{0,48},{-48,0},{0,-48}};
+        for (int[] offset : offsets) for (int y = -6; y <= 6; y++) {
+            BlockPos base = village.center.offset(offset[0], y, offset[1]);
+            if (!level.hasChunkAt(base)) continue;
+            if (level.getBlockState(base).is(Blocks.OAK_PLANKS)
+                    && level.getBlockState(base.above(4)).is(Blocks.SPRUCE_PLANKS)
+                    && level.getBlockState(base.offset(0, 1, 1)).is(Blocks.CRAFTING_TABLE)
+                    && level.getBlockState(base.offset(1, 1, 1)).is(Blocks.CHEST)) return base;
+        }
+        return null;
+    }
+
     private static boolean placeCottage(ServerLevel level, BlockPos base, String ownerName) {
+        // Include the entrance sign in the preflight check; never leave an unnamed home.
+        BlockPos signPos = base.offset(1, 2, -4);
+        if (!level.hasChunkAt(signPos) || !level.getBlockState(signPos).isAir()) return false;
         // Validate every block before placing anything; no overwrites.
         for (int x = -3; x <= 3; x++) for (int z = -3; z <= 3; z++) {
             BlockPos column = base.offset(x, 0, z);
@@ -282,20 +328,16 @@ public final class ReputationSettlements {
         }
         level.setBlockAndUpdate(base.offset(0, 1, 1), Blocks.CRAFTING_TABLE.defaultBlockState());
         level.setBlockAndUpdate(base.offset(1, 1, 1), Blocks.CHEST.defaultBlockState());
-        level.setBlockAndUpdate(base.offset(-1, 1, 1), Blocks.RED_BED.defaultBlockState());
-        BlockPos signPos = base.offset(1, 2, -4);
+        BlockState bedFoot = Blocks.RED_BED.defaultBlockState()
+            .setValue(BedBlock.FACING, Direction.NORTH).setValue(BedBlock.PART, BedPart.FOOT);
+        BlockState bedHead = bedFoot.setValue(BedBlock.PART, BedPart.HEAD);
+        // Place both halves before neighbor updates to avoid instantly invalidating a half-bed.
+        level.setBlock(base.offset(-1, 1, 1), bedFoot, 2);
+        level.setBlock(base.offset(-1, 1, 0), bedHead, 2);
         // A wall sign is attached outside the entrance, on the north-facing wall.
-        if (level.hasChunkAt(signPos) && level.getBlockState(signPos).isAir()) {
-            level.setBlockAndUpdate(signPos, Blocks.OAK_WALL_SIGN.defaultBlockState()
-                .setValue(WallSignBlock.FACING, Direction.NORTH));
-            if (level.getBlockEntity(signPos) instanceof SignBlockEntity sign) {
-                sign.setText(sign.getFrontText()
-                    .setMessage(0, Component.literal("HERO HOUSE"))
-                    .setMessage(1, Component.literal(ownerName.length() > 15 ? ownerName.substring(0, 15) : ownerName)), true);
-                sign.setChanged();
-                level.sendBlockUpdated(signPos, level.getBlockState(signPos), level.getBlockState(signPos), 3);
-            }
-        }
+        level.setBlockAndUpdate(signPos, Blocks.OAK_WALL_SIGN.defaultBlockState()
+            .setValue(WallSignBlock.FACING, Direction.NORTH));
+        refreshSign(level, new HeroHouse(new UUID(0, 0), base, ownerName), ownerName);
         return true;
     }
 
