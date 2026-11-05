@@ -7,6 +7,10 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.Pillager;
+import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.entity.monster.EnderMan;
+import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
+import net.neoforged.neoforge.event.level.ExplosionEvent;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.neoforged.bus.api.EventPriority;
@@ -22,6 +26,7 @@ public final class ReputationRules {
         NeoForge.EVENT_BUS.addListener(ReputationRules::interact);
         NeoForge.EVENT_BUS.addListener(ReputationRules::damage);
         NeoForge.EVENT_BUS.addListener(ReputationRules::breakBlock);
+        NeoForge.EVENT_BUS.addListener(ReputationRules::explosion);
     }
 
     private static void interact(PlayerInteractEvent.EntityInteract event) {
@@ -40,7 +45,9 @@ public final class ReputationRules {
         LivingEntity victim = event.getEntity();
         if (!(victim instanceof ServerPlayer player)) return;
         int score = player.getData(ReputationMod.REP);
-        if (score <= -80 && event.getSource().getEntity() instanceof Pillager) {
+        if ((score <= -80 && event.getSource().getEntity() instanceof Pillager)
+                || (score >= 151 && event.getSource().getEntity() instanceof Monster)
+                || (score == 200 && event.getSource().getEntity() instanceof EnderDragon)) {
             event.setCanceled(true);
             return;
         }
@@ -48,6 +55,16 @@ public final class ReputationRules {
                 || event.getSource().getEntity() instanceof IronGolem)) {
             event.setAmount(event.getAmount() * 3.0f);
         }
+    }
+
+    private static void explosion(ExplosionEvent.Start event) {
+        // Prevent creeper explosions triggered around nearby heroes.
+        if (!(event.getExplosion().getDirectSourceEntity() instanceof Creeper creeper)) return;
+        if (!(creeper.level() instanceof net.minecraft.server.level.ServerLevel level)) return;
+        boolean heroNearby = !level.getEntitiesOfClass(ServerPlayer.class,
+            creeper.getBoundingBox().inflate(5),
+            p -> p.getData(ReputationMod.REP) >= 151).isEmpty();
+        if (heroNearby) event.setCanceled(true);
     }
 
     private static void breakBlock(BlockEvent.BreakEvent event) {
