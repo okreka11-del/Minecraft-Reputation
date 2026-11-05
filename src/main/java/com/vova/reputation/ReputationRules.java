@@ -29,10 +29,10 @@ public final class ReputationRules {
         int score = player.getData(ReputationMod.REP);
         if (score <= 0 && event.getTarget() instanceof Villager) {
             event.setCanceled(true);
-            player.displayClientMessage(Component.literal("Villagers refuse to trade with you!"), true);
+            player.displayClientMessage(Component.translatable("reputation.message.trade_refused"), true);
         } else if (score <= 0 && event.getTarget() instanceof Animal) {
             event.setCanceled(true);
-            player.displayClientMessage(Component.literal("The animal is afraid and refuses food."), true);
+            player.displayClientMessage(Component.translatable("reputation.message.animal_afraid"), true);
         }
     }
 
@@ -60,7 +60,7 @@ public final class ReputationRules {
         if (!village) return;
         if (score <= 0) {
             event.setCanceled(true);
-            player.displayClientMessage(Component.literal("Village blocks are protected from you."), true);
+            player.displayClientMessage(Component.translatable("reputation.message.village_protected"), true);
         } else if (score < 151) {
             ReputationMod.adjust(player, -1, "damaged village");
         }
