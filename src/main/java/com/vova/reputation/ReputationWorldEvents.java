@@ -38,7 +38,7 @@ public final class ReputationWorldEvents {
                     : customerScore >= 151 ? -8
                     : customerScore >= 101 ? -4
                     : customerScore <= -80 ? 12
-                    : customerScore <= 0 ? 6 : 0;
+                    : customerScore < 0 ? 6 : 0;
                 for (net.minecraft.world.item.trading.MerchantOffer offer : villager.getOffers()) {
                     offer.resetSpecialPriceDiff();
                     if (discount != 0) offer.addToSpecialPriceDiff(discount);
@@ -51,7 +51,7 @@ public final class ReputationWorldEvents {
                 }
             }
 
-            if (score <= 0) {
+            if (score < 0) {
                 double dx = villager.getX() - player.getX();
                 double dz = villager.getZ() - player.getZ();
                 double distance = Math.max(0.1, Math.sqrt(dx * dx + dz * dz));
@@ -73,7 +73,7 @@ public final class ReputationWorldEvents {
                 if (tick % 200 < 40) level.sendParticles(ParticleTypes.HEART,
                     animal.getX(), animal.getY() + animal.getBbHeight(), animal.getZ(),
                     1, 0.2, 0.2, 0.2, 0.01);
-            } else if (score <= 0) {
+            } else if (score < 0) {
                 // Sheep, cows and pigs retreat from notorious players.
                 if (animal instanceof Sheep || animal instanceof Cow || animal instanceof Pig) {
                     double dx = animal.getX() - player.getX();
