@@ -58,8 +58,18 @@ public final class ReputationSettlements {
         }
     }
 
+    public static final class HeroHouse {
+        public final UUID owner;
+        public final BlockPos position;
+        public String name;
+        public HeroHouse(UUID owner, BlockPos position, String name) {
+            this.owner = owner; this.position = position; this.name = name;
+        }
+    }
+
     public static final class Data extends SavedData {
         public final List<Village> villages = new ArrayList<>();
+        public final List<HeroHouse> heroHouses = new ArrayList<>();
         public static Data load(CompoundTag tag, HolderLookup.Provider registries) {
             Data data = new Data();
             ListTag list = tag.getList("Villages", Tag.TAG_COMPOUND);
@@ -73,6 +83,11 @@ public final class ReputationSettlements {
                 village.structuresBuilt = v.getInt("StructuresBuilt");
                 village.decorationsBuilt = v.getInt("DecorationsBuilt");
                 data.villages.add(village);
+            }
+            for (Tag entry : tag.getList("HeroHouses", Tag.TAG_COMPOUND)) {
+                CompoundTag h = (CompoundTag) entry;
+                if (h.hasUUID("Owner")) data.heroHouses.add(new HeroHouse(h.getUUID("Owner"),
+                    new BlockPos(h.getInt("X"), h.getInt("Y"), h.getInt("Z")), h.getString("Name")));
             }
             return data;
         }
@@ -94,6 +109,17 @@ public final class ReputationSettlements {
                 list.add(entry);
             }
             tag.put("Villages", list);
+            ListTag houses = new ListTag();
+            for (HeroHouse house : heroHouses) {
+                CompoundTag h = new CompoundTag();
+                h.putUUID("Owner", house.owner);
+                h.putInt("X", house.position.getX());
+                h.putInt("Y", house.position.getY());
+                h.putInt("Z", house.position.getZ());
+                h.putString("Name", house.name);
+                houses.add(h);
+            }
+            tag.put("HeroHouses", houses);
             return tag;
         }
     }
@@ -136,6 +162,17 @@ public final class ReputationSettlements {
     }
 
     private static void commands(RegisterCommandsEvent event) {
+        event.getDispatcher().register(Commands.literal("herohouse")
+            .then(Commands.literal("locate").executes(ctx -> {
+                ServerPlayer player = ctx.getSource().getPlayerOrException();
+                HeroHouse house = ownHouse(data(player.serverLevel()), player.getUUID());
+                if (house == null) {
+                    player.sendSystemMessage(Component.literal("You do not own a hero house in this dimension."));
+                    return 0;
+                }
+                player.sendSystemMessage(Component.literal("Your hero house: " + house.position.getX() + " " + house.position.getY() + " " + house.position.getZ()));
+                return 1;
+            })));
         event.getDispatcher().register(Commands.literal("settlement")
             .then(Commands.literal("status").executes(ctx -> {
                 ServerPlayer player = ctx.getSource().getPlayerOrException();
@@ -164,8 +201,36 @@ public final class ReputationSettlements {
     }
 
 
-    /** A one-time village welcome cottage. Triggered by entering a populated village. */
+    private static HeroHouse ownHouse(Data saved, UUID owner) {
+        for (HeroHouse house : saved.heroHouses) if (house.owner.equals(owner)) return house;
+        return null;
+    }
+
+    private static void refreshSign(ServerLevel level, HeroHouse house, String name) {
+        BlockPos signPos = house.position.offset(1, 2, -4);
+        if (!level.hasChunkAt(signPos)) return;
+        if (level.getBlockEntity(signPos) instanceof SignBlockEntity sign) {
+            sign.setText(sign.getFrontText()
+                .setMessage(0, Component.literal("HERO HOUSE"))
+                .setMessage(1, Component.literal(name)), true);
+            sign.setChanged();
+            level.sendBlockUpdated(signPos, level.getBlockState(signPos), level.getBlockState(signPos), 3);
+        }
+    }
+
+    /** Each eligible player receives at most one house per dimension, regardless of village. */
     private static void welcomeHouse(ServerLevel level, ServerPlayer player, Data saved) {
+        HeroHouse existing = ownHouse(saved, player.getUUID());
+        if (existing != null) {
+            String name = player.getGameProfile().getName();
+            if (!existing.name.equals(name)) {
+                existing.name = name;
+                saved.setDirty();
+                refreshSign(level, existing, name);
+            }
+            return;
+        }
+        if (player.getData(ReputationMod.REP) < 151) return;
         Village village = closest(saved, player.blockPosition(), VILLAGE_SEPARATION);
         if (village == null) {
             if (saved.villages.size() >= MAX_VILLAGES) return;
@@ -175,26 +240,21 @@ public final class ReputationSettlements {
             saved.setDirty();
         }
         if (village.occupied) return;
-        if (player.getData(ReputationMod.REP) < 151) return;
-        if (village.houseBuilt) {
-            if (player.getUUID().equals(village.houseOwner) && !village.houseOwnerName.equals(player.getGameProfile().getName())) {
-                village.houseOwnerName = player.getGameProfile().getName();
-                // Older houses have no stored position, so do not guess a sign location.
-                saved.setDirty();
-            }
-            return;
-        }
-        // Try nearby positions rather than replacing any existing terrain or buildings.
-        int[][] offsets = {{24,0},{-24,0},{0,24},{0,-24},{30,12},{-30,-12},{12,-30},{-12,30},{35,0},{-35,0},{0,35},{0,-35},{28,28},{-28,28},{28,-28},{-28,-28}};
+        if (saved.heroHouses.size() >= MAX_VILLAGES * 8) return;
+        int[][] offsets = {{24,0},{-24,0},{0,24},{0,-24},{30,12},{-30,-12},{12,-30},{-12,30},{35,0},{-35,0},{0,35},{0,-35},{28,28},{-28,28},{28,-28},{-28,-28},{42,12},{-42,12},{12,42},{12,-42},{48,0},{0,48},{-48,0},{0,-48}};
         for (int[] offset : offsets) {
             BlockPos site = village.center.offset(offset[0], 0, offset[1]);
+            if (!level.hasChunkAt(site)) continue;
             BlockPos base = level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, site);
             if (Math.abs(base.getY() - village.center.getY()) <= 6 && placeCottage(level, base, player.getGameProfile().getName())) {
+                saved.heroHouses.add(new HeroHouse(player.getUUID(), base, player.getGameProfile().getName()));
                 village.houseBuilt = true;
-                village.houseOwner = player.getUUID();
-                village.houseOwnerName = player.getGameProfile().getName();
+                if (village.houseOwner == null) {
+                    village.houseOwner = player.getUUID();
+                    village.houseOwnerName = player.getGameProfile().getName();
+                }
                 saved.setDirty();
-                player.sendSystemMessage(Component.literal("Your hero house has been built in the village!"));
+                player.sendSystemMessage(Component.literal("Your hero house is ready! Use /herohouse locate."));
                 return;
             }
         }
