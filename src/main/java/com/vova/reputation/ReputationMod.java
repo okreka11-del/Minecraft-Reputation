@@ -47,12 +47,12 @@ public final class ReputationMod {
     }
 
     private static String rank(int score) {
-        if (score >= 151) return "Legend";
-        if (score >= 101) return "Trusted";
-        if (score >= 51) return "Neutral";
-        if (score >= 1) return "Outcast";
-        if (score >= -49) return "Wanted";
-        return "Nemesis";
+        if (score >= 151) return "reputation.rank.legend";
+        if (score >= 101) return "reputation.rank.trusted";
+        if (score >= 51) return "reputation.rank.neutral";
+        if (score >= 1) return "reputation.rank.outcast";
+        if (score >= -49) return "reputation.rank.wanted";
+        return "reputation.rank.nemesis";
     }
 
     public static void adjust(ServerPlayer player, int delta, String reason) {
@@ -60,8 +60,7 @@ public final class ReputationMod {
         int after = Math.max(-100, Math.min(200, before + delta));
         if (before == after) return;
         player.setData(REP, after);
-        player.sendSystemMessage(Component.literal("Reputation " + (after > before ? "+" : "")
-            + (after - before) + " (" + reason + ") -> " + after + " [" + rank(after) + "]"), true);
+        player.sendSystemMessage(Component.translatable("reputation.message.change", (after > before ? "+" : "") + (after - before), Component.translatable("reputation.reason." + reason.replace(" ", "_")), after, Component.translatable(rank(after))), true);
     }
 
     private static void onDeath(LivingDeathEvent event) {
@@ -70,14 +69,14 @@ public final class ReputationMod {
         if (victim instanceof Villager) {
             adjust(killer, -20, "killed villager");
         } else if (victim instanceof ServerPlayer) {
-            change(killer, -30, "killed player");
+            adjust(killer, -30, "killed player");
         } else if (victim instanceof Animal) {
-            change(killer, -2, "killed animal");
+            adjust(killer, -2, "killed animal");
         } else if (victim instanceof Monster) {
             long now = killer.level().getGameTime();
             long last = REWARD_COOLDOWN.getOrDefault(killer.getUUID(), Long.MIN_VALUE / 2);
             if (now - last >= 100) {
-                change(killer, 1, "defeated monster");
+                adjust(killer, 1, "defeated monster");
                 REWARD_COOLDOWN.put(killer.getUUID(), now);
             }
         }
@@ -96,13 +95,11 @@ public final class ReputationMod {
         event.getDispatcher().register(Commands.literal("reputation")
             .then(Commands.literal("get").executes(ctx -> {
                 var player = ctx.getSource().getPlayerOrException();
-                player.sendSystemMessage(Component.literal("Reputation: " + player.getData(REP)
-                    + " [" + rank(player.getData(REP)) + "] / Suspicion: " + player.getData(SUSPICION)));
+                player.sendSystemMessage(Component.translatable("reputation.message.status", player.getData(REP), Component.translatable(rank(player.getData(REP))), player.getData(SUSPICION)));
                 return 1;
             }))
             .then(Commands.literal("help").executes(ctx -> {
-                ctx.getSource().sendSuccess(() -> Component.literal(
-                    "/reputation get | /reputation set <value> (OP) | /reputation add <delta> (OP) | /reputation suspicion <value> (OP)"), false);
+                ctx.getSource().sendSuccess(() -> Component.translatable("reputation.message.help"), false);
                 return 1;
             }))
             .then(Commands.literal("set").requires(source -> source.hasPermission(2))
@@ -110,7 +107,7 @@ public final class ReputationMod {
                     var player = ctx.getSource().getPlayerOrException();
                     int value = IntegerArgumentType.getInteger(ctx, "value");
                     player.setData(REP, value);
-                    player.sendSystemMessage(Component.literal("Reputation set to " + value));
+                    player.sendSystemMessage(Component.translatable("reputation.message.set", value));
                     return value;
                 })))
             .then(Commands.literal("add").requires(source -> source.hasPermission(2))
@@ -124,7 +121,7 @@ public final class ReputationMod {
                     var player = ctx.getSource().getPlayerOrException();
                     int value = IntegerArgumentType.getInteger(ctx, "value");
                     player.setData(SUSPICION, value);
-                    player.sendSystemMessage(Component.literal("Suspicion set to " + value));
+                    player.sendSystemMessage(Component.translatable("reputation.message.suspicion", value));
                     return value;
                 }))));
     }
