@@ -80,6 +80,18 @@ public final class ReputationBookScreen extends Screen {
             historyPage = 0;
             return true;
         }
+        // Page Up/Down navigate history without changing sections.
+        if (section == 5 && (keyCode == 266 || keyCode == 267)) {
+            historyPage = Math.max(0, Math.min(historyPages() - 1,
+                historyPage + (keyCode == 266 ? -1 : 1)));
+            return true;
+        }
+        // Number keys navigate directly to the seven journal sections.
+        if (keyCode >= 49 && keyCode < 49 + SECTIONS.length) {
+            section = keyCode - 49;
+            historyPage = 0;
+            return true;
+        }
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
