@@ -38,6 +38,33 @@ public final class ReputationMod {
     public static final Supplier<AttachmentType<String>> HISTORY = ATTACHMENTS.register("history",
         () -> AttachmentType.builder(() -> "").serialize(Codec.STRING).copyOnDeath().build());
 
+    // Independent, persistent faction standings. Defaults do not alter existing worlds.
+    public static final String[] FACTIONS = {"villagers", "pillagers", "animals", "monsters", "golems", "dragon"};
+    public static final Supplier<AttachmentType<String>> FACTION_STANDINGS = ATTACHMENTS.register("faction_standings",
+        () -> AttachmentType.builder(() -> "0,0,0,0,0,0").serialize(Codec.STRING).copyOnDeath().build());
+
+    public static int[] factionStandings(ServerPlayer player) {
+        int[] values = new int[FACTIONS.length];
+        String[] raw = player.getData(FACTION_STANDINGS).split(",");
+        for (int i = 0; i < Math.min(values.length, raw.length); i++) {
+            try { values[i] = Math.max(-100, Math.min(200, Integer.parseInt(raw[i]))); }
+            catch (NumberFormatException ignored) { values[i] = 0; }
+        }
+        return values;
+    }
+
+    public static void adjustFaction(ServerPlayer player, int index, int delta) {
+        if (index < 0 || index >= FACTIONS.length || delta == 0) return;
+        int[] values = factionStandings(player);
+        values[index] = Math.max(-100, Math.min(200, values[index] + delta));
+        StringBuilder encoded = new StringBuilder();
+        for (int i = 0; i < values.length; i++) {
+            if (i > 0) encoded.append(',');
+            encoded.append(values[i]);
+        }
+        player.setData(FACTION_STANDINGS, encoded.toString());
+    }
+
     // Server-local anti-farm cooldowns. These are deliberately not persisted.
     private static final Map<UUID, Long> REWARD_COOLDOWN = new HashMap<>();
     // Prevent repeated PvP kills of the same victim from farming negative reputation.
@@ -96,6 +123,7 @@ public final class ReputationMod {
         if (!(event.getSource().getEntity() instanceof ServerPlayer killer)) return;
         if (victim instanceof Villager) {
             adjust(killer, -20, "killed villager");
+            adjustFaction(killer, 0, -20);
         } else if (victim instanceof ServerPlayer defeated) {
             if (killer.getUUID().equals(defeated.getUUID())) return;
             long now = killer.server.overworld().getGameTime();
@@ -108,12 +136,14 @@ public final class ReputationMod {
             }
         } else if (victim instanceof Animal) {
             adjust(killer, -2, "killed animal");
+            adjustFaction(killer, 2, -2);
         } else if (victim instanceof Monster) {
             // Use the server-wide overworld clock so dimension travel cannot reset cooldown timing.
             long now = killer.server.overworld().getGameTime();
             long last = REWARD_COOLDOWN.getOrDefault(killer.getUUID(), Long.MIN_VALUE / 2);
             if (now - last >= 100) {
                 adjust(killer, 1, "defeated monster");
+                adjustFaction(killer, 3, -1);
                 if (killer.getData(REP) >= 151) killer.giveExperiencePoints(3);
                 REWARD_COOLDOWN.put(killer.getUUID(), now);
             }
