@@ -1,0 +1,108 @@
+package com.vova.reputation;
+
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.animal.IronGolem;
+import net.minecraft.world.entity.monster.Pillager;
+import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
+import java.util.List;
+
+/** Three server-driven specialist roles, stored in entity persistent NBT. */
+public final class ReputationSpecialists {
+    private static final String ROLE = "ReputationSpecialist";
+    private static final String LAST = "ReputationSpecialistLastWork";
+    private ReputationSpecialists() {}
+
+    public static void register() {
+        NeoForge.EVENT_BUS.addListener(ReputationSpecialists::commands);
+        NeoForge.EVENT_BUS.addListener(ReputationSpecialists::tick);
+    }
+
+    private static void commands(RegisterCommandsEvent event) {
+        event.getDispatcher().register(Commands.literal("specialist")
+            .requires(source -> source.hasPermission(2))
+            .then(Commands.literal("guard").executes(ctx -> assign(ctx.getSource().getPlayerOrException(), "guard")))
+            .then(Commands.literal("builder").executes(ctx -> assign(ctx.getSource().getPlayerOrException(), "builder")))
+            .then(Commands.literal("armorer").executes(ctx -> assign(ctx.getSource().getPlayerOrException(), "armorer"))));
+    }
+
+    private static int assign(ServerPlayer player, String role) {
+        boolean illager = role.equals("armorer");
+        List<? extends Entity> candidates = illager
+            ? player.serverLevel().getEntitiesOfClass(Pillager.class, player.getBoundingBox().inflate(6))
+            : player.serverLevel().getEntitiesOfClass(Villager.class, player.getBoundingBox().inflate(6));
+        Entity nearest = candidates.stream().min((a,b) -> Double.compare(a.distanceToSqr(player), b.distanceToSqr(player)))
+            .orElse(null);
+        if (nearest == null) {
+            player.sendSystemMessage(Component.literal("No suitable NPC within 6 blocks."));
+            return 0;
+        }
+        nearest.getPersistentData().putString(ROLE, role);
+        nearest.setCustomName(Component.literal(switch(role) {
+            case "guard" -> "Village Guard";
+            case "builder" -> "Village Builder";
+            default -> "Pillager Armorer";
+        }));
+        nearest.setCustomNameVisible(true);
+        player.sendSystemMessage(Component.literal("Assigned " + role + " to nearby NPC."));
+        return 1;
+    }
+
+    private static void tick(LevelTickEvent.Post event) {
+        if (!(event.getLevel() instanceof ServerLevel level) || level.getGameTime() % 100 != 0) return;
+        // Bounded processing around active players; never scan every loaded entity globally.
+        for (ServerPlayer player : level.players()) {
+            for (Villager villager : level.getEntitiesOfClass(Villager.class, player.getBoundingBox().inflate(32))) {
+                String role = villager.getPersistentData().getString(ROLE);
+                if (role.equals("guard")) guard(level, villager);
+                else if (role.equals("builder")) builder(level, villager);
+            }
+            for (Pillager pillager : level.getEntitiesOfClass(Pillager.class, player.getBoundingBox().inflate(32))) {
+                if (pillager.getPersistentData().getString(ROLE).equals("armorer")) armorer(level, pillager);
+            }
+        }
+    }
+
+    private static void guard(ServerLevel level, Villager villager) {
+        if (level.getEntitiesOfClass(Pillager.class, villager.getBoundingBox().inflate(16)).isEmpty()) return;
+        // A guard raises an alarm and rallies nearby iron golems rather than turning a villager into a fake melee mob.
+        for (IronGolem golem : level.getEntitiesOfClass(IronGolem.class, villager.getBoundingBox().inflate(24))) {
+            Pillager enemy = level.getEntitiesOfClass(Pillager.class, golem.getBoundingBox().inflate(20))
+                .stream().findFirst().orElse(null);
+            if (enemy != null) golem.setTarget(enemy);
+        }
+    }
+
+    private static void builder(ServerLevel level, Villager villager) {
+        long now = level.getGameTime();
+        long last = villager.getPersistentData().getLong(LAST);
+        if (now - last < 24000) return;
+        IronGolem golem = level.getEntitiesOfClass(IronGolem.class, villager.getBoundingBox().inflate(12))
+            .stream().filter(g -> g.getHealth() < g.getMaxHealth()).findFirst().orElse(null);
+        if (golem == null) return;
+        golem.heal(5.0f);
+        villager.getPersistentData().putLong(LAST, now);
+        level.sendParticles(net.minecraft.core.particles.ParticleTypes.HAPPY_VILLAGER,
+            golem.getX(), golem.getY()+1, golem.getZ(), 8, .3, .4, .3, .01);
+    }
+
+    private static void armorer(ServerLevel level, Pillager pillager) {
+        long now = level.getGameTime();
+        long last = pillager.getPersistentData().getLong(LAST);
+        if (now - last < 600) return;
+        for (Pillager ally : level.getEntitiesOfClass(Pillager.class, pillager.getBoundingBox().inflate(12))) {
+            ally.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 500, 0));
+        }
+        pillager.getPersistentData().putLong(LAST, now);
+    }
+}
