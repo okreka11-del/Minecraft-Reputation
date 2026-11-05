@@ -57,7 +57,7 @@ public final class ReputationBookScreen extends Screen {
             } else {
                 String[] lines = history.split("\\n");
                 for (int i = 0; i < Math.min(8, lines.length); i++) {
-                    String[] parts = lines[i].split(" \\\\| ", 3);
+                    String[] parts = lines[i].split(" \\| ", 3);
                     Component entry = parts.length == 3
                         ? Component.literal(parts[0] + "  ")
                             .append(Component.translatable("reputation.reason." + parts[1].replace(" ", "_")))
