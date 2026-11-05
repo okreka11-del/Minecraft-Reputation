@@ -44,6 +44,7 @@ public final class ReputationSettlements {
         public long nextBuild;
         public boolean houseBuilt;
         public int structuresBuilt;
+        public int decorationsBuilt;
         public Village(BlockPos center, boolean occupied, int stage, long nextBuild) {
             this.center = center; this.occupied = occupied;
             this.stage = stage; this.nextBuild = nextBuild;
@@ -61,6 +62,7 @@ public final class ReputationSettlements {
                     v.getBoolean("Occupied"), v.getInt("Stage"), v.getLong("NextBuild"));
                 village.houseBuilt = v.getBoolean("HouseBuilt");
                 village.structuresBuilt = v.getInt("StructuresBuilt");
+                village.decorationsBuilt = v.getInt("DecorationsBuilt");
                 data.villages.add(village);
             }
             return data;
@@ -77,6 +79,7 @@ public final class ReputationSettlements {
                 entry.putLong("NextBuild", v.nextBuild);
                 entry.putBoolean("HouseBuilt", v.houseBuilt);
                 entry.putInt("StructuresBuilt", v.structuresBuilt);
+                entry.putInt("DecorationsBuilt", v.decorationsBuilt);
                 list.add(entry);
             }
             tag.put("Villages", list);
@@ -104,6 +107,11 @@ public final class ReputationSettlements {
             village == null ? 0 : village.stage,
             village == null ? 0 : village.structuresBuilt + (village.houseBuilt ? 1 : 0),
             villagers);
+    }
+
+    public static boolean isInVillage(ServerPlayer player, boolean occupied) {
+        Village village = closest(data(player.serverLevel()), player.blockPosition(), 48);
+        return village != null && village.occupied == occupied;
     }
 
     private static Village closest(Data data, BlockPos position, int radius) {
