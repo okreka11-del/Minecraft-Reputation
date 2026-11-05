@@ -124,6 +124,10 @@ public final class ReputationMod {
                 player.sendSystemMessage(Component.translatable("reputation.message.status", player.getData(REP), Component.translatable(rank(player.getData(REP))), player.getData(SUSPICION)));
                 return 1;
             }))
+            .then(Commands.literal("book").executes(ctx -> {
+                ReputationNetwork.openBook(ctx.getSource().getPlayerOrException());
+                return 1;
+            }))
             .then(Commands.literal("history").executes(ctx -> {
                 var player = ctx.getSource().getPlayerOrException();
                 player.sendSystemMessage(Component.literal("Reputation history (latest first):"));
