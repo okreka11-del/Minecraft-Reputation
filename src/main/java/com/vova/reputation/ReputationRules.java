@@ -49,20 +49,9 @@ public final class ReputationRules {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         int score = player.getData(ReputationMod.REP);
         int[] factions = ReputationMod.factionStandings(player);
-        if (event.getTarget() instanceof Villager && !player.isShiftKeyDown()) {
+        if (event.getTarget() instanceof Villager villager && !player.isShiftKeyDown()) {
             event.setCanceled(true);
-            String greeting = score <= -80 ? "Житель: Повелитель Тьмы... прошу, пощади нашу деревню."
-                : score < 0 || factions[0] <= -40 ? "Житель: Мы тебе не доверяем. Не причиняй нам вреда."
-                : score >= 200 ? "Житель: Герой Света! Для нас честь видеть тебя!"
-                : score >= 151 ? "Житель: Наш защитник вернулся!"
-                : score >= 100 || factions[0] >= 60 ? "Житель: С возвращением, союзник!"
-                : "Житель: Приветствую, путник!";
-            player.sendSystemMessage(Component.literal(greeting));
-            player.sendSystemMessage(Component.literal("[Поговорить]").withStyle(style -> style.withColor(ChatFormatting.YELLOW)
-                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/reputation talk")))
-                .append(Component.literal("  [Квесты]").withStyle(style -> style.withColor(ChatFormatting.GREEN)
-                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/reputation quest"))))
-                .append(Component.literal("  [Торговля: Shift + ПКМ]").withStyle(ChatFormatting.AQUA)));
+            ReputationNetwork.openDialogue(player, villager);
             return;
         }
         // Faction relationships influence interactions without overwriting global reputation.
