@@ -1,6 +1,8 @@
 package com.vova.reputation;
 
 import com.vova.reputation.client.ReputationHud;
+import com.vova.reputation.client.ReputationBookScreen;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -25,10 +27,30 @@ public final class ReputationNetwork {
         @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
     }
 
+    public record BookSync(int score, String history) implements CustomPacketPayload {
+        public static final Type<BookSync> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(ReputationMod.ID, "book_sync"));
+        public static final StreamCodec<FriendlyByteBuf, BookSync> STREAM_CODEC =
+            StreamCodec.of((buf, packet) -> {
+                buf.writeInt(packet.score());
+                buf.writeUtf(packet.history(), 4096);
+            }, buf -> new BookSync(buf.readInt(), buf.readUtf(4096)));
+        @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
+    }
+
     @SubscribeEvent
     public static void register(RegisterPayloadHandlersEvent event) {
-        event.registrar("1").playToClient(ScoreSync.TYPE, ScoreSync.STREAM_CODEC,
+        var registrar = event.registrar("1");
+        registrar.playToClient(ScoreSync.TYPE, ScoreSync.STREAM_CODEC,
             (payload, context) -> context.enqueueWork(() -> ReputationHud.updateScore(payload.score())));
+        registrar.playToClient(BookSync.TYPE, BookSync.STREAM_CODEC,
+            (payload, context) -> context.enqueueWork(() ->
+                Minecraft.getInstance().setScreen(new ReputationBookScreen(payload.score(), payload.history()))));
+    }
+
+    public static void openBook(ServerPlayer player) {
+        PacketDistributor.sendToPlayer(player,
+            new BookSync(player.getData(ReputationMod.REP), player.getData(ReputationMod.HISTORY)));
     }
 
     public static void sync(ServerPlayer player) {
