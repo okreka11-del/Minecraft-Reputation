@@ -159,7 +159,7 @@ public final class ReputationSettlements {
         if (player.getData(ReputationMod.REP) < 0) return;
         if (village.houseBuilt) return;
         // Try nearby positions rather than replacing any existing terrain or buildings.
-        int[][] offsets = {{24,0},{-24,0},{0,24},{0,-24},{30,12},{-30,-12},{12,-30},{-12,30}};
+        int[][] offsets = {{24,0},{-24,0},{0,24},{0,-24},{30,12},{-30,-12},{12,-30},{-12,30},{35,0},{-35,0},{0,35},{0,-35},{28,28},{-28,28},{28,-28},{-28,-28}};
         for (int[] offset : offsets) {
             BlockPos site = village.center.offset(offset[0], 0, offset[1]);
             BlockPos base = level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, site);
