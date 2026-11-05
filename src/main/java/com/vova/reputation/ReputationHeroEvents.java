@@ -25,8 +25,7 @@ import java.util.UUID;
 /** First-pass hero reactions. Cooldowns are server-session local. */
 public final class ReputationHeroEvents {
     private static final Map<UUID, Long> GIFTS = new HashMap<>();
-    private static final Map<UUID, Long> GIFT_DAY = new HashMap<>();
-    private static final Map<UUID, Integer> GIFT_COUNT = new HashMap<>();
+
     private ReputationHeroEvents() {}
 
     public static void tick(PlayerTickEvent.Post event) {
@@ -47,11 +46,11 @@ public final class ReputationHeroEvents {
         // Do not cancel hostile targeting: heroes of Light are deliberately hunted.
 
         long day = player.getServer().overworld().getDayTime() / 24000L;
-        if (GIFT_DAY.getOrDefault(player.getUUID(), -1L) != day) {
-            GIFT_DAY.put(player.getUUID(), day);
-            GIFT_COUNT.put(player.getUUID(), 0);
+        if (player.getData(ReputationMod.GIFT_DAY) != day) {
+            player.setData(ReputationMod.GIFT_DAY, day);
+            player.setData(ReputationMod.GIFT_COUNT, 0);
         }
-        if (GIFT_COUNT.getOrDefault(player.getUUID(), 0) >= 10) return;
+        if (player.getData(ReputationMod.GIFT_COUNT) >= 10) return;
         long last = GIFTS.getOrDefault(player.getUUID(), -100000L);
         // A world time rollback must not permanently block future gifts.
         if (last <= time && time - last < 2400) return;
@@ -77,7 +76,7 @@ public final class ReputationHeroEvents {
             if (!player.addItem(gift)) player.drop(gift, false);
             player.displayClientMessage(Component.translatable("reputation.hero.gift", Component.translatable("reputation.hero.donor." + donor)), true);
             GIFTS.put(player.getUUID(), time);
-            GIFT_COUNT.put(player.getUUID(), GIFT_COUNT.getOrDefault(player.getUUID(), 0) + 1);
+            player.setData(ReputationMod.GIFT_COUNT, player.getData(ReputationMod.GIFT_COUNT) + 1);
             level.sendParticles(ParticleTypes.HAPPY_VILLAGER, player.getX(), player.getY() + 1.4,
                 player.getZ(), 8, .4, .4, .4, .02);
         }
