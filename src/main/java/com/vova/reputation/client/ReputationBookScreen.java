@@ -173,6 +173,18 @@ public final class ReputationBookScreen extends Screen {
         }
     }
 
+    @Override public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (section == 5 && scrollY != 0 && scale > 0f) {
+            double x = (mouseX - ox) / scale, y = (mouseY - oy) / scale;
+            if (x >= 115 && x <= 581 && y >= 15 && y <= 285) {
+                historyPage = Math.max(0, Math.min(historyPages() - 1,
+                    historyPage + (scrollY < 0 ? 1 : -1)));
+                return true;
+            }
+        }
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+    }
+
     @Override public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0 && scale > 0f) {
             double x = (mouseX - ox) / scale;
