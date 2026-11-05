@@ -115,8 +115,7 @@ public final class ReputationNetwork {
                         && player.distanceToSqr(villager) <= 64
                         && player.getData(ReputationMod.REP) >= 0
                         && ReputationMod.factionStandings(player)[0] > -40) {
-                    villager.setTradingPlayer(player);
-                    villager.openTradingScreen(player, villager.getDisplayName(), villager.getVillagerData().getLevel());
+                    ReputationTrading.open(player, villager);
                 }
             }));
         registrar.playToClient(ScoreSync.TYPE, ScoreSync.STREAM_CODEC,
