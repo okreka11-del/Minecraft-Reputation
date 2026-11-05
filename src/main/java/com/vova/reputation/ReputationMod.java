@@ -77,7 +77,7 @@ public final class ReputationMod {
         player.setData(REP, after);
         String entry = (after > before ? "+" : "") + (after - before) + " | " + reason + " | " + after;
         String oldHistory = player.getData(HISTORY);
-        String[] previous = oldHistory.isEmpty() ? new String[0] : oldHistory.split("\\n");
+        String[] previous = oldHistory.isEmpty() ? new String[0] : oldHistory.split("\n");
         StringBuilder history = new StringBuilder(entry);
         for (int i = 0; i < Math.min(11, previous.length); i++) {
             history.append('\n').append(previous[i]);
@@ -135,8 +135,8 @@ public final class ReputationMod {
                 if (history.isEmpty()) {
                     player.sendSystemMessage(Component.literal("No reputation changes recorded yet."));
                 } else {
-                    for (String line : history.split("\\n")) {
-                        String[] parts = line.split(" \\| ", 3);
+                    for (String line : history.split("\n")) {
+                        String[] parts = line.split(" \\\\| ", 3);
                         if (parts.length == 3) {
                             player.sendSystemMessage(Component.literal(parts[0] + " | ")
                                 .append(Component.translatable("reputation.reason." + parts[1].replace(" ", "_")))
