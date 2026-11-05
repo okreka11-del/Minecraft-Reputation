@@ -90,6 +90,7 @@ public final class ReputationMod {
     // Server-local, non-persistent cooldown: no migration of existing player saves.
     private static final Map<UUID, Map<UUID, Long>> PVP_COOLDOWNS = new HashMap<>();
     private static final long PVP_COOLDOWN_TICKS = 1200L;
+    private static final long MONSTER_REWARD_DELAY = 1728000L;
 
     public ReputationMod(IEventBus bus) {
         ATTACHMENTS.register(bus);
@@ -170,7 +171,7 @@ public final class ReputationMod {
             // Use the server-wide overworld clock so dimension travel cannot reset cooldown timing.
             long now = killer.server.overworld().getGameTime();
             long last = REWARD_COOLDOWN.getOrDefault(killer.getUUID(), Long.MIN_VALUE / 2);
-            if (now - last >= 100) {
+            if (now - last >= MONSTER_REWARD_DELAY) {
                 adjust(killer, 1, "defeated monster");
                 adjustFaction(killer, 3, -1);
                 advanceHunterQuest(killer);
