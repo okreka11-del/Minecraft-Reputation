@@ -90,7 +90,8 @@ public final class ReputationBookScreen extends Screen {
     private void text(GuiGraphics g, String s, int x, int y, int color) {
         int max = x < 340 ? 200 : 210;
         String shown = font.width(s) > max ? font.plainSubstrByWidth(s, max - 10) + "..." : s;
-        g.drawString(font, shown, x, y, color, false);
+        g.drawString(font, shown, x + 1, y, 0x665B4228, false);
+        g.drawString(font, shown, x, y, color, true);
     }
     private void tr(GuiGraphics g, String key, int x, int y, Object... args) {
         text(g, Component.translatable(key, args).getString(), x, y, INK);
@@ -171,7 +172,7 @@ public final class ReputationBookScreen extends Screen {
     private void factionPage(GuiGraphics g) {
         tr(g, "reputation.book.factions", 137, 60);
         for (int i = 0; i < factions.length; i++) {
-            int y = 86 + i * 28;
+            int y = 80 + i * 25;
             tr(g, "reputation.faction." + ReputationMod.FACTIONS[i], 137, y);
             text(g, (factions[i] > 0 ? "+" : "") + factions[i], 300, y, INK);
             progress(g, 373, y, 168, (factions[i] + 100) / 300f, factions[i] < 0 ? 0xFFAD4A5B : 0xFF7653A6);
@@ -213,9 +214,9 @@ public final class ReputationBookScreen extends Screen {
         int start = historyPage * 8;
         for (int i = start; i < Math.min(start + 8, lines.length); i++) {
             int x = i - start < 4 ? 137 : 373;
-            int y = 89 + ((i - start) % 4) * 39;
+            int y = 83 + ((i - start) % 4) * 34;
             text(g, lines[i], x, y, INK);
-            rule(g, x, y + 16, 180);
+            rule(g, x, y + 14, 180);
         }
         text(g, (historyPage + 1) + " / " + historyPages(), 137, 254, GOLD);
     }
