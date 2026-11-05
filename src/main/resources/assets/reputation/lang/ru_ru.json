@@ -84,5 +84,6 @@
   "block.reputation.jailer_station": "Тюремная стойка",
   "block.reputation.recruitment_board": "Рекрутская доска",
   "block.reputation.trophy_counter": "Чёрный торговый прилавок",
-  "block.reputation.dark_alchemy_reactor": "Алхимический реактор"
+  "block.reputation.dark_alchemy_reactor": "Алхимический реактор",
+  "message.reputation.profession_assigned": "Назначена профессия: %s"
 }
