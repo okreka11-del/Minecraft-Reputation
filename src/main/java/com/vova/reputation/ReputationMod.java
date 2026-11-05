@@ -90,7 +90,8 @@ public final class ReputationMod {
     // Server-local, non-persistent cooldown: no migration of existing player saves.
     private static final Map<UUID, Map<UUID, Long>> PVP_COOLDOWNS = new HashMap<>();
     private static final long PVP_COOLDOWN_TICKS = 1200L;
-    private static final long MONSTER_REWARD_DELAY = 1728000L;
+    private static final Map<UUID, Long> REWARD_DAY = new HashMap<>();
+    private static final Map<UUID, Integer> REWARD_COUNT = new HashMap<>();
 
     public ReputationMod(IEventBus bus) {
         ATTACHMENTS.register(bus);
@@ -170,13 +171,18 @@ public final class ReputationMod {
         } else if (victim instanceof Monster) {
             // Use the server-wide overworld clock so dimension travel cannot reset cooldown timing.
             long now = killer.server.overworld().getGameTime();
-            long last = REWARD_COOLDOWN.getOrDefault(killer.getUUID(), Long.MIN_VALUE / 2);
-            if (now - last >= MONSTER_REWARD_DELAY) {
+            long day = killer.server.overworld().getDayTime() / 24000L;
+            if (REWARD_DAY.getOrDefault(killer.getUUID(), -1L) != day) {
+                REWARD_DAY.put(killer.getUUID(), day);
+                REWARD_COUNT.put(killer.getUUID(), 0);
+            }
+            if (REWARD_COUNT.getOrDefault(killer.getUUID(), 0) < 10) {
+                REWARD_COUNT.put(killer.getUUID(), REWARD_COUNT.getOrDefault(killer.getUUID(), 0) + 1);
                 adjust(killer, 1, "defeated monster");
                 adjustFaction(killer, 3, -1);
                 advanceHunterQuest(killer);
                 if (killer.getData(REP) >= 151) killer.giveExperiencePoints(1);
-                REWARD_COOLDOWN.put(killer.getUUID(), now);
+
             }
         }
     }
