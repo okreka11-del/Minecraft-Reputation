@@ -170,7 +170,9 @@ public final class ReputationWorldEvents {
                 }
             } else if (score >= 100 && monster.distanceToSqr(player) < 256) {
                 // Heroes draw hostile attention, with higher pursuit speed at +200.
-                if (monster.getTarget() == null || monster.getTarget() instanceof ServerPlayer)
+                // Do not steal a monster already fighting another player (multiplayer safety).
+                // Only idle monsters may acquire a hero through reputation AI.
+                if (monster.getTarget() == null)
                     monster.setTarget(player);
                 if (!(monster instanceof Creeper))
                     monster.getNavigation().moveTo(player, score >= 200 ? 1.45 : 1.2);
