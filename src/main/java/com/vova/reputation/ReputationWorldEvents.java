@@ -48,7 +48,7 @@ public final class ReputationWorldEvents {
         int score = player.getData(ReputationMod.REP);
         int[] standing = ReputationMod.factionStandings(player);
         boolean light = score >= 120 && standing[2] >= -20;
-        boolean dark = score <= -80 && standing[3] >= -60;
+        boolean dark = score <= -80;
         AABB vicinity = player.getBoundingBox().inflate(12);
 
         for (Villager villager : level.getEntitiesOfClass(Villager.class, vicinity)) {
@@ -168,11 +168,15 @@ public final class ReputationWorldEvents {
                         if (enemy != null) monster.setTarget(enemy);
                     }
                 }
-            } else if (score <= -50 && !(monster instanceof Pillager)
-                    && (monster.getTarget() == null
-                    || (monster.getTarget() instanceof ServerPlayer target
-                        && target.getData(ReputationMod.REP) > score))) {
-                monster.setTarget(player);
+            } else if (score >= 100 && monster.distanceToSqr(player) < 256) {
+                // Heroes draw hostile attention, with higher pursuit speed at +200.
+                if (monster.getTarget() == null || monster.getTarget() instanceof ServerPlayer)
+                    monster.setTarget(player);
+                if (!(monster instanceof Creeper))
+                    monster.getNavigation().moveTo(player, score >= 200 ? 1.45 : 1.2);
+            } else if (score <= -40) {
+                // Villains are less attractive targets even before full dark allegiance.
+                if (monster.getTarget() == player) monster.setTarget(null);
             }
         }
     }
