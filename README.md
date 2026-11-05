@@ -1,27 +1,35 @@
-# Minecraft Reputation
+# Minecraft Reputation — 0.2.0-alpha
 
-Minecraft Java 1.21.1 / NeoForge. Java 21.
+Minecraft Java 1.21.1 / NeoForge, Java 21.
 
-## Implemented
-- Individual reputation starts at 100, clamped to -100..200.
-- Suspicion starts at 0.
-- Reputation and suspicion persist through death.
-- `/reputation get` shows both values.
-- `/reputation set <value>` requires operator permissions.
-- Killing a hostile monster grants +1 reputation.
-- Killing an animal costs -2 reputation.
-- Killing a villager costs -20 reputation.
-- Reputation changes are shown as action-bar messages.
+## Features
+- Per-player reputation (starts 100, range -100..200) and suspicion (starts 0, range 0..100).
+- Both values persist through death and world reloads.
+- Six reputation tiers: Legend (151..200), Trusted (101..150), Neutral (51..100), Outcast (1..50), Wanted (-49..0), Nemesis (-100..-50).
+- Killing a hostile monster: +1, with a five-second cooldown per player to discourage farming.
+- Killing an animal: -2; villager: -20; another player: -30.
+- Villagers try to flee nearby players at reputation 0 or below.
+- Monsters drop their current target when it is a player with reputation 151 or higher (checked periodically).
+- Monsters target nearby players at reputation -50 or lower when they have no target or a higher-reputation player as target.
+- Periodic action-bar display of reputation, rank and suspicion.
 
-## Test
+## Commands
+- `/reputation get`
+- `/reputation help`
+- `/reputation set <value>` (OP)
+- `/reputation add <delta>` (OP)
+- `/reputation suspicion <value>` (OP)
+
+## Testing checklist
 1. Download the successful `minecraft-reputation-jar` artifact from GitHub Actions and extract the JAR.
-2. Install in the `mods` folder of a Minecraft 1.21.1 NeoForge profile.
-3. In a test world with cheats enabled, run `/reputation get`.
-4. Defeat a hostile monster, kill an animal, and kill a villager; verify each change with `/reputation get`.
-5. Re-enter the world and test persistence through death.
+2. Place it in the `mods` folder of a Minecraft 1.21.1 NeoForge installation. Remove older versions.
+3. Create a world with cheats and test `/reputation get`.
+4. Kill a zombie, a cow, and a villager; verify score changes.
+5. Run `/reputation set 0` near villagers; watch them move away.
+6. Run `/reputation set -100` near hostile monsters; observe targeting.
+7. Run `/reputation set 200` near hostile monsters; observe whether targeting is cleared.
+8. Test `/reputation add -10` and `/reputation suspicion 70`.
+9. Test death and reload persistence.
 
-## Not implemented yet
-World reactions, villagers' trading discounts, mob targeting changes, NPCs, trials, multiplayer behavior refinements, and graphical HUD.
-
-## Build
-GitHub Actions runs Gradle on Java 21. This code change has not yet been confirmed to compile in CI.
+## Known limitations
+This is an experimental alpha. Villager flight and monster targeting are basic server-side behaviors; vanilla AI may override them. A true client-rendered HUD, animal retaliation, trading discounts, witness system, suspicion investigations, trials and custom NPCs are not implemented. Multiplayer behaviors need further testing. A successful CI build has not yet been verified for this update.
