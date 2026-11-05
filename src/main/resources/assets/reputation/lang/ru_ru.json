@@ -129,5 +129,11 @@
   "reputation.book.unlocks": "Доступные возможности:",
   "reputation.book.unlock_hero": "Помощь Света и подарки героя",
   "reputation.book.unlock_dark": "Союз с разбойниками",
-  "reputation.book.unlock_neutral": "Особые союзы пока недоступны"
+  "reputation.book.unlock_neutral": "Особые союзы пока недоступны",
+  "reputation.book.hunter_title": "Задание охотника: победить монстров",
+  "reputation.book.hunter_progress": "Прогресс: %s / 10",
+  "reputation.book.hunter_done": "Выполнено: 10 / 10",
+  "reputation.book.hunter_reward": "Награда: +10 репутации, 50 опыта",
+  "reputation.quest.hunter.complete": "Задание охотника выполнено! +10 репутации и 50 опыта.",
+  "reputation.reason.hunter_quest": "Задание охотника"
 }

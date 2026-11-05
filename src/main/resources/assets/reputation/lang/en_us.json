@@ -129,5 +129,11 @@
   "reputation.book.unlocks": "Available benefits:",
   "reputation.book.unlock_hero": "Light support and hero gifts",
   "reputation.book.unlock_dark": "Pillager alliance",
-  "reputation.book.unlock_neutral": "Special alliances not unlocked yet"
+  "reputation.book.unlock_neutral": "Special alliances not unlocked yet",
+  "reputation.book.hunter_title": "Hunter quest: defeat hostile mobs",
+  "reputation.book.hunter_progress": "Progress: %s / 10",
+  "reputation.book.hunter_done": "Completed: 10 / 10",
+  "reputation.book.hunter_reward": "Reward: +10 reputation, 50 XP",
+  "reputation.quest.hunter.complete": "Hunter quest completed! +10 reputation and 50 XP.",
+  "reputation.reason.hunter_quest": "Hunter quest"
 }

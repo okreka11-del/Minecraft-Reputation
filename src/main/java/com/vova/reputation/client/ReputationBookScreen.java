@@ -14,17 +14,21 @@ public final class ReputationBookScreen extends Screen {
     private final int historyPages;
     private final int[] factions = new int[6];
     private final String settlement;
+    private final int hunterProgress;
+    private final boolean hunterCompleted;
     private final int pageCount;
     private static final int[] RANKS = {-100,-80,-60,-20,0,100,120,140,160,180,200};
     private int page;
     private Button previousButton;
     private Button nextButton;
 
-    public ReputationBookScreen(int score, int suspicion, String history, String factionData, String settlementData) {
+    public ReputationBookScreen(int score, int suspicion, String history, String factionData, String settlementData, int hunterProgress, boolean hunterCompleted) {
         super(Component.translatable("reputation.book.title"));
         this.score = Math.max(-100, Math.min(200, score));
         this.history = history == null ? "" : history;
         this.settlement = settlementData == null ? "none" : settlementData;
+        this.hunterProgress = Math.max(0, Math.min(10, hunterProgress));
+        this.hunterCompleted = hunterCompleted;
         String[] parts = (factionData == null ? "" : factionData).split(",");
         for (int i = 0; i < Math.min(parts.length, factions.length); i++) {
             try { factions[i] = Math.max(-100, Math.min(200, Integer.parseInt(parts[i]))); }
@@ -122,17 +126,19 @@ public final class ReputationBookScreen extends Screen {
             }
         } else if (page == historyPages + 3) {
             heading(graphics, "quests", left, top);
-            line(graphics, "quests_pending", left, top + 57);
+            line(graphics, "hunter_title", left, top + 52);
+            line(graphics, hunterCompleted ? "hunter_done" : "hunter_progress", left, top + 65, hunterProgress);
+            line(graphics, "hunter_reward", left, top + 78);
             if ("none".equals(settlement)) {
-                line(graphics, "settlement_none", left, top + 79);
+                line(graphics, "settlement_none", left, top + 95);
             } else {
                 String[] parts = settlement.split(":", 2);
                 String state = parts[0].equals("occupied") ? "occupied" : "free";
-                line(graphics, "settlement_" + state, left, top + 79);
-                if (parts.length > 1) line(graphics, "settlement_stage", left, top + 97, parts[1]);
+                line(graphics, "settlement_" + state, left, top + 95);
+                if (parts.length > 1) line(graphics, "settlement_stage", left, top + 108, parts[1]);
             }
-            line(graphics, "unlocks", left, top + 118);
-            line(graphics, score >= 151 ? "unlock_hero" : score <= -80 ? "unlock_dark" : "unlock_neutral", left, top + 135);
+            line(graphics, "unlocks", left, top + 125);
+            line(graphics, score >= 151 ? "unlock_hero" : score <= -80 ? "unlock_dark" : "unlock_neutral", left, top + 138);
         } else {
             heading(graphics, "help", left, top);
             line(graphics, "help_book", left, top + 54);
