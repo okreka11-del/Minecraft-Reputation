@@ -89,9 +89,22 @@ public final class ReputationNetwork {
         @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
     }
 
+    public record FartRequest() implements CustomPacketPayload {
+        public static final Type<FartRequest> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(ReputationMod.ID, "fart_request"));
+        public static final StreamCodec<FriendlyByteBuf, FartRequest> STREAM_CODEC =
+            StreamCodec.unit(new FartRequest());
+        @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
+    }
+
     @SubscribeEvent
     public static void register(RegisterPayloadHandlersEvent event) {
         var registrar = event.registrar("1");
+        registrar.playToServer(FartRequest.TYPE, FartRequest.STREAM_CODEC,
+            (payload, context) -> context.enqueueWork(() -> {
+                if (context.player() instanceof ServerPlayer player)
+                    ReputationFarts.play(player);
+            }));
         registrar.playToServer(VillageRequest.TYPE, VillageRequest.STREAM_CODEC,
             (payload, context) -> context.enqueueWork(() -> {
                 if (context.player() instanceof ServerPlayer player) ReputationSettlements.sendOverview(player);
