@@ -84,5 +84,6 @@
   "block.reputation.jailer_station": "Jailer's Station",
   "block.reputation.recruitment_board": "Recruitment Board",
   "block.reputation.trophy_counter": "Trophy Counter",
-  "block.reputation.dark_alchemy_reactor": "Dark Alchemy Reactor"
+  "block.reputation.dark_alchemy_reactor": "Dark Alchemy Reactor",
+  "message.reputation.profession_assigned": "Assigned profession: %s"
 }
