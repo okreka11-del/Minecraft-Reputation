@@ -35,6 +35,7 @@ public final class ReputationSettlements {
     public static void register() {
         NeoForge.EVENT_BUS.addListener(ReputationSettlements::commands);
         NeoForge.EVENT_BUS.addListener(ReputationSettlements::tick);
+        NeoForge.EVENT_BUS.addListener(ReputationVillagePerks::tick);
     }
 
     public static final class Village {
