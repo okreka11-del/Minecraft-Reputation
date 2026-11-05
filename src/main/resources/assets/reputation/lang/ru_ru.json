@@ -34,5 +34,15 @@
   "reputation.dragon.absent": "Дракон слишком далеко.",
   "reputation.dragon.hello": "Дракон: Приветствую, герой. Ты пришёл с миром, и я отвечу тем же.",
   "reputation.dragon.how": "Дракон: Вечность тянется долго. Но сегодня мне приятно твоё общество.",
-  "reputation.dragon.portal": "Дракон: Путь домой открыт. Возвращайся, когда захочешь."
+  "reputation.dragon.portal": "Дракон: Путь домой открыт. Возвращайся, когда захочешь.",
+  "reputation.dragon.outlaw": "Дракон: Ты отверг свет. Я вижу в тебе разрушение, но даже тьма требует выбора.",
+  "reputation.dragon.help": "Дракон: Скажи, чего ты ищешь, смертный. Я слышу тебя.",
+  "reputation.dragon.friend": "Дракон: Помощь? Даже королям тьмы приходится платить за неё.",
+  "reputation.dragon.unknown": "Дракон: Дружба не рождается из страха.",
+  "reputation.dragon.dark_hello": "Дракон: Твои слова необычны. Расскажи подробнее.",
+  "reputation.dragon.dark_how": "Дракон: Привет, повелитель беспорядка.",
+  "reputation.dragon.dark_help": "Дракон: Моя вечность темнее твоей.",
+  "reputation.dragon.dark_friend": "Дракон: Я не служу тебе, но выслушаю.",
+  "reputation.dragon.dark_unknown": "Дракон: Мы не друзья. Пока что.",
+  "reputation.dragon.dark_extra": "Дракон: Тьма услышала твои слова."
 }
