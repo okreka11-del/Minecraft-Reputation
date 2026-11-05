@@ -1,6 +1,8 @@
 package com.vova.reputation;
 
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.entity.monster.Pillager;
+import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -63,12 +65,17 @@ public final class ReputationWorldEvents {
                 // The splash is cosmetic; the brief slowness is the gameplay penalty.
                 if (score <= -50 && animal.distanceToSqr(player) < 16
                         && (tick + animal.getId() * 13L) % 160 < 40) {
-                    level.sendParticles(ParticleTypes.ITEM_SLIME,
+                    level.sendParticles(ParticleTypes.CLOUD,
                         player.getX(), player.getY() + 1.4, player.getZ(),
                         9, 0.25, 0.3, 0.25, 0.06);
                     player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 50, 0));
                 }
             }
+        }
+
+        for (IronGolem golem : level.getEntitiesOfClass(IronGolem.class, vicinity)) {
+            if (score <= -50) golem.setTarget(player);
+            else if (golem.getTarget() == player) golem.setTarget(null);
         }
 
         // High reputation discourages hostile targeting, low reputation attracts it.
@@ -79,6 +86,18 @@ public final class ReputationWorldEvents {
                     || (monster.getTarget() instanceof ServerPlayer target
                         && target.getData(ReputationMod.REP) > score))) {
                 monster.setTarget(player);
+            }
+        }
+        // Pillagers become allies of renowned players and target hostile monsters.
+        if (score >= 151) {
+            for (Pillager pillager : level.getEntitiesOfClass(Pillager.class, vicinity)) {
+                if (pillager.getTarget() == player) pillager.setTarget(null);
+                if (pillager.getTarget() == null) {
+                    Monster enemy = level.getEntitiesOfClass(Monster.class,
+                        pillager.getBoundingBox().inflate(10), m -> !(m instanceof Pillager))
+                        .stream().findFirst().orElse(null);
+                    if (enemy != null) pillager.setTarget(enemy);
+                }
             }
         }
     }
