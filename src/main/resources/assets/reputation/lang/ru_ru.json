@@ -121,5 +121,13 @@
   "reputation.faction.animals": "Животные",
   "reputation.faction.monsters": "Монстры",
   "reputation.faction.golems": "Големы",
-  "reputation.faction.dragon": "Дракон"
+  "reputation.faction.dragon": "Дракон",
+  "reputation.book.settlement_none": "Рядом нет зарегистрированного поселения.",
+  "reputation.book.settlement_occupied": "Поселение: захвачено Тьмой",
+  "reputation.book.settlement_free": "Поселение: свободно",
+  "reputation.book.settlement_stage": "Этап восстановления: %s / 3",
+  "reputation.book.unlocks": "Доступные возможности:",
+  "reputation.book.unlock_hero": "Помощь Света и подарки героя",
+  "reputation.book.unlock_dark": "Союз с разбойниками",
+  "reputation.book.unlock_neutral": "Особые союзы пока недоступны"
 }
