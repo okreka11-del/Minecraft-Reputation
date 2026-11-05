@@ -96,5 +96,13 @@
   "reputation.rank.good_ally": "Хороший союзник",
   "reputation.rank.best_ally": "Лучший союзник",
   "reputation.rank.hero_of_light": "Герой Света",
-  "reputation.hud.ranks": "Звания репутации  •  −100 ... +200"
+  "reputation.hud.ranks": "Звания репутации  •  −100 ... +200",
+  "reputation.book.title": "Книга репутации",
+  "reputation.book.score": "Репутация: %s",
+  "reputation.book.range": "Диапазон: -100 ... +200",
+  "reputation.book.actions": "Последние поступки",
+  "reputation.book.empty": "Пока нет записей",
+  "reputation.book.future": "Будущие главы",
+  "reputation.book.chapters": "Фракции, задания и поселения",
+  "reputation.book.unfinished": "Пока не реализовано"
 }
