@@ -28,5 +28,11 @@
   "reputation.hero.donor.wither_skeleton": "скелета-иссушителя",
   "reputation.hero.donor.piglin": "пиглина",
   "reputation.hero.donor.horse": "лошади",
-  "reputation.hero.donor.villager": "жителя"
+  "reputation.hero.donor.villager": "жителя",
+  "reputation.hero.discount": "Житель предлагает тебе скидку за репутацию!",
+  "reputation.dragon.unworthy": "Дракон: Ты ещё не заслужил моего доверия.",
+  "reputation.dragon.absent": "Дракон слишком далеко.",
+  "reputation.dragon.hello": "Дракон: Приветствую, герой. Ты пришёл с миром, и я отвечу тем же.",
+  "reputation.dragon.how": "Дракон: Вечность тянется долго. Но сегодня мне приятно твоё общество.",
+  "reputation.dragon.portal": "Дракон: Путь домой открыт. Возвращайся, когда захочешь."
 }
