@@ -1,6 +1,9 @@
 package com.vova.reputation;
 
 import net.minecraft.core.BlockPos;
+import java.util.Map;
+import java.util.UUID;
+import java.util.HashMap;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -21,6 +24,17 @@ import net.neoforged.neoforge.event.level.BlockEvent;
 
 public final class ReputationRules {
     private ReputationRules() {}
+    // Per-player interaction cooldown, using the server-wide clock to prevent dimension resets.
+    private static final Map<UUID, Long> INTERACTION_COOLDOWN = new HashMap<>();
+    private static final long INTERACTION_INTERVAL = 1200L;
+
+    private static boolean ready(ServerPlayer player) {
+        long now = player.server.overworld().getGameTime();
+        long last = INTERACTION_COOLDOWN.getOrDefault(player.getUUID(), Long.MIN_VALUE / 2);
+        if (now - last < INTERACTION_INTERVAL) return false;
+        INTERACTION_COOLDOWN.put(player.getUUID(), now);
+        return true;
+    }
 
     public static void register() {
         NeoForge.EVENT_BUS.addListener(ReputationRules::interact);
@@ -32,19 +46,26 @@ public final class ReputationRules {
     private static void interact(PlayerInteractEvent.EntityInteract event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         int score = player.getData(ReputationMod.REP);
-        if (score < 0 && event.getTarget() instanceof Villager) {
+        int[] factions = ReputationMod.factionStandings(player);
+        // Faction relationships influence interactions without overwriting global reputation.
+        if ((score < 0 || factions[0] <= -40) && event.getTarget() instanceof Villager) {
             event.setCanceled(true);
             player.displayClientMessage(Component.translatable("reputation.message.trade_refused"), true);
-        } else if (score >= 101 && event.getTarget() instanceof Villager villager) {
+        } else if (score >= 101 && factions[0] >= 0 && event.getTarget() instanceof Villager villager) {
             int discount = score >= 200 ? -8 : score >= 151 ? -5 : -2;
             for (net.minecraft.world.item.trading.MerchantOffer offer : villager.getOffers()) {
                 offer.resetSpecialPriceDiff();
                 offer.addToSpecialPriceDiff(discount);
             }
             player.displayClientMessage(Component.translatable("reputation.hero.discount"), true);
-        } else if (score < 0 && event.getTarget() instanceof Animal) {
+        } else if ((score < 0 || factions[2] <= -40) && event.getTarget() instanceof Animal) {
             event.setCanceled(true);
             player.displayClientMessage(Component.translatable("reputation.message.animal_afraid"), true);
+        } else if (event.getTarget() instanceof IronGolem && score >= 120 && factions[4] >= 0 && ready(player)) {
+            // A small, bounded goodwill reward for maintaining a friendly golem relationship.
+            player.giveExperiencePoints(2);
+            ReputationMod.adjustFaction(player, 4, 1);
+            player.displayClientMessage(Component.literal("Golem alliance: +2 XP, +1 golem standing"), true);
         }
     }
 
@@ -52,7 +73,7 @@ public final class ReputationRules {
         LivingEntity victim = event.getEntity();
         if (!(victim instanceof ServerPlayer player)) return;
         int score = player.getData(ReputationMod.REP);
-        if ((score <= -80 && event.getSource().getEntity() instanceof Pillager)
+        if ((score <= -80 && ReputationMod.factionStandings(player)[1] >= 0 && event.getSource().getEntity() instanceof Pillager)
                 || (score >= 151 && event.getSource().getEntity() instanceof Monster)
                 || (score == 200 && event.getSource().getEntity() instanceof EnderDragon)) {
             event.setCanceled(true);
