@@ -20,10 +20,15 @@ public final class ReputationKeys {
         "key.reputation.journal", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_J,
         "key.categories.reputation");
 
+    public static final KeyMapping VILLAGE = new KeyMapping(
+        "key.reputation.village", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_V,
+        "key.categories.reputation");
+
     @EventBusSubscriber(modid = ReputationMod.ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     public static final class Registration {
         @SubscribeEvent public static void keys(RegisterKeyMappingsEvent event) {
             event.register(JOURNAL);
+            event.register(VILLAGE);
         }
     }
 
@@ -31,6 +36,10 @@ public final class ReputationKeys {
     public static final class Handler {
         @SubscribeEvent public static void tick(ClientTickEvent.Post event) {
             Minecraft mc = Minecraft.getInstance();
+            while (VILLAGE.consumeClick()) {
+                if (mc.player != null && mc.screen == null)
+                    PacketDistributor.sendToServer(new ReputationNetwork.VillageRequest());
+            }
             while (JOURNAL.consumeClick()) {
                 if (mc.player != null && mc.screen == null)
                     PacketDistributor.sendToServer(new ReputationNetwork.JournalRequest());
