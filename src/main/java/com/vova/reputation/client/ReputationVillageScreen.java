@@ -23,7 +23,7 @@ public final class ReputationVillageScreen extends Screen {
             .bounds(width / 2 - 55, height / 2 + 76, 110, 20).build());
     }
     @Override public void render(GuiGraphics g, int mx, int my, float tick) {
-        renderBackground(g, mx, my, tick);
+        g.fill(0, 0, width, height, 0xB0100B10);
         int x = width / 2 - 145, y = height / 2 - 112;
         g.fill(x - 3, y - 3, x + 293, y + 218, 0xFF35241D);
         g.fill(x, y, x + 290, y + 212, 0xFFD4B584);
