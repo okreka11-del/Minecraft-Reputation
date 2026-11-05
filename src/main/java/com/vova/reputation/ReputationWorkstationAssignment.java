@@ -52,8 +52,10 @@ public final class ReputationWorkstationAssignment {
         Level level = event.getLevel();
         if (level.isClientSide() || !(event.getEntity() instanceof ServerPlayer player)) return;
 
-        String blockId = BuiltInRegistries.BLOCK.getKey(level.getBlockState(event.getPos()).getBlock()).getPath();
-        String job = JOBS.get(blockId);
+        var blockKey = BuiltInRegistries.BLOCK.getKey(level.getBlockState(event.getPos()).getBlock());
+        // Never treat another mod's block with the same path as our workstation.
+        if (!ReputationMod.ID.equals(blockKey.getNamespace())) return;
+        String job = JOBS.get(blockKey.getPath());
         if (job == null) return;
 
         boolean illagerJob = job.equals("warlord") || job.equals("infiltrator")
