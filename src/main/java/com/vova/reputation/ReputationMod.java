@@ -40,6 +40,10 @@ public final class ReputationMod {
 
     // Server-local anti-farm cooldowns. These are deliberately not persisted.
     private static final Map<UUID, Long> REWARD_COOLDOWN = new HashMap<>();
+    // Prevent repeated PvP kills of the same victim from farming negative reputation.
+    // Server-local, non-persistent cooldown: no migration of existing player saves.
+    private static final Map<UUID, Map<UUID, Long>> PVP_COOLDOWNS = new HashMap<>();
+    private static final long PVP_COOLDOWN_TICKS = 1200L;
 
     public ReputationMod(IEventBus bus) {
         ATTACHMENTS.register(bus);
@@ -92,8 +96,16 @@ public final class ReputationMod {
         if (!(event.getSource().getEntity() instanceof ServerPlayer killer)) return;
         if (victim instanceof Villager) {
             adjust(killer, -20, "killed villager");
-        } else if (victim instanceof ServerPlayer) {
-            adjust(killer, -30, "killed player");
+        } else if (victim instanceof ServerPlayer defeated) {
+            if (killer.getUUID().equals(defeated.getUUID())) return;
+            long now = killer.server.overworld().getGameTime();
+            Map<UUID, Long> victims = PVP_COOLDOWNS.computeIfAbsent(killer.getUUID(), id -> new HashMap<>());
+            // Expire stale entries to bound per-killer memory usage during normal play.
+            victims.entrySet().removeIf(entry -> now - entry.getValue() >= PVP_COOLDOWN_TICKS);
+            if (!victims.containsKey(defeated.getUUID())) {
+                adjust(killer, -30, "killed player");
+                victims.put(defeated.getUUID(), now);
+            }
         } else if (victim instanceof Animal) {
             adjust(killer, -2, "killed animal");
         } else if (victim instanceof Monster) {
