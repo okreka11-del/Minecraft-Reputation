@@ -40,33 +40,51 @@ public final class ReputationHud {
         return score < 160 ? 0xFFE8AF32 : 0xFFFFD34B;
     }
 
+    private static void roundedBar(GuiGraphics gui, int x, int y, int w, int h) {
+        // Pixel-rounded end caps, dark embossed frame and segmented XP-like track.
+        gui.fill(x + 5, y - 3, x + w - 5, y + h + 3, 0xFF100D14);
+        gui.fill(x + 2, y, x + w - 2, y + h, 0xFF100D14);
+        gui.fill(x + 5, y - 2, x + w - 5, y + h + 2, 0xFFB4863A);
+        gui.fill(x + 3, y + 2, x + w - 3, y + h - 2, 0xFFB4863A);
+        gui.fill(x + 6, y, x + w - 6, y + h, 0xFF241820);
+        for (int i = 7; i < w - 7; i += 2) {
+            int value = -100 + (int) ((i - 7) * 300.0 / (w - 14));
+            int color = colorAt(value);
+            gui.fill(x + i, y + 2, x + Math.min(w - 7, i + 2), y + h - 2, color);
+            gui.fill(x + i, y + 2, x + Math.min(w - 7, i + 2), y + 4, 0x44FFFFFF);
+            gui.fill(x + i, y + h - 4, x + Math.min(w - 7, i + 2), y + h - 2, 0x55000000);
+        }
+        for (int i = 1; i < 15; i++) {
+            int tick = x + 7 + i * (w - 14) / 15;
+            gui.fill(tick, y + 2, tick + 1, y + h - 2, 0xAA24131B);
+        }
+    }
+
     private static void drawHud(GuiGraphics gui, Minecraft mc) {
-        int x = 12, y = 13, w = 166, h = 10;
+        int x = 12, y = 20, w = 176, h = 12;
         int score = syncedScore;
-        gui.drawString(mc.font, "Репутация: ", x + 18, y - 11, 0xFFFFFFFF, true);
-        gui.drawString(mc.font, (score > 0 ? "+" : "") + score, x + 88, y - 11, 0xFFFFD44C, true);
-        gui.fill(x - 2, y - 2, x + w + 2, y + h + 2, 0xEE130E14);
-        gui.fill(x - 1, y - 1, x + w + 1, y + h + 1, 0xFF8B6D43);
-        gui.fill(x, y, x + w, y + h, 0xFF231E24);
-        for (int i = 0; i < w; i += 2) {
-            int value = -100 + (int) Math.round((i + 1) * 300.0 / w);
-            gui.fill(x + i, y + 1, x + Math.min(w, i + 2), y + h - 1, colorAt(value));
-        }
-        for (int i = 1; i < 12; i++) {
-            int tick = x + i * w / 12;
-            gui.fill(tick, y, tick + 1, y + h, 0xAA181218);
-        }
-        int marker = x + Math.round((score + 100) * w / 300.0f);
-        gui.fill(marker - 2, y - 4, marker + 3, y + h + 4, 0xFF432B0A);
-        gui.fill(marker - 1, y - 3, marker + 2, y + h + 3, 0xFFFFD750);
+        String label = "Репутация: ";
+        String number = (score > 0 ? "+" : "") + score;
+        // Use Minecraft's own pixel font and scale it up without smoothing.
+        gui.pose().pushPose();
+        gui.pose().translate(x + 13, y - 19, 0);
+        gui.pose().scale(1.22f, 1.22f, 1.0f);
+        gui.drawString(mc.font, label, 0, 0, 0xFFFFFFFF, true);
+        gui.drawString(mc.font, number, mc.font.width(label) + 3, 0, 0xFFFFD44C, true);
+        gui.pose().popPose();
+        roundedBar(gui, x, y, w, h);
+        int marker = x + 7 + Math.round((score + 100) * (w - 14) / 300.0f);
+        gui.fill(marker - 3, y - 5, marker + 4, y + h + 5, 0xFF402709);
+        gui.fill(marker - 2, y - 4, marker + 3, y + h + 4, 0xFFFFC943);
+        gui.fill(marker - 1, y - 3, marker + 2, y + h + 3, 0xFFFFFFA5);
         String title = TITLES[rankIndex(score)];
         int textWidth = mc.font.width(title);
-        int labelW = Math.max(94, textWidth + 20);
+        int labelW = Math.max(100, textWidth + 20);
         int labelX = x + (w - labelW) / 2;
-        gui.fill(labelX, y + 15, labelX + labelW, y + 29, 0xEE171015);
-        gui.fill(labelX, y + 15, labelX + labelW, y + 16, 0xFFB98B35);
-        gui.fill(labelX, y + 28, labelX + labelW, y + 29, 0xFFB98B35);
-        gui.drawString(mc.font, title, labelX + (labelW - textWidth) / 2, y + 18, 0xFFFFD966, true);
+        gui.fill(labelX + 3, y + 17, labelX + labelW - 3, y + 34, 0xFFB98B35);
+        gui.fill(labelX, y + 20, labelX + labelW, y + 31, 0xFFB98B35);
+        gui.fill(labelX + 4, y + 19, labelX + labelW - 4, y + 32, 0xFF171015);
+        gui.drawString(mc.font, title, labelX + (labelW - textWidth) / 2, y + 21, 0xFFFFD966, true);
     }
 
     @SubscribeEvent
