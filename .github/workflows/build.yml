@@ -1,7 +1,11 @@
 name: Build Minecraft Reputation JAR
 on:
   push:
+    branches: [main, feature/large-village-overhaul]
+  pull_request:
     branches: [main]
+    paths-ignore:
+      - '**/*.md'
   workflow_dispatch:
 permissions:
   contents: write
@@ -38,6 +42,7 @@ jobs:
           path: release/Minecraft-Reputation.jar
           if-no-files-found: error
       - name: Publish single rolling release
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
