@@ -97,7 +97,8 @@ public final class ReputationMod {
         } else if (victim instanceof Animal) {
             adjust(killer, -2, "killed animal");
         } else if (victim instanceof Monster) {
-            long now = killer.level().getGameTime();
+            // Use the server-wide overworld clock so dimension travel cannot reset cooldown timing.
+            long now = killer.server.overworld().getGameTime();
             long last = REWARD_COOLDOWN.getOrDefault(killer.getUUID(), Long.MIN_VALUE / 2);
             if (now - last >= 100) {
                 adjust(killer, 1, "defeated monster");
