@@ -8,6 +8,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
+import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.npc.Villager;
 import net.neoforged.bus.api.IEventBus;
@@ -165,6 +167,15 @@ public final class ReputationMod {
                 adjust(killer, -30, "killed player");
                 victims.put(defeated.getUUID(), now);
             }
+        } else if (victim instanceof EnderDragon) {
+            // The dragon is a distinct faction, not a generic hostile-mob reward.
+            adjustFaction(killer, 5, -40);
+            adjust(killer, 20, "defeated dragon");
+        } else if (victim instanceof IronGolem) {
+            // Iron golems are village defenders; their standing must not be ignored.
+            adjustFaction(killer, 4, -15);
+            adjustFaction(killer, 0, -5);
+            adjust(killer, -10, "killed golem");
         } else if (victim instanceof Animal) {
             adjust(killer, -2, "killed animal");
             adjustFaction(killer, 2, -2);
