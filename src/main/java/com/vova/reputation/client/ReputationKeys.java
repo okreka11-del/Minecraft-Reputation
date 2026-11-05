@@ -16,6 +16,9 @@ import org.lwjgl.glfw.GLFW;
 /** J opens the server-synchronized reputation journal, without chat commands. */
 public final class ReputationKeys {
     private ReputationKeys() {}
+    private static boolean shiftWasDown;
+    private static long lastShiftTap;
+    private static long lastFart;
     public static final KeyMapping JOURNAL = new KeyMapping(
         "key.reputation.journal", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_J,
         "key.categories.reputation");
@@ -36,6 +39,16 @@ public final class ReputationKeys {
     public static final class Handler {
         @SubscribeEvent public static void tick(ClientTickEvent.Post event) {
             Minecraft mc = Minecraft.getInstance();
+            boolean shiftDown = mc.options.keyShift.isDown();
+            if (mc.player != null && mc.screen == null && shiftDown && !shiftWasDown) {
+                long now = System.nanoTime();
+                if (now - lastShiftTap < 400_000_000L && now - lastFart > 1_500_000_000L) {
+                    PacketDistributor.sendToServer(new ReputationNetwork.FartRequest());
+                    lastFart = now;
+                    lastShiftTap = 0;
+                } else lastShiftTap = now;
+            }
+            shiftWasDown = shiftDown;
             while (VILLAGE.consumeClick()) {
                 if (mc.player != null && mc.screen == null)
                     PacketDistributor.sendToServer(new ReputationNetwork.VillageRequest());
