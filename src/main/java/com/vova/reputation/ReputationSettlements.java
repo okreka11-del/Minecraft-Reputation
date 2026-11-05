@@ -208,13 +208,14 @@ public final class ReputationSettlements {
 
     /** One additional structure per visit stage, with a strict clear-footprint check. */
     private static boolean placeVillageStructure(ServerLevel level, Village village) {
-        if (village.structuresBuilt >= 3) return false;
+        if (village.structuresBuilt >= 6) return false;
         int kind = village.structuresBuilt;
-        int[][] offsets = {{21,0},{-21,0},{0,21},{0,-21},{23,13},{-23,-13}};
+        int[][] offsets = {{21,0},{-21,0},{0,21},{0,-21},{23,13},{-23,-13},{38,8},{-38,8},{8,38},{8,-38},{-38,-18},{38,-18}};
         for (int[] offset : offsets) {
             BlockPos base = level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 village.center.offset(offset[0], 0, offset[1]));
-            if (!clearSite(level, base, 2, 5)) continue;
+            if (Math.abs(base.getY() - village.center.getY()) > 4 || !clearSite(level, base, 2, 7)) continue;
+            if (kind >= 3) { buildSpecial(level, base, kind); return true; }
             // Market stall, watch post and supply depot; all are non-destructive.
             for (int x = -2; x <= 2; x++) for (int z = -2; z <= 2; z++) {
                 BlockPos pos = base.offset(x, 0, z);
@@ -241,6 +242,32 @@ public final class ReputationSettlements {
             return true;
         }
         return false;
+    }
+
+    private static void buildSpecial(ServerLevel level, BlockPos base, int kind) {
+        BlockState floor = (kind == 3 ? Blocks.STONE_BRICKS : kind == 4 ? Blocks.MOSSY_COBBLESTONE : Blocks.SPRUCE_PLANKS).defaultBlockState();
+        BlockState post = (kind == 3 ? Blocks.STONE_BRICK_WALL : Blocks.OAK_LOG).defaultBlockState();
+        BlockState roof = (kind == 3 ? Blocks.DEEPSLATE_TILES : kind == 4 ? Blocks.OAK_LEAVES : Blocks.DARK_OAK_PLANKS).defaultBlockState();
+        for (int x = -2; x <= 2; x++) for (int z = -2; z <= 2; z++) {
+            BlockPos p = base.offset(x, 0, z);
+            level.setBlockAndUpdate(p, floor);
+            if (Math.abs(x) == 2 && Math.abs(z) == 2)
+                for (int y = 1; y <= 4; y++) level.setBlockAndUpdate(p.above(y), post);
+            level.setBlockAndUpdate(p.above(5), roof);
+        }
+        if (kind == 3) {
+            level.setBlockAndUpdate(base.offset(-1, 1, 0), Blocks.BLAST_FURNACE.defaultBlockState());
+            level.setBlockAndUpdate(base.offset(1, 1, 0), Blocks.ANVIL.defaultBlockState());
+            level.setBlockAndUpdate(base.offset(0, 1, 1), Blocks.SMITHING_TABLE.defaultBlockState());
+        } else if (kind == 4) {
+            level.setBlockAndUpdate(base.offset(-1, 1, 0), Blocks.FLOWERING_AZALEA.defaultBlockState());
+            level.setBlockAndUpdate(base.offset(1, 1, 0), Blocks.POTTED_BLUE_ORCHID.defaultBlockState());
+            level.setBlockAndUpdate(base.offset(0, 1, 1), Blocks.COMPOSTER.defaultBlockState());
+        } else {
+            level.setBlockAndUpdate(base.offset(-1, 1, 1), Blocks.BOOKSHELF.defaultBlockState());
+            level.setBlockAndUpdate(base.offset(1, 1, 1), Blocks.BOOKSHELF.defaultBlockState());
+            level.setBlockAndUpdate(base.offset(0, 1, 1), Blocks.LECTERN.defaultBlockState());
+        }
     }
 
     private static boolean clearSite(ServerLevel level, BlockPos base, int radius, int height) {
@@ -334,7 +361,7 @@ public final class ReputationSettlements {
                 village.nextBuild = level.getGameTime() + 6000;
                 data.setDirty();
             }
-            if (village.houseBuilt && village.structuresBuilt < 3
+            if (village.houseBuilt && village.structuresBuilt < 6
                     && level.getGameTime() >= village.nextBuild && level.hasChunkAt(village.center)
                     && placeVillageStructure(level, village)) {
                 village.structuresBuilt++;
@@ -352,7 +379,7 @@ public final class ReputationSettlements {
                 data.setDirty();
             } else {
                 village.stage = 3;
-                village.nextBuild = Long.MAX_VALUE;
+                village.nextBuild = level.getGameTime() + 12000;
                 data.setDirty();
             }
         }
