@@ -2,6 +2,7 @@ package com.vova.reputation.client;
 
 import com.vova.reputation.ReputationMod;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 import net.minecraft.client.gui.GuiGraphics;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -29,6 +30,6 @@ public final class ReputationHud {
         gui.fill(x - 2, y - 2, x + width + 2, y + height + 2, 0xCC080B12);
         gui.fill(x, y, x + width, y + height, 0xFF30333D);
         gui.fill(x, y, x + fill, y + height, color);
-        gui.drawString(minecraft.font, "REPUTATION  " + score, x, y + 15, 0xFFFFFFFF, true);
+        gui.drawString(minecraft.font, Component.translatable("reputation.hud.label").getString() + "  " + score, x, y + 15, 0xFFFFFFFF, true);
     }
 }
