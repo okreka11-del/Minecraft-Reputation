@@ -85,7 +85,7 @@ public final class ReputationNetwork {
                         && player.distanceToSqr(villager) <= 64
                         && player.getData(ReputationMod.REP) >= 0
                         && ReputationMod.factionStandings(player)[0] > -40) {
-                    villager.startTrading(player);
+                    villager.setTradingPlayer(player);
                     player.openTradingScreen(villager, villager.getDisplayName(), villager.getVillagerData().getLevel());
                 }
             }));
