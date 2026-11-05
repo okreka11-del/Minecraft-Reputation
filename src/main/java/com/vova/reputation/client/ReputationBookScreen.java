@@ -64,12 +64,14 @@ public final class ReputationBookScreen extends Screen {
                 });
         }
         button(300, 294, 74, 20, Component.literal("<"), () -> {
-            if (section == 5) historyPage = Math.max(0, historyPage - 1);
-            else section = Math.max(0, section - 1);
+            if (section == 5 && historyPage > 0) historyPage--;
+            else { section = Math.max(0, section - 1); historyPage = 0; }
         });
         button(382, 294, 74, 20, Component.literal(">"), () -> {
-            if (section == 5 && historyPage + 1 < historyPages()) historyPage++;
-            else section = Math.min(SECTIONS.length - 1, section + 1);
+            if (section == 5) {
+                if (historyPage + 1 < historyPages()) historyPage++;
+                else { section = Math.min(SECTIONS.length - 1, section + 1); historyPage = 0; }
+            } else { section = Math.min(SECTIONS.length - 1, section + 1); historyPage = 0; }
         });
         button(506, 294, 77, 20, Component.translatable("gui.done"), this::onClose);
     }
@@ -80,8 +82,12 @@ public final class ReputationBookScreen extends Screen {
 
     @Override public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (keyCode == 263 || keyCode == 262) {
-            section = Math.max(0, Math.min(SECTIONS.length - 1, section + (keyCode == 263 ? -1 : 1)));
-            historyPage = 0;
+            if (section == 5 && keyCode == 263 && historyPage > 0) historyPage--;
+            else if (section == 5 && keyCode == 262 && historyPage + 1 < historyPages()) historyPage++;
+            else {
+                section = Math.max(0, Math.min(SECTIONS.length - 1, section + (keyCode == 263 ? -1 : 1)));
+                historyPage = 0;
+            }
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
