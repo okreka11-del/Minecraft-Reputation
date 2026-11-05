@@ -121,5 +121,13 @@
   "reputation.faction.animals": "Animals",
   "reputation.faction.monsters": "Monsters",
   "reputation.faction.golems": "Golems",
-  "reputation.faction.dragon": "Dragon"
+  "reputation.faction.dragon": "Dragon",
+  "reputation.book.settlement_none": "No registered settlement nearby.",
+  "reputation.book.settlement_occupied": "Settlement: occupied by Darkness",
+  "reputation.book.settlement_free": "Settlement: free",
+  "reputation.book.settlement_stage": "Rebuilding stage: %s / 3",
+  "reputation.book.unlocks": "Available benefits:",
+  "reputation.book.unlock_hero": "Light support and hero gifts",
+  "reputation.book.unlock_dark": "Pillager alliance",
+  "reputation.book.unlock_neutral": "Special alliances not unlocked yet"
 }
