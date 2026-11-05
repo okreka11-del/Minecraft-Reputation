@@ -26,7 +26,7 @@ public final class ReputationWorldEvents {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         if (!(player.level() instanceof ServerLevel level)) return;
         long tick = level.getGameTime();
-        if ((tick + player.getId()) % 40 != 0) return;
+        if ((tick + player.getId()) % 10 != 0) return;
 
         int score = player.getData(ReputationMod.REP);
         int[] standing = ReputationMod.factionStandings(player);
@@ -81,6 +81,7 @@ public final class ReputationWorldEvents {
 
         for (Animal animal : level.getEntitiesOfClass(Animal.class, vicinity)) {
             if (light) {
+                if (animal.getTarget() == player) animal.setTarget(null);
                 if (animal.distanceToSqr(player) > 12 && animal.distanceToSqr(player) < 100
                     && !animal.isVehicle()) {
                     animal.getNavigation().moveTo(player, 0.85);
