@@ -45,6 +45,7 @@ public final class ReputationMod {
         NeoForge.EVENT_BUS.addListener(ReputationMod::onPlayerTick);
         ReputationRules.register();
         ReputationSettlements.register();
+        ReputationSpecialists.register();
         NeoForge.EVENT_BUS.addListener(ReputationWorldEvents::onPlayerTick);
         NeoForge.EVENT_BUS.addListener(ReputationHeroEvents::tick);
     }
