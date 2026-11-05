@@ -34,6 +34,10 @@ public final class ReputationMod {
     public static final Supplier<AttachmentType<Integer>> SUSPICION = ATTACHMENTS.register("suspicion",
         () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().build());
 
+    // Persisted compact action log, independent for each player and copied on death.
+    public static final Supplier<AttachmentType<String>> HISTORY = ATTACHMENTS.register("history",
+        () -> AttachmentType.builder(() -> "").serialize(Codec.STRING).copyOnDeath().build());
+
     // Server-local anti-farm cooldowns. These are deliberately not persisted.
     private static final Map<UUID, Long> REWARD_COOLDOWN = new HashMap<>();
 
@@ -71,6 +75,14 @@ public final class ReputationMod {
         int after = Math.max(-100, Math.min(200, before + delta));
         if (before == after) return;
         player.setData(REP, after);
+        String entry = (after > before ? "+" : "") + (after - before) + " | " + reason + " | " + after;
+        String oldHistory = player.getData(HISTORY);
+        String[] previous = oldHistory.isEmpty() ? new String[0] : oldHistory.split("\\n");
+        StringBuilder history = new StringBuilder(entry);
+        for (int i = 0; i < Math.min(11, previous.length); i++) {
+            history.append('\\n').append(previous[i]);
+        }
+        player.setData(HISTORY, history.toString());
         ReputationNetwork.sync(player);
         player.sendSystemMessage(Component.translatable("reputation.message.change", (after > before ? "+" : "") + (after - before), Component.translatable("reputation.reason." + reason.replace(" ", "_")), after, Component.translatable(rank(after))), true);
     }
@@ -110,6 +122,26 @@ public final class ReputationMod {
             .then(Commands.literal("get").executes(ctx -> {
                 var player = ctx.getSource().getPlayerOrException();
                 player.sendSystemMessage(Component.translatable("reputation.message.status", player.getData(REP), Component.translatable(rank(player.getData(REP))), player.getData(SUSPICION)));
+                return 1;
+            }))
+            .then(Commands.literal("history").executes(ctx -> {
+                var player = ctx.getSource().getPlayerOrException();
+                player.sendSystemMessage(Component.literal("Reputation history (latest first):"));
+                String history = player.getData(HISTORY);
+                if (history.isEmpty()) {
+                    player.sendSystemMessage(Component.literal("No reputation changes recorded yet."));
+                } else {
+                    for (String line : history.split("\\n")) {
+                        String[] parts = line.split(" \\| ", 3);
+                        if (parts.length == 3) {
+                            player.sendSystemMessage(Component.literal(parts[0] + " | ")
+                                .append(Component.translatable("reputation.reason." + parts[1].replace(" ", "_")))
+                                .append(Component.literal(" | " + parts[2])));
+                        } else {
+                            player.sendSystemMessage(Component.literal(line));
+                        }
+                    }
+                }
                 return 1;
             }))
             .then(Commands.literal("help").executes(ctx -> {
