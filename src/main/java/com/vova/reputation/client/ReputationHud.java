@@ -60,6 +60,28 @@ public final class ReputationHud {
         }
     }
 
+    /** Red wing and gold sun crest, drawn in crisp Minecraft GUI pixels. */
+    private static void drawCrest(GuiGraphics gui, int x, int y) {
+        // The original reference has a split dark/light emblem attached to the bar.
+        int[] wing = {0x00110, 0x01331, 0x13331, 0x33331, 0x33311, 0x33110, 0x31100, 0x11000};
+        for (int row = 0; row < wing.length; row++) {
+            for (int col = 0; col < 5; col++) {
+                int digit = (wing[row] >> ((4 - col) * 4)) & 15;
+                if (digit == 0) continue;
+                int shade = digit == 3 ? 0xFFE54248 : digit == 2 ? 0xFF9C1C31 : 0xFF57131F;
+                gui.fill(x + col * 3, y + row * 3, x + col * 3 + 3, y + row * 3 + 3, shade);
+            }
+        }
+        gui.fill(x + 14, y + 4, x + 18, y + 24, 0xFF180E13);
+        gui.fill(x + 18, y + 5, x + 21, y + 23, 0xFFFFD450);
+        gui.fill(x + 21, y + 9, x + 24, y + 19, 0xFFFFE78A);
+        gui.fill(x + 24, y + 12, x + 27, y + 16, 0xFFFFD450);
+        gui.fill(x + 18, y, x + 21, y + 5, 0xFFFFC531);
+        gui.fill(x + 18, y + 23, x + 21, y + 28, 0xFFFFC531);
+        gui.fill(x + 23, y + 4, x + 26, y + 8, 0xFFFFC531);
+        gui.fill(x + 23, y + 20, x + 26, y + 24, 0xFFFFC531);
+    }
+
     private static void drawHud(GuiGraphics gui, Minecraft mc) {
         int x = 12, y = 20, w = 176, h = 12;
         int score = syncedScore;
@@ -73,10 +95,13 @@ public final class ReputationHud {
         gui.drawString(mc.font, number, mc.font.width(label) + 3, 0, 0xFFFFD44C, true);
         gui.pose().popPose();
         roundedBar(gui, x, y, w, h);
+        drawCrest(gui, x - 15, y - 7);
         int marker = x + 7 + Math.round((score + 100) * (w - 14) / 300.0f);
         gui.fill(marker - 3, y - 5, marker + 4, y + h + 5, 0xFF402709);
         gui.fill(marker - 2, y - 4, marker + 3, y + h + 4, 0xFFFFC943);
         gui.fill(marker - 1, y - 3, marker + 2, y + h + 3, 0xFFFFFFA5);
+        gui.fill(marker - 5, y - 6, marker + 6, y - 4, 0xFFFFD957);
+        gui.fill(marker - 5, y + h + 4, marker + 6, y + h + 6, 0xFFFFD957);
         String title = TITLES[rankIndex(score)];
         int textWidth = mc.font.width(title);
         int labelW = Math.max(100, textWidth + 20);
