@@ -13,7 +13,7 @@
   "reputation.message.trade_refused": "Жители отказываются с тобой торговать!",
   "reputation.message.animal_afraid": "Животное боится тебя и отказывается от еды.",
   "reputation.message.village_protected": "Ты не можешь разрушать блоки в деревне!",
-  "reputation.hud.label": "РЕПУТАЦИЯ",
+  "reputation.hud.label": "Репутация",
   "reputation.reason.killed_villager": "убийство жителя",
   "reputation.reason.killed_player": "убийство игрока",
   "reputation.reason.killed_animal": "убийство животного",
@@ -85,5 +85,16 @@
   "block.reputation.recruitment_board": "Рекрутская доска",
   "block.reputation.trophy_counter": "Чёрный торговый прилавок",
   "block.reputation.dark_alchemy_reactor": "Алхимический реактор",
-  "message.reputation.profession_assigned": "Назначена профессия: %s"
+  "message.reputation.profession_assigned": "Назначена профессия: %s",
+  "reputation.rank.dark_lord": "Повелитель Тьмы",
+  "reputation.rank.villain": "Злодей",
+  "reputation.rank.enemy": "Враг",
+  "reputation.rank.unfriendly": "Недруг",
+  "reputation.rank.acquaintance": "Знакомый",
+  "reputation.rank.ally": "Союзник",
+  "reputation.rank.reliable_ally": "Надёжный союзник",
+  "reputation.rank.good_ally": "Хороший союзник",
+  "reputation.rank.best_ally": "Лучший союзник",
+  "reputation.rank.hero_of_light": "Герой Света",
+  "reputation.hud.ranks": "Звания репутации  •  −100 ... +200"
 }
