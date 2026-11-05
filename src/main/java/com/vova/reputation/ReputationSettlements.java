@@ -252,6 +252,40 @@ public final class ReputationSettlements {
         return true;
     }
 
+    private static boolean placeDecoration(ServerLevel level, Village village) {
+        int[][] offsets = {{40, 0}, {-40, 0}, {0, 40}, {0, -40},
+            {34, 20}, {-34, -20}, {20, -34}, {-20, 34}};
+        for (int[] offset : offsets) {
+            BlockPos base = level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                village.center.offset(offset[0], 0, offset[1]));
+            if (Math.abs(base.getY() - village.center.getY()) > 4 || !clearSite(level, base, 1, 4)) continue;
+            BlockState ground = level.getBlockState(base.below());
+            if (!ground.is(Blocks.GRASS_BLOCK) && !ground.is(Blocks.DIRT)
+                    && !ground.is(Blocks.STONE)) continue;
+            switch (village.decorationsBuilt) {
+                case 0 -> {
+                    level.setBlockAndUpdate(base, Blocks.COBBLESTONE.defaultBlockState());
+                    level.setBlockAndUpdate(base.above(), Blocks.POTTED_POPPY.defaultBlockState());
+                }
+                case 1 -> {
+                    level.setBlockAndUpdate(base, Blocks.HAY_BLOCK.defaultBlockState());
+                    level.setBlockAndUpdate(base.above(), Blocks.HAY_BLOCK.defaultBlockState());
+                }
+                case 2 -> {
+                    level.setBlockAndUpdate(base, Blocks.OAK_FENCE.defaultBlockState());
+                    level.setBlockAndUpdate(base.above(), Blocks.LANTERN.defaultBlockState());
+                }
+                default -> {
+                    level.setBlockAndUpdate(base, Blocks.MOSSY_COBBLESTONE.defaultBlockState());
+                    level.setBlockAndUpdate(base.above(), Blocks.OAK_FENCE.defaultBlockState());
+                    level.setBlockAndUpdate(base.above(2), Blocks.TORCH.defaultBlockState());
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
     private static int change(ServerPlayer player, boolean capture) {
         int score = player.getData(ReputationMod.REP);
         if ((capture && score > -80) || (!capture && score < 151)) {
@@ -293,6 +327,13 @@ public final class ReputationSettlements {
             welcomeHouse(level, player, data);
         }
         for (Village village : data.villages) {
+            if (village.houseBuilt && village.decorationsBuilt < 4
+                    && level.getGameTime() >= village.nextBuild
+                    && placeDecoration(level, village)) {
+                village.decorationsBuilt++;
+                village.nextBuild = level.getGameTime() + 6000;
+                data.setDirty();
+            }
             if (village.houseBuilt && village.structuresBuilt < 3
                     && level.getGameTime() >= village.nextBuild && level.hasChunkAt(village.center)
                     && placeVillageStructure(level, village)) {
