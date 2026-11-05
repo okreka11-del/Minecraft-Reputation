@@ -55,19 +55,13 @@ public final class ReputationBookScreen extends Screen {
                 Math.max(10, Math.round(h * scale))).build());
     }
 
-    @Override protected void init() {
-        geometry();
-        button(300, 294, 74, 20, Component.literal("<"), () -> {
-            if (section == 5 && historyPage > 0) historyPage--;
-            else { section = Math.max(0, section - 1); historyPage = 0; }
-        });
-        button(382, 294, 74, 20, Component.literal(">"), () -> {
-            if (section == 5) {
-                if (historyPage + 1 < historyPages()) historyPage++;
-                else { section = Math.min(SECTIONS.length - 1, section + 1); historyPage = 0; }
-            } else { section = Math.min(SECTIONS.length - 1, section + 1); historyPage = 0; }
-        });
-        button(506, 294, 77, 20, Component.translatable("gui.done"), this::onClose);
+    @Override protected void init() { geometry(); }
+
+    private void turnPage(int direction) {
+        if (section == 5 && direction < 0 && historyPage > 0) { historyPage--; return; }
+        if (section == 5 && direction > 0 && historyPage + 1 < historyPages()) { historyPage++; return; }
+        section = Math.max(0, Math.min(SECTIONS.length - 1, section + direction));
+        historyPage = 0;
     }
 
     private int historyPages() {
@@ -113,7 +107,7 @@ public final class ReputationBookScreen extends Screen {
     }
 
     @Override public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        g.fill(0, 0, width, height, 0xB0100B10);
+        g.fill(0, 0, width, height, 0xFF100B10);
         geometry();
         g.pose().pushPose();
         g.pose().translate(ox, oy, 0);
@@ -145,9 +139,18 @@ public final class ReputationBookScreen extends Screen {
             default -> helpPage(g);
         }
         g.drawCenteredString(font, (section + 1) + " / " + SECTIONS.length, 349, 275, GOLD);
+        // Folded parchment corners are the navigation controls.
+        g.fill(115, 253, 143, 283, 0xFFB18A57);
+        g.fill(119, 257, 140, 280, 0xFFF1DDB2);
+        g.drawCenteredString(font, "◀", 129, 266, INK);
+        g.fill(552, 253, 581, 283, 0xFFB18A57);
+        g.fill(556, 257, 578, 280, 0xFFF1DDB2);
+        g.drawCenteredString(font, "▶", 567, 266, INK);
+        g.fill(574, 0, 599, 24, 0xFF532A2A);
+        g.drawCenteredString(font, "X", 586, 8, 0xFFFFFFFF);
         g.pose().popPose();
         // Buttons are positioned in actual GUI coordinates for correct mouse hitboxes.
-        super.render(g, mouseX, mouseY, partialTick);
+        // No vanilla buttons or screen background blur.
         // Long history entries remain readable without changing persisted history data.
         if (section == 5 && !history.isEmpty() && scale > 0f) {
             double localX = (mouseX - ox) / scale;
@@ -175,6 +178,9 @@ public final class ReputationBookScreen extends Screen {
                 historyPage = 0;
                 return true;
             }
+            if (x >= 572 && x <= 600 && y >= 0 && y <= 26) { onClose(); return true; }
+            if (x >= 115 && x <= 145 && y >= 250 && y <= 287) { turnPage(-1); return true; }
+            if (x >= 550 && x <= 585 && y >= 250 && y <= 287) { turnPage(1); return true; }
             // The book itself is an interactive table of contents: click a page heading.
             if (section == 0 && x >= 373 && x <= 550 && y >= 58 && y <= 95) {
                 section = 2;
