@@ -65,6 +65,25 @@ public final class ReputationMod {
         player.setData(FACTION_STANDINGS, encoded.toString());
     }
 
+    // Persistent introductory quest: defeat ten hostile mobs. Rewards are paid once.
+    // Existing saves start at zero progress; all quest state survives death.
+    public static final Supplier<AttachmentType<Integer>> HUNTER_PROGRESS = ATTACHMENTS.register("hunter_progress",
+        () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().build());
+    public static final Supplier<AttachmentType<Boolean>> HUNTER_COMPLETED = ATTACHMENTS.register("hunter_completed",
+        () -> AttachmentType.builder(() -> false).serialize(Codec.BOOL).copyOnDeath().build());
+
+    private static void advanceHunterQuest(ServerPlayer player) {
+        if (player.getData(HUNTER_COMPLETED)) return;
+        int progress = Math.min(10, player.getData(HUNTER_PROGRESS) + 1);
+        player.setData(HUNTER_PROGRESS, progress);
+        if (progress == 10) {
+            player.setData(HUNTER_COMPLETED, true);
+            player.giveExperiencePoints(50);
+            adjust(player, 10, "hunter quest");
+            player.sendSystemMessage(Component.translatable("reputation.quest.hunter.complete"));
+        }
+    }
+
     // Server-local anti-farm cooldowns. These are deliberately not persisted.
     private static final Map<UUID, Long> REWARD_COOLDOWN = new HashMap<>();
     // Prevent repeated PvP kills of the same victim from farming negative reputation.
@@ -144,6 +163,7 @@ public final class ReputationMod {
             if (now - last >= 100) {
                 adjust(killer, 1, "defeated monster");
                 adjustFaction(killer, 3, -1);
+                advanceHunterQuest(killer);
                 if (killer.getData(REP) >= 151) killer.giveExperiencePoints(3);
                 REWARD_COOLDOWN.put(killer.getUUID(), now);
             }
@@ -169,6 +189,14 @@ public final class ReputationMod {
             }))
             .then(Commands.literal("book").executes(ctx -> {
                 ReputationNetwork.openBook(ctx.getSource().getPlayerOrException());
+                return 1;
+            }))
+            .then(Commands.literal("quest").executes(ctx -> {
+                var player = ctx.getSource().getPlayerOrException();
+                boolean complete = player.getData(HUNTER_COMPLETED);
+                player.sendSystemMessage(Component.literal(complete
+                    ? "Hunter quest completed! Reward: 50 XP and +10 reputation."
+                    : "Hunter quest: defeat hostile mobs (" + player.getData(HUNTER_PROGRESS) + "/10). Reward: 50 XP and +10 reputation."));
                 return 1;
             }))
             .then(Commands.literal("history").executes(ctx -> {
