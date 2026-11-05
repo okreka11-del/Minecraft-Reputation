@@ -220,7 +220,7 @@ public final class ReputationSettlements {
         Data data = data(level);
         // Run the entry detector at most once per 200 ticks per player.
         for (ServerPlayer player : level.players()) {
-            if ((level.getGameTime() + player.getId()) % 200 == 0) welcomeHouse(level, player, data);
+            welcomeHouse(level, player, data);
         }
         for (Village village : data.villages) {
             if (village.stage >= 3 || level.getGameTime() < village.nextBuild
