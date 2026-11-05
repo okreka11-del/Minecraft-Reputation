@@ -54,6 +54,12 @@ public final class ReputationRules {
             ReputationNetwork.openDialogue(player, villager);
             return;
         }
+        if (event.getTarget() instanceof Villager villager && player.isShiftKeyDown()
+                && score >= 0 && factions[0] > -40) {
+            event.setCanceled(true);
+            ReputationTrading.open(player, villager);
+            return;
+        }
         // Faction relationships influence interactions without overwriting global reputation.
         if ((score < 0 || factions[0] <= -40) && event.getTarget() instanceof Villager) {
             event.setCanceled(true);
