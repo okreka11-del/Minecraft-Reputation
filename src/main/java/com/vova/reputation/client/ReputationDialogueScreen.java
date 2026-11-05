@@ -40,7 +40,7 @@ public final class ReputationDialogueScreen extends Screen {
             .bounds(x + 115, y + 26, 105, 20).build());
     }
     @Override public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        renderBackground(g, mouseX, mouseY, partialTick);
+        g.fill(0, 0, width, height, 0xB0100B10);
         int x = width / 2 - 125, y = height / 2 - 78;
         g.fill(x - 3, y - 3, x + 253, y + 161, 0xFF302018);
         g.fill(x, y, x + 250, y + 155, 0xFFD3B483);
