@@ -21,6 +21,7 @@ import java.util.List;
 public final class ReputationSpecialists {
     private static final String ROLE = "ReputationSpecialist";
     private static final String LAST = "ReputationSpecialistLastWork";
+    private static final String PATROL = "ReputationSpecialistLastPatrol";
     private ReputationSpecialists() {}
 
     public static void register() {
@@ -74,7 +75,18 @@ public final class ReputationSpecialists {
     }
 
     private static void guard(ServerLevel level, Villager villager) {
-        if (level.getEntitiesOfClass(Pillager.class, villager.getBoundingBox().inflate(16)).isEmpty()) return;
+        if (level.getEntitiesOfClass(Pillager.class, villager.getBoundingBox().inflate(16)).isEmpty()) {
+            long now = level.getGameTime();
+            if (now - villager.getPersistentData().getLong(PATROL) >= 400 && villager.getNavigation().isDone()) {
+                int dx = level.random.nextInt(13) - 6;
+                int dz = level.random.nextInt(13) - 6;
+                villager.getNavigation().moveTo(villager.getX() + dx, villager.getY(), villager.getZ() + dz, 0.65);
+                villager.getPersistentData().putLong(PATROL, now);
+            }
+            return;
+        }
+        level.sendParticles(net.minecraft.core.particles.ParticleTypes.ANGRY_VILLAGER,
+            villager.getX(), villager.getY() + 1.8, villager.getZ(), 3, .2, .2, .2, .01);
         // A guard raises an alarm and rallies nearby iron golems rather than turning a villager into a fake melee mob.
         for (IronGolem golem : level.getEntitiesOfClass(IronGolem.class, villager.getBoundingBox().inflate(24))) {
             Pillager enemy = level.getEntitiesOfClass(Pillager.class, golem.getBoundingBox().inflate(20))
@@ -86,10 +98,14 @@ public final class ReputationSpecialists {
     private static void builder(ServerLevel level, Villager villager) {
         long now = level.getGameTime();
         long last = villager.getPersistentData().getLong(LAST);
-        if (now - last < 24000) return;
+        if (now - last < 1200) return;
         IronGolem golem = level.getEntitiesOfClass(IronGolem.class, villager.getBoundingBox().inflate(12))
             .stream().filter(g -> g.getHealth() < g.getMaxHealth()).findFirst().orElse(null);
         if (golem == null) return;
+        if (villager.distanceToSqr(golem) > 9) {
+            villager.getNavigation().moveTo(golem, 0.7);
+            return;
+        }
         golem.heal(5.0f);
         villager.getPersistentData().putLong(LAST, now);
         level.sendParticles(net.minecraft.core.particles.ParticleTypes.HAPPY_VILLAGER,
