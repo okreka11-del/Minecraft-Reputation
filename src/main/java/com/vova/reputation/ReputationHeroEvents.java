@@ -30,7 +30,8 @@ public final class ReputationHeroEvents {
     public static void tick(PlayerTickEvent.Post event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         if (!(player.level() instanceof ServerLevel level)) return;
-        long time = level.getGameTime();
+        // Use a single server clock across dimensions so teleporting cannot bypass gift cooldowns.
+        long time = player.getServer().overworld().getGameTime();
         if ((time + player.getId()) % 40 != 0) return;
         int reputation = player.getData(ReputationMod.REP);
         if (reputation < 151) return;
@@ -46,7 +47,8 @@ public final class ReputationHeroEvents {
         }
 
         long last = GIFTS.getOrDefault(player.getUUID(), -100000L);
-        if (time - last < 2400) return;
+        // A world time rollback must not permanently block future gifts.
+        if (last <= time && time - last < 2400) return;
         ItemStack gift = ItemStack.EMPTY;
         String donor = "";
         if (!level.getEntitiesOfClass(IronGolem.class, player.getBoundingBox().inflate(8)).isEmpty()) {
