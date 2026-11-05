@@ -1,14 +1,17 @@
 name: Build Minecraft Reputation JAR
 on:
   push:
+    branches: [main]
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -18,8 +21,32 @@ jobs:
           gradle-version: '9.2.1'
       - name: Build mod
         run: gradle build --no-daemon --stacktrace
+      - name: Select single installable JAR
+        shell: bash
+        run: |
+          mkdir -p release
+          mapfile -t jars < <(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' ! -name '*-dev.jar' | sort)
+          if [ "${#jars[@]}" -ne 1 ]; then
+            printf 'Expected exactly one installable JAR, found %s:\n' "${#jars[@]}"
+            printf '%s\n' "${jars[@]}"
+            exit 1
+          fi
+          cp "${jars[0]}" release/Minecraft-Reputation.jar
       - uses: actions/upload-artifact@v4
         with:
           name: minecraft-reputation-jar
-          path: build/libs/*.jar
+          path: release/Minecraft-Reputation.jar
           if-no-files-found: error
+      - name: Publish single rolling release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          git tag -f latest-build "${GITHUB_SHA}"
+          git push origin refs/tags/latest-build --force
+          if gh release view latest-build >/dev/null 2>&1; then
+            gh release upload latest-build release/Minecraft-Reputation.jar --clobber
+            gh release edit latest-build --title "Minecraft Reputation — latest compiled build" --notes "Automated build from commit ${GITHUB_SHA}. Gradle compilation succeeded. Gameplay has not been verified in Minecraft." --latest
+          else
+            gh release create latest-build release/Minecraft-Reputation.jar --title "Minecraft Reputation — latest compiled build" --notes "Automated build from commit ${GITHUB_SHA}. Gradle compilation succeeded. Gameplay has not been verified in Minecraft." --latest
+          fi
