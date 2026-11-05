@@ -505,8 +505,15 @@ public final class ReputationSettlements {
             welcomeHouse(level, player, data);
         }
         for (Village village : data.villages) {
-            // Independent construction timer: legacy stage progression must not prevent buildings.
-            if (village.stage < 3) { village.stage = 3; data.setDirty(); }
+            // Stage reflects real construction progress, not an instant forced level 3.
+            // Never lower a previously saved stage when upgrading an old world.
+            int earnedStage = village.houseBuilt
+                ? (village.structuresBuilt >= 4 ? 3 : village.structuresBuilt >= 2 ? 2 : 1)
+                : 0;
+            if (earnedStage > village.stage) {
+                village.stage = earnedStage;
+                data.setDirty();
+            }
             if (village.houseBuilt && village.decorationsBuilt < 8
                     && level.getGameTime() >= village.nextBuild
                     && placeDecoration(level, village)) {
@@ -521,20 +528,7 @@ public final class ReputationSettlements {
                 village.nextBuild = level.getGameTime() + 12000;
                 data.setDirty();
             }
-            if (village.stage >= 3 || level.getGameTime() < village.nextBuild
-                || !level.hasChunkAt(village.center)) continue;
-            // Disable legacy decorative fence/lantern stages: they caused unbounded clutter.
-            int placed = 0;
-            // Do not progress without any viable construction location.
-            if (placed > 0) {
-                village.stage++;
-                village.nextBuild = level.getGameTime() + 24000;
-                data.setDirty();
-            } else {
-                village.stage = 3;
-                village.nextBuild = level.getGameTime() + 12000;
-                data.setDirty();
-            }
+
         }
     }
 
