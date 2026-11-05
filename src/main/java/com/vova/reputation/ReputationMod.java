@@ -80,7 +80,7 @@ public final class ReputationMod {
         String[] previous = oldHistory.isEmpty() ? new String[0] : oldHistory.split("\\n");
         StringBuilder history = new StringBuilder(entry);
         for (int i = 0; i < Math.min(11, previous.length); i++) {
-            history.append('\\n').append(previous[i]);
+            history.append('\n').append(previous[i]);
         }
         player.setData(HISTORY, history.toString());
         ReputationNetwork.sync(player);
