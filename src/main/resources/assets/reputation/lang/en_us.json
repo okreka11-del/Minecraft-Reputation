@@ -20,5 +20,13 @@
   "reputation.reason.defeated_monster": "defeated monster",
   "reputation.reason.damaged_village": "damaged village",
   "reputation.reason.admin": "admin command",
-  "reputation.message.gift": "You received a gift for your good reputation!"
+  "reputation.message.gift": "You received a gift for your good reputation!",
+  "reputation.hero.gift": "Gift from %s!",
+  "reputation.hero.donor.golem": "iron golem",
+  "reputation.hero.donor.enderman": "enderman",
+  "reputation.hero.donor.blaze": "blaze",
+  "reputation.hero.donor.wither_skeleton": "wither skeleton",
+  "reputation.hero.donor.piglin": "piglin",
+  "reputation.hero.donor.horse": "horse",
+  "reputation.hero.donor.villager": "villager"
 }
