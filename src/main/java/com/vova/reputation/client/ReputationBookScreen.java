@@ -63,7 +63,6 @@ public final class ReputationBookScreen extends Screen {
         graphics.fill(left - 2, top - 2, left + 254, top + 178, 0xFF6B4D2B);
         graphics.fill(left, top, left + 252, top + 176, 0xF0181413);
         graphics.fill(left + 3, top + 3, left + 249, top + 6, 0xFFB99148);
-        graphics.fill(left + 125, top + 26, left + 127, top + 141, 0xFF40312A);
         graphics.drawCenteredString(font, title, width / 2, top + 12, 0xFFFFDA8A);
         if (page == 0) {
             line(graphics, "score", left, top + 36, score);
