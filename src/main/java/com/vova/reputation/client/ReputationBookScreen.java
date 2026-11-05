@@ -20,7 +20,7 @@ public final class ReputationBookScreen extends Screen {
     public ReputationBookScreen(int score, int suspicion, String history) {
         super(Component.translatable("reputation.book.title"));
         this.score = Math.max(-100, Math.min(200, score));
-        this.history = history;
+        this.history = history == null ? "" : history;
         this.suspicion = suspicion;
     }
 
@@ -94,8 +94,7 @@ public final class ReputationBookScreen extends Screen {
         } else if (page == 2) {
             heading(graphics, "ranks", left, top);
             for (int i = 0; i < RANKS.length; i++) {
-                int y = top + 49 + i * 10;
-                if (i >= 10) y = top + 149;
+                int y = top + 49 + i * 9;
                 String key = ReputationMod.rank(RANKS[i]);
                 Component label = Component.literal(RANKS[i] + "  ")
                     .append(Component.translatable(key));
