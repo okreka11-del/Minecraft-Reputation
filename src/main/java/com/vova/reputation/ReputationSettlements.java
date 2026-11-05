@@ -30,6 +30,7 @@ public final class ReputationSettlements {
     private ReputationSettlements() {}
     private static final String SAVE_ID = "reputation_settlements";
     private static final int MAX_VILLAGES = 128;
+    private static final int VILLAGE_SEPARATION = 96;
 
     public static void register() {
         NeoForge.EVENT_BUS.addListener(ReputationSettlements::commands);
@@ -146,7 +147,7 @@ public final class ReputationSettlements {
 
     /** A one-time village welcome cottage. Triggered by entering a populated village. */
     private static void welcomeHouse(ServerLevel level, ServerPlayer player, Data saved) {
-        Village village = closest(saved, player.blockPosition(), 48);
+        Village village = closest(saved, player.blockPosition(), VILLAGE_SEPARATION);
         if (village == null) {
             if (saved.villages.size() >= MAX_VILLAGES) return;
             if (level.getEntitiesOfClass(Villager.class, player.getBoundingBox().inflate(28)).size() < 2) return;
@@ -158,7 +159,7 @@ public final class ReputationSettlements {
         if (player.getData(ReputationMod.REP) < 0) return;
         if (village.houseBuilt) return;
         // Try nearby positions rather than replacing any existing terrain or buildings.
-        int[][] offsets = {{10,0},{-10,0},{0,10},{0,-10},{14,8},{-14,-8},{8,-14},{-8,14}};
+        int[][] offsets = {{24,0},{-24,0},{0,24},{0,-24},{30,12},{-30,-12},{12,-30},{-12,30}};
         for (int[] offset : offsets) {
             BlockPos site = village.center.offset(offset[0], 0, offset[1]);
             BlockPos base = level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, site);
@@ -293,14 +294,16 @@ public final class ReputationSettlements {
             }
             if (village.stage >= 3 || level.getGameTime() < village.nextBuild
                 || !level.hasChunkAt(village.center)) continue;
-            int placed = buildStage(level, village);
+            // Disable legacy decorative fence/lantern stages: they caused unbounded clutter.
+            int placed = 0;
             // Do not progress without any viable construction location.
             if (placed > 0) {
                 village.stage++;
                 village.nextBuild = level.getGameTime() + 24000;
                 data.setDirty();
             } else {
-                village.nextBuild = level.getGameTime() + 2400;
+                village.stage = 3;
+                village.nextBuild = Long.MAX_VALUE;
                 data.setDirty();
             }
         }
@@ -318,9 +321,10 @@ public final class ReputationSettlements {
             BlockPos anchor = village.center.offset(dx, 0, dz);
             if (!level.hasChunkAt(anchor)) continue;
             BlockPos ground = level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, anchor);
-            if (Math.abs(ground.getY() - village.center.getY()) > 8) continue;
+            if (Math.abs(ground.getY() - village.center.getY()) > 4) continue;
             // Only build on solid ground with three empty blocks above.
             if (!level.getBlockState(ground.below()).isSolidRender(level, ground.below())) continue;
+            if (level.getBlockState(ground.below()).is(net.minecraft.tags.BlockTags.PLANKS)) continue;
             boolean free = true;
             for (int y = 0; y < 3; y++) if (!level.getBlockState(ground.above(y)).isAir()) free = false;
             if (!free) continue;
