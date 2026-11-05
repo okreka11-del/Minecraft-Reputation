@@ -69,13 +69,15 @@ public final class ReputationBookScreen extends Screen {
     }
 
     @Override public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        // Arrow keys use exactly the same page-turn rules as the parchment corners.
         if (keyCode == 263 || keyCode == 262) {
-            if (section == 5 && keyCode == 263 && historyPage > 0) historyPage--;
-            else if (section == 5 && keyCode == 262 && historyPage + 1 < historyPages()) historyPage++;
-            else {
-                section = Math.max(0, Math.min(SECTIONS.length - 1, section + (keyCode == 263 ? -1 : 1)));
-                historyPage = 0;
-            }
+            turnPage(keyCode == 263 ? -1 : 1);
+            return true;
+        }
+        // Home/End jump to the first/last section without retaining a stale history page.
+        if (keyCode == 268 || keyCode == 269) {
+            section = keyCode == 268 ? 0 : SECTIONS.length - 1;
+            historyPage = 0;
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
