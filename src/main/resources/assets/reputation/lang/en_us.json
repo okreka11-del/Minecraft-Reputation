@@ -1,0 +1,23 @@
+{
+  "reputation.rank.legend": "Legend",
+  "reputation.rank.trusted": "Trusted",
+  "reputation.rank.neutral": "Neutral",
+  "reputation.rank.outcast": "Outcast",
+  "reputation.rank.wanted": "Wanted",
+  "reputation.rank.nemesis": "Nemesis",
+  "reputation.message.change": "Reputation %1$s (%2$s) → %3$s [%4$s]",
+  "reputation.message.status": "Reputation: %1$s [%2$s] | Suspicion: %3$s",
+  "reputation.message.help": "/reputation get — status | set <number> — set | add <number> — change | suspicion <number> — suspicion (editing requires OP)",
+  "reputation.message.set": "Reputation set to %s",
+  "reputation.message.suspicion": "Suspicion set to %s",
+  "reputation.message.trade_refused": "Villagers refuse to trade with you!",
+  "reputation.message.animal_afraid": "The animal fears you and refuses food.",
+  "reputation.message.village_protected": "You cannot break blocks in the village!",
+  "reputation.hud.label": "REPUTATION",
+  "reputation.reason.killed_villager": "killed villager",
+  "reputation.reason.killed_player": "killed player",
+  "reputation.reason.killed_animal": "killed animal",
+  "reputation.reason.defeated_monster": "defeated monster",
+  "reputation.reason.damaged_village": "damaged village",
+  "reputation.reason.admin": "admin command"
+}
