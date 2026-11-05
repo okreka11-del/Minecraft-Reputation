@@ -136,7 +136,7 @@ public final class ReputationMod {
                     player.sendSystemMessage(Component.literal("No reputation changes recorded yet."));
                 } else {
                     for (String line : history.split("\n")) {
-                        String[] parts = line.split(" \\\\| ", 3);
+                        String[] parts = line.split(" \\| ", 3);
                         if (parts.length == 3) {
                             player.sendSystemMessage(Component.literal(parts[0] + " | ")
                                 .append(Component.translatable("reputation.reason." + parts[1].replace(" ", "_")))
