@@ -191,6 +191,24 @@ public final class ReputationMod {
                 ReputationNetwork.openBook(ctx.getSource().getPlayerOrException());
                 return 1;
             }))
+            .then(Commands.literal("talk").executes(ctx -> {
+                ServerPlayer player = ctx.getSource().getPlayerOrException();
+                Villager nearby = player.serverLevel().getEntitiesOfClass(Villager.class,
+                    player.getBoundingBox().inflate(6)).stream().findFirst().orElse(null);
+                if (nearby == null) {
+                    player.sendSystemMessage(Component.literal("Подойди ближе к жителю."));
+                    return 0;
+                }
+                int score = player.getData(REP);
+                int standing = factionStandings(player)[0];
+                String line = score < 0 || standing < -40
+                    ? "Житель: Мы помним твои поступки. Заслужи наше доверие."
+                    : score >= 120 || standing >= 60
+                        ? "Житель: Ты наш защитник! Помоги деревне и получишь награду."
+                        : "Житель: Защищай деревню, торгуй с нами и выполняй задания.";
+                player.sendSystemMessage(Component.literal(line));
+                return 1;
+            }))
             .then(Commands.literal("quest").executes(ctx -> {
                 var player = ctx.getSource().getPlayerOrException();
                 boolean complete = player.getData(HUNTER_COMPLETED);
