@@ -154,6 +154,21 @@ public final class ReputationBookScreen extends Screen {
         g.pose().popPose();
         // Buttons are positioned in actual GUI coordinates for correct mouse hitboxes.
         super.render(g, mouseX, mouseY, partialTick);
+        // Long history entries remain readable without changing persisted history data.
+        if (section == 5 && !history.isEmpty() && scale > 0f) {
+            double localX = (mouseX - ox) / scale;
+            double localY = (mouseY - oy) / scale;
+            int column = localX >= 137 && localX < 337 ? 0
+                : localX >= 373 && localX < 573 ? 1 : -1;
+            int row = localY >= 83 && localY < 219 ? (int) ((localY - 83) / 34) : -1;
+            if (column >= 0 && row >= 0 && row < 4) {
+                String[] entries = history.split("\\n");
+                int index = historyPage * 8 + column * 4 + row;
+                if (index < entries.length && font.width(entries[index]) > 200) {
+                    g.renderTooltip(font, Component.literal(entries[index]), mouseX, mouseY);
+                }
+            }
+        }
     }
 
     @Override public boolean mouseClicked(double mouseX, double mouseY, int button) {
