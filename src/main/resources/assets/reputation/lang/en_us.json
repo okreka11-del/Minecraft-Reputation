@@ -115,5 +115,11 @@
   "reputation.book.help": "Help",
   "reputation.book.help_book": "/reputation book - open journal",
   "reputation.book.help_history": "/reputation history - recent actions",
-  "reputation.book.help_score": "/reputation get - current score"
+  "reputation.book.help_score": "/reputation get - current score",
+  "reputation.faction.villagers": "Villagers",
+  "reputation.faction.pillagers": "Pillagers",
+  "reputation.faction.animals": "Animals",
+  "reputation.faction.monsters": "Monsters",
+  "reputation.faction.golems": "Golems",
+  "reputation.faction.dragon": "Dragon"
 }
