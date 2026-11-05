@@ -39,6 +39,7 @@ public final class ReputationMod {
 
     public ReputationMod(IEventBus bus) {
         ATTACHMENTS.register(bus);
+        ReputationProfessionRegistry.register(bus);
         NeoForge.EVENT_BUS.addListener(ReputationMod::commands);
         NeoForge.EVENT_BUS.addListener(ReputationDragon::register);
         NeoForge.EVENT_BUS.addListener(ReputationMod::onDeath);
