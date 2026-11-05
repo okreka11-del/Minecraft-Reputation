@@ -9,6 +9,7 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.Pillager;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.EnderMan;
+import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.neoforged.neoforge.event.level.ExplosionEvent;
 import net.minecraft.world.entity.npc.Villager;
@@ -27,6 +28,7 @@ public final class ReputationRules {
         NeoForge.EVENT_BUS.addListener(ReputationRules::damage);
         NeoForge.EVENT_BUS.addListener(ReputationRules::breakBlock);
         NeoForge.EVENT_BUS.addListener(ReputationRules::explosion);
+        NeoForge.EVENT_BUS.addListener(ReputationRules::villagerTrade);
     }
 
     private static void interact(PlayerInteractEvent.EntityInteract event) {
@@ -55,6 +57,20 @@ public final class ReputationRules {
                 || event.getSource().getEntity() instanceof IronGolem)) {
             event.setAmount(event.getAmount() * 3.0f);
         }
+    }
+
+    private static void villagerTrade(net.neoforged.neoforge.event.entity.player.PlayerInteractEvent.EntityInteract event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        if (!(event.getTarget() instanceof Villager villager)) return;
+        int score = player.getData(ReputationMod.REP);
+        if (score < 101) return;
+        int discount = score >= 200 ? -8 : score >= 151 ? -5 : -2;
+        for (net.minecraft.world.item.trading.MerchantOffer offer : villager.getOffers()) {
+            // Prices are recalculated on interaction, not cumulatively discounted.
+            offer.resetSpecialPriceDiff();
+            offer.addToSpecialPriceDiff(discount);
+        }
+        player.displayClientMessage(Component.translatable("reputation.hero.discount"), true);
     }
 
     private static void explosion(ExplosionEvent.Start event) {
