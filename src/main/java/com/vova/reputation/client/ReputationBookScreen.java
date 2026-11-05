@@ -57,14 +57,6 @@ public final class ReputationBookScreen extends Screen {
 
     @Override protected void init() {
         geometry();
-        for (int i = 0; i < SECTIONS.length; i++) {
-            final int index = i;
-            button(3, 30 + i * 39, 104, 28,
-                Component.translatable("reputation.journal.tab." + SECTIONS[i]), () -> {
-                    section = index;
-                    historyPage = 0;
-                });
-        }
         button(300, 294, 74, 20, Component.literal("<"), () -> {
             if (section == 5 && historyPage > 0) historyPage--;
             else { section = Math.max(0, section - 1); historyPage = 0; }
@@ -136,6 +128,8 @@ public final class ReputationBookScreen extends Screen {
         rule(g, 138, 42, 183);
         rule(g, 373, 42, 183);
         for (int i = 0; i < SECTIONS.length; i++) {
+            g.fill(2, 29 + i * 39, 106, 57 + i * 39, i == section ? 0xFF654085 : 0xFF352634);
+            g.drawCenteredString(font, Component.translatable("reputation.journal.tab." + SECTIONS[i]), 54, 39 + i * 39, i == section ? 0xFFFFD46A : 0xFFE5D3B1);
             if (i == section) {
                 g.fill(0, 27 + i * 39, 109, 61 + i * 39, 0xFF654085);
                 g.fill(0, 27 + i * 39, 3, 61 + i * 39, 0xFFFFCF68);
@@ -175,6 +169,12 @@ public final class ReputationBookScreen extends Screen {
         if (button == 0 && scale > 0f) {
             double x = (mouseX - ox) / scale;
             double y = (mouseY - oy) / scale;
+            if (x >= 2 && x <= 106 && y >= 29 && y < 29 + SECTIONS.length * 39) {
+                int index = (int) ((y - 29) / 39);
+                section = index;
+                historyPage = 0;
+                return true;
+            }
             // The book itself is an interactive table of contents: click a page heading.
             if (section == 0 && x >= 373 && x <= 550 && y >= 58 && y <= 95) {
                 section = 2;
