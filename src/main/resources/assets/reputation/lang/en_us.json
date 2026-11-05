@@ -104,5 +104,16 @@
   "reputation.book.empty": "No recorded changes",
   "reputation.book.future": "Future chapters",
   "reputation.book.chapters": "Factions, quests and settlements",
-  "reputation.book.unfinished": "Not yet implemented"
+  "reputation.book.unfinished": "Not yet implemented",
+  "reputation.book.suspicion": "Suspicion: %s",
+  "reputation.book.ranks": "All ranks",
+  "reputation.book.factions": "Faction relationships",
+  "reputation.book.factions_pending": "Separate faction scores are not yet tracked.",
+  "reputation.book.quests": "Quests and settlements",
+  "reputation.book.quests_pending": "Quest tracking is not yet available.",
+  "reputation.book.settlements_pending": "Settlement status is not yet available.",
+  "reputation.book.help": "Help",
+  "reputation.book.help_book": "/reputation book - open journal",
+  "reputation.book.help_history": "/reputation history - recent actions",
+  "reputation.book.help_score": "/reputation get - current score"
 }
