@@ -10,12 +10,16 @@ import net.minecraft.network.chat.Component;
 public final class ReputationBookScreen extends Screen {
     private final int score;
     private final String history;
+    private final int suspicion;
+    private static final int PAGE_COUNT = 6;
+    private static final int[] RANKS = {-100,-80,-60,-20,0,100,120,140,160,180,200};
     private int page;
 
-    public ReputationBookScreen(int score, String history) {
+    public ReputationBookScreen(int score, int suspicion, String history) {
         super(Component.translatable("reputation.book.title"));
         this.score = Math.max(-100, Math.min(200, score));
         this.history = history;
+        this.suspicion = suspicion;
     }
 
     @Override
@@ -23,7 +27,7 @@ public final class ReputationBookScreen extends Screen {
         int center = width / 2;
         addRenderableWidget(Button.builder(Component.literal("<"), b -> page = Math.max(0, page - 1))
             .bounds(center - 110, height - 42, 44, 20).build());
-        addRenderableWidget(Button.builder(Component.literal(">"), b -> page = Math.min(2, page + 1))
+        addRenderableWidget(Button.builder(Component.literal(">"), b -> page = Math.min(PAGE_COUNT - 1, page + 1))
             .bounds(center + 66, height - 42, 44, 20).build());
         addRenderableWidget(Button.builder(Component.translatable("gui.done"), b -> onClose())
             .bounds(center - 48, height - 42, 96, 20).build());
@@ -38,27 +42,67 @@ public final class ReputationBookScreen extends Screen {
         graphics.fill(left + 3, top + 3, left + 249, top + 6, 0xFFB99148);
         graphics.drawCenteredString(font, title, width / 2, top + 12, 0xFFFFDA8A);
         if (page == 0) {
-            graphics.drawString(font, Component.translatable("reputation.book.score", score), left + 16, top + 36, 0xFFFFFFFF);
+            line(graphics, "score", left, top + 36, score);
             graphics.drawString(font, Component.translatable(ReputationMod.rank(score)), left + 16, top + 53, 0xFFFFD46B);
-            graphics.drawString(font, Component.translatable("reputation.book.range"), left + 16, top + 73, 0xFFAAAAAA);
+            line(graphics, "suspicion", left, top + 72, suspicion);
+            int filled = Math.round((score + 100) * 208f / 300f);
+            graphics.fill(left + 16, top + 94, left + 224, top + 105, 0xFF393039);
+            graphics.fill(left + 16, top + 94, left + 16 + filled, top + 105,
+                score < 0 ? 0xFFB4485A : 0xFFE0BB55);
+            graphics.drawString(font, Component.translatable("reputation.book.range"), left + 16, top + 114, 0xFFAAAAAA);
         } else if (page == 1) {
-            graphics.drawString(font, Component.translatable("reputation.book.actions"), left + 16, top + 34, 0xFFFFD46B);
+            heading(graphics, "actions", left, top);
             if (history.isEmpty()) {
-                graphics.drawString(font, Component.translatable("reputation.book.empty"), left + 16, top + 53, 0xFFAAAAAA);
+                line(graphics, "empty", left, top + 53);
             } else {
-                String[] lines = history.split("\n");
-                for (int i = 0; i < Math.min(10, lines.length); i++) {
-                    String line = lines[i];
-                    if (font.width(line) > 216) line = font.plainSubstrByWidth(line, 210) + "...";
-                    graphics.drawString(font, line, left + 16, top + 49 + i * 11, 0xFFE4D6BB);
+                String[] lines = history.split("\\n");
+                for (int i = 0; i < Math.min(8, lines.length); i++) {
+                    String[] parts = lines[i].split(" \\\\| ", 3);
+                    Component entry = parts.length == 3
+                        ? Component.literal(parts[0] + "  ")
+                            .append(Component.translatable("reputation.reason." + parts[1].replace(" ", "_")))
+                            .append(Component.literal(" (" + parts[2] + ")"))
+                        : Component.literal(lines[i]);
+                    String label = entry.getString();
+                    if (font.width(label) > 215) label = font.plainSubstrByWidth(label, 207) + "...";
+                    graphics.drawString(font, label, left + 16, top + 49 + i * 13, 0xFFE4D6BB);
                 }
             }
+        } else if (page == 2) {
+            heading(graphics, "ranks", left, top);
+            for (int i = 0; i < RANKS.length; i++) {
+                int y = top + 49 + i * 10;
+                if (i >= 10) y = top + 149;
+                String key = ReputationMod.rank(RANKS[i]);
+                Component label = Component.literal(RANKS[i] + "  ")
+                    .append(Component.translatable(key));
+                graphics.drawString(font, label, left + 16, y,
+                    key.equals(ReputationMod.rank(score)) ? 0xFFFFD46B : 0xFFD5C9B5);
+            }
+        } else if (page == 3) {
+            heading(graphics, "factions", left, top);
+            line(graphics, "factions_pending", left, top + 57);
+        } else if (page == 4) {
+            heading(graphics, "quests", left, top);
+            line(graphics, "quests_pending", left, top + 57);
+            line(graphics, "settlements_pending", left, top + 79);
         } else {
-            graphics.drawString(font, Component.translatable("reputation.book.future"), left + 16, top + 36, 0xFFFFD46B);
-            graphics.drawString(font, Component.translatable("reputation.book.chapters"), left + 16, top + 56, 0xFFAAAAAA);
-            graphics.drawString(font, Component.translatable("reputation.book.unfinished"), left + 16, top + 70, 0xFFAAAAAA);
+            heading(graphics, "help", left, top);
+            line(graphics, "help_book", left, top + 54);
+            line(graphics, "help_history", left, top + 76);
+            line(graphics, "help_score", left, top + 98);
         }
-        graphics.drawCenteredString(font, (page + 1) + " / 3", width / 2, top + 151, 0xFFB99148);
+        graphics.drawCenteredString(font, (page + 1) + " / " + PAGE_COUNT, width / 2, top + 151, 0xFFB99148);
+    }
+
+    private void heading(GuiGraphics graphics, String key, int left, int top) {
+        graphics.drawString(font, Component.translatable("reputation.book." + key),
+            left + 16, top + 34, 0xFFFFD46B);
+    }
+
+    private void line(GuiGraphics graphics, String key, int left, int y, Object... args) {
+        graphics.drawString(font, Component.translatable("reputation.book." + key, args),
+            left + 16, y, 0xFFE4D6BB);
     }
 
     @Override
