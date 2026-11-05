@@ -42,6 +42,7 @@ public final class ReputationMod {
         NeoForge.EVENT_BUS.addListener(ReputationMod::commands);
         NeoForge.EVENT_BUS.addListener(ReputationMod::onDeath);
         NeoForge.EVENT_BUS.addListener(ReputationMod::onPlayerTick);
+        NeoForge.EVENT_BUS.addListener(ReputationWorldEvents::onPlayerTick);
     }
 
     private static String rank(int score) {
@@ -86,30 +87,6 @@ public final class ReputationMod {
         long time = player.level().getGameTime();
         if (time % 40 != 0) return;
         int score = player.getData(REP);
-
-        // Villagers physically flee from notorious players.
-        if (score <= 0) {
-            for (Villager villager : player.level().getEntitiesOfClass(Villager.class,
-                    player.getBoundingBox().inflate(12))) {
-                double dx = villager.getX() - player.getX();
-                double dz = villager.getZ() - player.getZ();
-                double length = Math.max(0.1, Math.sqrt(dx * dx + dz * dz));
-                villager.getNavigation().moveTo(villager.getX() + dx / length * 9,
-                    villager.getY(), villager.getZ() + dz / length * 9, 1.25);
-            }
-        }
-
-        // Hostile monsters ignore heroes, and prioritize nearby notorious players.
-        for (Monster monster : player.level().getEntitiesOfClass(Monster.class,
-                player.getBoundingBox().inflate(16))) {
-            if (score >= 151 && monster.getTarget() == player) {
-                monster.setTarget(null);
-            } else if (score <= -50 && (monster.getTarget() == null ||
-                    (monster.getTarget() instanceof ServerPlayer other &&
-                        other.getData(REP) > score))) {
-                monster.setTarget(player);
-            }
-        }
 
         if (time % 200 == 0) {
             player.sendSystemMessage(Component.literal("Reputation " + score + " / 200 | "
