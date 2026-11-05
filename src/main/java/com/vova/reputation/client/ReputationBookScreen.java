@@ -122,12 +122,15 @@ public final class ReputationBookScreen extends Screen {
         rule(g, 138, 42, 183);
         rule(g, 373, 42, 183);
         for (int i = 0; i < SECTIONS.length; i++) {
-            g.fill(2, 29 + i * 39, 106, 57 + i * 39, i == section ? 0xFF654085 : 0xFF352634);
-            g.drawCenteredString(font, Component.translatable("reputation.journal.tab." + SECTIONS[i]), 54, 39 + i * 39, i == section ? 0xFFFFD46A : 0xFFE5D3B1);
+            int tabTop = 27 + i * 39;
+            g.fill(2, tabTop, 106, tabTop + 34, i == section ? 0xFF654085 : 0xFF352634);
             if (i == section) {
-                g.fill(0, 27 + i * 39, 109, 61 + i * 39, 0xFF654085);
-                g.fill(0, 27 + i * 39, 3, 61 + i * 39, 0xFFFFCF68);
+                g.fill(0, tabTop, 3, tabTop + 34, 0xFFFFCF68);
+                g.fill(3, tabTop, 109, tabTop + 2, 0xFF9B73B7);
             }
+            // Draw labels after the selected-tab decoration so they remain legible.
+            g.drawCenteredString(font, Component.translatable("reputation.journal.tab." + SECTIONS[i]),
+                54, tabTop + 12, i == section ? 0xFFFFD46A : 0xFFE5D3B1);
         }
         switch (section) {
             case 0 -> scorePage(g);
@@ -172,8 +175,9 @@ public final class ReputationBookScreen extends Screen {
         if (button == 0 && scale > 0f) {
             double x = (mouseX - ox) / scale;
             double y = (mouseY - oy) / scale;
-            if (x >= 2 && x <= 106 && y >= 29 && y < 29 + SECTIONS.length * 39) {
-                int index = (int) ((y - 29) / 39);
+            if (x >= 0 && x <= 109 && y >= 27 && y < 27 + SECTIONS.length * 39) {
+                int index = (int) ((y - 27) / 39);
+                if (y >= 27 + index * 39 + 34) return true;
                 section = index;
                 historyPage = 0;
                 return true;
