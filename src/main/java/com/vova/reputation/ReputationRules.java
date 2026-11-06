@@ -31,7 +31,10 @@ public final class ReputationRules {
     private static boolean ready(ServerPlayer player) {
         long now = player.server.overworld().getGameTime();
         long last = INTERACTION_COOLDOWN.getOrDefault(player.getUUID(), Long.MIN_VALUE / 2);
-        if (now - last < INTERACTION_INTERVAL) return false;
+        // A restored world or /time change can move the clock backwards. Do not
+        // lock interactions until the old timestamp is reached again.
+        // Comparing ordered timestamps also avoids overflow in subtraction.
+        if (last >= 0 && now >= last && now - last < INTERACTION_INTERVAL) return false;
         INTERACTION_COOLDOWN.put(player.getUUID(), now);
         return true;
     }
