@@ -96,6 +96,9 @@ public final class ReputationMod {
     public static final Supplier<AttachmentType<Integer>> REWARD_COUNT = ATTACHMENTS.register("reward_count", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().build());
     public static final Supplier<AttachmentType<Long>> GIFT_DAY = ATTACHMENTS.register("gift_day", () -> AttachmentType.builder(() -> -1L).serialize(Codec.LONG).copyOnDeath().build());
     public static final Supplier<AttachmentType<Integer>> GIFT_COUNT = ATTACHMENTS.register("gift_count", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().build());
+    // Persist the last gift tick to prevent bypassing cooldown by reconnecting/restarting.
+    public static final Supplier<AttachmentType<Long>> GIFT_LAST_TICK = ATTACHMENTS.register("gift_last_tick",
+        () -> AttachmentType.builder(() -> -1L).serialize(Codec.LONG).copyOnDeath().build());
 
     public ReputationMod(IEventBus bus) {
         ATTACHMENTS.register(bus);
