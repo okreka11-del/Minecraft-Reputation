@@ -169,7 +169,7 @@ public final class ReputationMod {
             long now = killer.server.overworld().getGameTime();
             Map<UUID, Long> victims = PVP_COOLDOWNS.computeIfAbsent(killer.getUUID(), id -> new HashMap<>());
             // Expire stale entries to bound per-killer memory usage during normal play.
-            victims.entrySet().removeIf(entry -> now - entry.getValue() >= PVP_COOLDOWN_TICKS);
+            victims.entrySet().removeIf(entry -> entry.getValue() > now || now - entry.getValue() >= PVP_COOLDOWN_TICKS);
             if (!victims.containsKey(defeated.getUUID())) {
                 adjust(killer, -30, "killed player");
                 victims.put(defeated.getUUID(), now);
