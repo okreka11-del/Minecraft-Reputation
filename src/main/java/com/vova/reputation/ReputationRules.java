@@ -43,7 +43,7 @@ public final class ReputationRules {
         return now - last >= INTERACTION_INTERVAL;
     }
 
-    public static void register() {
+    // Shared policy for both dialogue and trading; do not gate on nearby blocks.\n    static boolean villagerInteractionRefused(int score, int villageStanding) {\n        return score < 0 || villageStanding <= -40;\n    }\n\n    public static void register() {
         NeoForge.EVENT_BUS.addListener(ReputationRules::interact);
         NeoForge.EVENT_BUS.addListener(ReputationRules::damage);
         // Block protection requires tracked structure ownership, not villager proximity.
@@ -60,7 +60,7 @@ public final class ReputationRules {
         // Reject hostile villagers before opening either dialogue or trading.
         // Previously the unconditional dialogue branch swallowed this refusal.
         if (event.getTarget() instanceof Villager villager) {
-            if (score < 0 || factions[0] <= -40) {
+            if (villagerInteractionRefused(score, factions[0])) {
                 event.setCanceled(true);
                 player.displayClientMessage(Component.translatable("reputation.message.trade_refused"), true);
                 return;
