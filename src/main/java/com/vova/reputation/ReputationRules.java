@@ -39,7 +39,7 @@ public final class ReputationRules {
     // Pure policy: null means no prior interaction. Restored clocks must not
     // strand players, and ordered subtraction avoids overflow.
     static boolean interactionCooldownElapsed(long now, Long last) {
-        if (last == null || now < last) return true;
+        if (last == null || now < last || last < 0) return true;
         return now - last >= INTERACTION_INTERVAL;
     }
 
