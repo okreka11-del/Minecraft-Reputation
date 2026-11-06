@@ -132,9 +132,9 @@ public final class ReputationMod {
         return "reputation.rank.dark_lord";
     }
 
-    public static void adjust(ServerPlayer player, int delta, String reason) {
+    // Use long arithmetic: admin commands and large penalties must not wrap the score.\n    static int clampReputation(long value) {\n        return (int) Math.max(-100L, Math.min(200L, value));\n    }\n\n    public static void adjust(ServerPlayer player, int delta, String reason) {
         int before = player.getData(REP);
-        int after = Math.max(-100, Math.min(200, before + delta));
+        int after = clampReputation((long) before + delta);
         if (before == after) return;
         player.setData(REP, after);
         String entry = (after > before ? "+" : "") + (after - before) + " | " + reason + " | " + after;
