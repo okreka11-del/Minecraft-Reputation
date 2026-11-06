@@ -74,9 +74,15 @@ public final class ReputationMod {
     public static final Supplier<AttachmentType<Boolean>> HUNTER_COMPLETED = ATTACHMENTS.register("hunter_completed",
         () -> AttachmentType.builder(() -> false).serialize(Codec.BOOL).copyOnDeath().build());
 
+    // Saved quest counters may be corrupted or imported from older versions.
+    // Clamp before incrementing to avoid integer overflow and negative progress.
+    static int nextHunterProgress(int current) {
+        return Math.min(10, Math.max(0, current) + 1);
+    }
+
     private static void advanceHunterQuest(ServerPlayer player) {
         if (player.getData(HUNTER_COMPLETED)) return;
-        int progress = Math.min(10, player.getData(HUNTER_PROGRESS) + 1);
+        int progress = nextHunterProgress(player.getData(HUNTER_PROGRESS));
         player.setData(HUNTER_PROGRESS, progress);
         if (progress == 10) {
             player.setData(HUNTER_COMPLETED, true);
