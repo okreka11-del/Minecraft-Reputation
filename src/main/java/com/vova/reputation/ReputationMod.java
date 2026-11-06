@@ -77,7 +77,7 @@ public final class ReputationMod {
     // Saved quest counters may be corrupted or imported from older versions.
     // Clamp before incrementing to avoid integer overflow and negative progress.
     static int nextHunterProgress(int current) {
-        return Math.min(10, Math.max(0, current) + 1);
+        return HunterProgress.next(current);
     }
 
     private static void advanceHunterQuest(ServerPlayer player) {
