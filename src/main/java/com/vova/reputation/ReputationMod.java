@@ -236,7 +236,7 @@ public final class ReputationMod {
                 }
                 int score = player.getData(REP);
                 int standing = factionStandings(player)[0];
-                String line = score < 0 || standing < -40
+                String line = ReputationRules.villagerInteractionRefused(score, standing)
                     ? "Житель: Мы помним твои поступки. Заслужи наше доверие."
                     : score >= 120 || standing >= 60
                         ? "Житель: Ты наш защитник! Помоги деревне и получишь награду."
