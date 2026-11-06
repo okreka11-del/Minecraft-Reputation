@@ -6,7 +6,13 @@ public final class GiftRewardPolicy {
     public static final long COOLDOWN_TICKS = 2400L;
     private GiftRewardPolicy() {}
     public static boolean canAward(int count) { return count >= 0 && count < DAILY_LIMIT; }
+
     public static boolean cooldownElapsed(long now, long last) {
-        return now < last || now - last >= COOLDOWN_TICKS;
+        // -1 is the persisted default for a player who has never received a gift.
+        if (last < 0) return true;
+        // World time may move backwards after a restore or an administrative command.
+        if (now < last) return true;
+        // Subtract only after ordering the operands, avoiding overflow from negative values.
+        return now - last >= COOLDOWN_TICKS;
     }
 }
