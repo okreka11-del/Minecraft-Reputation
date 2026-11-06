@@ -58,7 +58,7 @@ public final class ReputationMod {
     public static void adjustFaction(ServerPlayer player, int index, int delta) {
         if (index < 0 || index >= FACTIONS.length || delta == 0) return;
         int[] values = factionStandings(player);
-        values[index] = Math.max(-100, Math.min(200, values[index] + delta));
+        values[index] = clampReputation((long) values[index] + delta);
         StringBuilder encoded = new StringBuilder();
         for (int i = 0; i < values.length; i++) {
             if (i > 0) encoded.append(',');
