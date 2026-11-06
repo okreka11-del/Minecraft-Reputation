@@ -109,6 +109,8 @@ public final class ReputationMod {
         ReputationSettlements.register();
         ReputationSpecialists.register();
         NeoForge.EVENT_BUS.addListener(ReputationWorldEvents::onPlayerTick);
+        // Gift caps and cooldowns are enforced by this server-side tick listener.
+        NeoForge.EVENT_BUS.addListener(ReputationRewards::tick);
         // ReputationVillagePerks is registered via ReputationSettlements; no duplicate effect tick.
         NeoForge.EVENT_BUS.addListener(ReputationHeroEvents::tick);
     }
