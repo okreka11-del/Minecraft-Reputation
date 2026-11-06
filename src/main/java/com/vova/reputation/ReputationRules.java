@@ -44,6 +44,9 @@ public final class ReputationRules {
     }
 
     private static void interact(PlayerInteractEvent.EntityInteract event) {
+        // EntityInteract fires once per hand. Handle only the main hand so an offhand
+        // interaction cannot open a second menu or repeat a reputation reward.
+        if (event.getHand() != net.minecraft.world.InteractionHand.MAIN_HAND) return;
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         int score = player.getData(ReputationMod.REP);
         int[] factions = ReputationMod.factionStandings(player);
