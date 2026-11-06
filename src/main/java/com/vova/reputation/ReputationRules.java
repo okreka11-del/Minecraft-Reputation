@@ -1,6 +1,5 @@
 package com.vova.reputation;
 
-import net.minecraft.core.BlockPos;
 import java.util.Map;
 import java.util.UUID;
 import java.util.HashMap;
@@ -22,7 +21,6 @@ import net.neoforged.bus.api.EventPriority;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
-import net.neoforged.neoforge.event.level.BlockEvent;
 
 public final class ReputationRules {
     private ReputationRules() {}
@@ -41,7 +39,7 @@ public final class ReputationRules {
     public static void register() {
         NeoForge.EVENT_BUS.addListener(ReputationRules::interact);
         NeoForge.EVENT_BUS.addListener(ReputationRules::damage);
-        NeoForge.EVENT_BUS.addListener(ReputationRules::breakBlock);
+        // Block protection requires tracked structure ownership, not villager proximity.
         NeoForge.EVENT_BUS.addListener(ReputationRules::explosion);
     }
 
@@ -112,19 +110,4 @@ public final class ReputationRules {
         if (heroNearby) event.setCanceled(true);
     }
 
-    private static void breakBlock(BlockEvent.BreakEvent event) {
-        if (!(event.getPlayer() instanceof ServerPlayer player)) return;
-        int score = player.getData(ReputationMod.REP);
-        BlockPos pos = event.getPos();
-        // Village proximity heuristic: a villager within 24 blocks.
-        boolean village = !player.serverLevel().getEntitiesOfClass(Villager.class,
-            new net.minecraft.world.phys.AABB(pos).inflate(24)).isEmpty();
-        if (!village) return;
-        if (score < 0) {
-            event.setCanceled(true);
-            player.displayClientMessage(Component.translatable("reputation.message.village_protected"), true);
-        } else if (score < 151) {
-            ReputationMod.adjust(player, -1, "damaged village");
-        }
-    }
 }
