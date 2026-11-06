@@ -30,4 +30,27 @@ class ReputationRulesCooldownTest {
         assertTrue(ReputationRules.interactionCooldownElapsed(Long.MAX_VALUE, Long.MAX_VALUE - 1200L));
         assertTrue(ReputationRules.interactionCooldownElapsed(Long.MAX_VALUE, Long.MIN_VALUE));
     }
+    @Test
+    void clockRollbackAllowsInteractionThenStartsFreshCooldown() {
+        // A restored world may have an earlier game time than the persisted
+        // last interaction. The first new interaction must be permitted.
+        assertTrue(ReputationRules.interactionCooldownElapsed(40L, 5000L));
+        // Once ready() records the new timestamp, normal throttling resumes.
+        assertFalse(ReputationRules.interactionCooldownElapsed(1239L, 40L));
+        assertTrue(ReputationRules.interactionCooldownElapsed(1240L, 40L));
+    }
+
+    @Test
+    void invalidHistoricalTimestampDoesNotBlockFreshInteractions() {
+        assertTrue(ReputationRules.interactionCooldownElapsed(0L, -1L));
+        assertTrue(ReputationRules.interactionCooldownElapsed(0L, Long.MIN_VALUE));
+        assertTrue(ReputationRules.interactionCooldownElapsed(Long.MAX_VALUE, -1L));
+    }
+
+    @Test
+    void cooldownCannotBeBypassedBySameTickRepeatedInteractions() {
+        assertFalse(ReputationRules.interactionCooldownElapsed(0L, 0L));
+        assertFalse(ReputationRules.interactionCooldownElapsed(1199L, 0L));
+        assertTrue(ReputationRules.interactionCooldownElapsed(1200L, 0L));
+    }
 }
