@@ -47,29 +47,24 @@ public final class ReputationRules {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         int score = player.getData(ReputationMod.REP);
         int[] factions = ReputationMod.factionStandings(player);
-        if (event.getTarget() instanceof Villager villager && !player.isShiftKeyDown()) {
-            event.setCanceled(true);
-            ReputationNetwork.openDialogue(player, villager);
-            return;
-        }
-        if (event.getTarget() instanceof Villager villager && player.isShiftKeyDown()
-                && score >= 0 && factions[0] > -40) {
-            event.setCanceled(true);
-            ReputationTrading.open(player, villager);
-            return;
-        }
-        // Faction relationships influence interactions without overwriting global reputation.
-        if ((score < 0 || factions[0] <= -40) && event.getTarget() instanceof Villager) {
-            event.setCanceled(true);
-            player.displayClientMessage(Component.translatable("reputation.message.trade_refused"), true);
-        } else if (score >= 101 && factions[0] >= 0 && event.getTarget() instanceof Villager villager) {
-            int discount = score >= 200 ? -8 : score >= 151 ? -5 : -2;
-            for (net.minecraft.world.item.trading.MerchantOffer offer : villager.getOffers()) {
-                offer.resetSpecialPriceDiff();
-                offer.addToSpecialPriceDiff(discount);
+        // Reject hostile villagers before opening either dialogue or trading.
+        // Previously the unconditional dialogue branch swallowed this refusal.
+        if (event.getTarget() instanceof Villager villager) {
+            if (score < 0 || factions[0] <= -40) {
+                event.setCanceled(true);
+                player.displayClientMessage(Component.translatable("reputation.message.trade_refused"), true);
+                return;
             }
-            player.displayClientMessage(Component.translatable("reputation.hero.discount"), true);
-        } else if ((score < 0 || factions[2] <= -40) && event.getTarget() instanceof Animal) {
+            if (player.isShiftKeyDown()) {
+                event.setCanceled(true);
+                ReputationTrading.open(player, villager);
+            } else {
+                event.setCanceled(true);
+                ReputationNetwork.openDialogue(player, villager);
+            }
+            return;
+        }
+        if ((score < 0 || factions[2] <= -40) && event.getTarget() instanceof Animal) {
             event.setCanceled(true);
             player.displayClientMessage(Component.translatable("reputation.message.animal_afraid"), true);
         } else if (event.getTarget() instanceof IronGolem && score >= 120 && factions[4] >= 0 && ready(player)) {
