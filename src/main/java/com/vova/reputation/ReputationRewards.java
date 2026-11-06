@@ -27,11 +27,11 @@ public final class ReputationRewards {
             player.setData(ReputationMod.GIFT_DAY, day);
             player.setData(ReputationMod.GIFT_COUNT, 0);
         }
-        if (player.getData(ReputationMod.GIFT_COUNT) >= 10) return;
+        if (!GiftRewardPolicy.canAward(player.getData(ReputationMod.GIFT_COUNT))) return;
         long last = LAST_REWARD.getOrDefault(player.getUUID(), Long.MIN_VALUE / 2);
         // A new world/server may restart its game clock while this JVM retains the static map.
         // Do not strand a returning player behind a cooldown from the previous world.
-        if (tick >= last && tick - last < 2400) return;
+        if (!GiftRewardPolicy.cooldownElapsed(tick, last)) return;
         boolean villagerNearby = !player.level().getEntitiesOfClass(Villager.class,
             player.getBoundingBox().inflate(10)).isEmpty();
         boolean animalNearby = !player.level().getEntitiesOfClass(Animal.class,
