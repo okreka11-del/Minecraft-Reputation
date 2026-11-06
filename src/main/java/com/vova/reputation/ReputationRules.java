@@ -43,7 +43,12 @@ public final class ReputationRules {
         return now - last >= INTERACTION_INTERVAL;
     }
 
-    // Shared policy for both dialogue and trading; do not gate on nearby blocks.\n    static boolean villagerInteractionRefused(int score, int villageStanding) {\n        return score < 0 || villageStanding <= -40;\n    }\n\n    public static void register() {
+    // Shared policy for both dialogue and trading; do not gate on nearby blocks.
+    static boolean villagerInteractionRefused(int score, int villageStanding) {
+        return score < 0 || villageStanding <= -40;
+    }
+
+    public static void register() {
         NeoForge.EVENT_BUS.addListener(ReputationRules::interact);
         NeoForge.EVENT_BUS.addListener(ReputationRules::damage);
         // Block protection requires tracked structure ownership, not villager proximity.
