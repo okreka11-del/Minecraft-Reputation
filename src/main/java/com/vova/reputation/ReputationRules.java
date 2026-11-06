@@ -20,7 +20,7 @@ import net.minecraft.world.entity.animal.IronGolem;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 
 public final class ReputationRules {
@@ -51,16 +51,17 @@ public final class ReputationRules {
 
     public static void register() {
         NeoForge.EVENT_BUS.addListener(ReputationRules::interact);
-        NeoForge.EVENT_BUS.addListener(ReputationRules::onPlayerLogout);
+        NeoForge.EVENT_BUS.addListener(ReputationRules::onServerStopped);
         NeoForge.EVENT_BUS.addListener(ReputationRules::damage);
         // Block protection requires tracked structure ownership, not villager proximity.
         NeoForge.EVENT_BUS.addListener(ReputationRules::explosion);
     }
 
-    // Cooldowns are session-local. Drop entries on logout to avoid stale UUID
-    // timestamps across server/world switches and unbounded map growth.
-    private static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
-        INTERACTION_COOLDOWN.remove(event.getEntity().getUUID());
+    // Keep cooldowns across logout: otherwise repeatedly reconnecting grants
+    // unlimited golem XP and faction standing. Reset only when server stops;
+    // clock rollback is already handled by interactionCooldownElapsed().
+    private static void onServerStopped(ServerStoppedEvent event) {
+        INTERACTION_COOLDOWN.clear();
     }
 
     private static void interact(PlayerInteractEvent.EntityInteract event) {
