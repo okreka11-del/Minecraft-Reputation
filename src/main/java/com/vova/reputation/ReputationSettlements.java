@@ -306,7 +306,8 @@ public final class ReputationSettlements {
     private static boolean placeCottage(ServerLevel level, BlockPos base, String ownerName) {
         // Include the entrance sign in the preflight check; never leave an unnamed home.
         BlockPos signPos = base.offset(1, 2, -4);
-        if (!level.hasChunkAt(signPos) || !level.getBlockState(signPos).isAir()) return false;
+        if (!level.hasChunkAt(signPos) || !level.getWorldBorder().isWithinBounds(signPos)
+                || !level.getBlockState(signPos).isAir()) return false;
         // Validate every block before placing anything; no overwrites.
         for (int x = -3; x <= 3; x++) for (int z = -3; z <= 3; z++) {
             BlockPos column = base.offset(x, 0, z);
@@ -417,7 +418,7 @@ public final class ReputationSettlements {
     private static boolean clearSite(ServerLevel level, BlockPos base, int radius, int height) {
         for (int x = -radius; x <= radius; x++) for (int z = -radius; z <= radius; z++) {
             BlockPos p = base.offset(x, 0, z);
-            if (!level.hasChunkAt(p)) return false;
+            if (!level.hasChunkAt(p) || !level.hasChunkAt(p.below())) return false;
             if (!level.getWorldBorder().isWithinBounds(p)) return false;
             BlockPos foundation = p.below();
             BlockState ground = level.getBlockState(foundation);
