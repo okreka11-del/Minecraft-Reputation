@@ -202,11 +202,13 @@ public final class ReputationMod {
             long now = killer.server.overworld().getGameTime();
             // Use monotonic server game time: /time set must not reset daily anti-farm limits.
             long day = now / 24000L;
-            if (killer.getData(REWARD_DAY) != day) {
+            // Apply the same tested monotonic day policy as gifts. Rewinding
+            // the clock must not refill the hostile-mob reputation allowance.
+            if (GiftRewardPolicy.shouldResetDailyCount(day, killer.getData(REWARD_DAY))) {
                 killer.setData(REWARD_DAY, day);
                 killer.setData(REWARD_COUNT, 0);
             }
-            if (killer.getData(REWARD_COUNT) < 10) {
+            if (GiftRewardPolicy.canAward(killer.getData(REWARD_COUNT))) {
                 killer.setData(REWARD_COUNT, killer.getData(REWARD_COUNT) + 1);
                 adjust(killer, 1, "defeated monster");
                 adjustFaction(killer, 3, -1);
