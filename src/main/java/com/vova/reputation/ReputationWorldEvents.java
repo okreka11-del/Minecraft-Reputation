@@ -54,7 +54,9 @@ public final class ReputationWorldEvents {
         for (Villager villager : level.getEntitiesOfClass(Villager.class, vicinity)) {
             // Trading offers are rebuilt when the merchant screen opens.
             // Apply reputation prices while the player is actually trading.
-            if (villager.getTradingPlayer() instanceof ServerPlayer customer) {
+            // Only the actual customer may refresh their merchant offers. Nearby
+            // players must not repeatedly rewrite a different player's open trade menu.
+            if (villager.getTradingPlayer() instanceof ServerPlayer customer && customer == player) {
                 int customerScore = customer.getData(ReputationMod.REP);
                 int villageStanding = ReputationMod.factionStandings(customer)[0];
                 int discount = customerScore >= 200 ? -12
