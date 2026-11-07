@@ -47,14 +47,14 @@ public final class ReputationHeroEvents {
 
         // Match monster rewards: monotonic game time prevents /time set from resetting gift limits.
         long day = time / 24000L;
-        if (player.getData(ReputationMod.GIFT_DAY) != day) {
+        if (GiftRewardPolicy.shouldResetDailyCount(day, player.getData(ReputationMod.GIFT_DAY))) {
             player.setData(ReputationMod.GIFT_DAY, day);
             player.setData(ReputationMod.GIFT_COUNT, 0);
         }
-        if (player.getData(ReputationMod.GIFT_COUNT) >= 10) return;
+        if (!GiftRewardPolicy.canAward(player.getData(ReputationMod.GIFT_COUNT))) return;
         long last = GIFTS.getOrDefault(player.getUUID(), -100000L);
         // A world time rollback must not permanently block future gifts.
-        if (last <= time && time - last < 2400) return;
+        if (!GiftRewardPolicy.cooldownElapsed(time, last)) return;
         ItemStack gift = ItemStack.EMPTY;
         String donor = "";
         if (!level.getEntitiesOfClass(IronGolem.class, player.getBoundingBox().inflate(8)).isEmpty()) {
