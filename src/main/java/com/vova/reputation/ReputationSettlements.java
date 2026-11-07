@@ -310,7 +310,12 @@ public final class ReputationSettlements {
         // Validate every block before placing anything; no overwrites.
         for (int x = -3; x <= 3; x++) for (int z = -3; z <= 3; z++) {
             BlockPos column = base.offset(x, 0, z);
-            if (!level.hasChunkAt(column) || !level.getBlockState(column.below()).isSolidRender(level, column.below())) return false;
+            if (!level.hasChunkAt(column) || !level.hasChunkAt(column.below())) return false;
+            BlockPos foundation = column.below();
+            BlockState ground = level.getBlockState(foundation);
+            // Hero homes must not claim player-made platforms, just like village extensions.
+            // This is a conservative terrain check, not proof of block ownership.
+            if (!ground.isSolidRender(level, foundation) || !isNaturalFoundation(ground)) return false;
             for (int y = 0; y <= 5; y++) if (!level.getBlockState(column.above(y)).isAir()) return false;
         }
         for (int x = -3; x <= 3; x++) for (int z = -3; z <= 3; z++) {
