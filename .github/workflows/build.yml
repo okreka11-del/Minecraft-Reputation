@@ -1,7 +1,11 @@
 name: Build Minecraft Reputation JAR
 on:
   push:
+    branches: [main, feature/large-village-overhaul]
+  pull_request:
     branches: [main]
+    paths-ignore:
+      - '**/*.md'
   workflow_dispatch:
 permissions:
   contents: write
@@ -19,6 +23,30 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.2.1'
+      - name: Validate resource JSON syntax
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          root = pathlib.Path("src/main/resources")
+          files = sorted(root.rglob("*.json"))
+          if not files:
+              sys.exit("No resource JSON files found; cannot validate assets")
+          errors = []
+          for path in files:
+              try:
+                  with path.open(encoding="utf-8") as stream:
+                      json.load(stream)
+              except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+                  errors.append(f"{path}: {exc}")
+          if errors:
+              print("\\n".join(errors), file=sys.stderr)
+              sys.exit(1)
+          print(f"Validated {len(files)} resource JSON files (syntax only)")
+          PY
       - name: Build mod
         run: gradle build --no-daemon --stacktrace
       - name: Select single installable JAR
@@ -38,6 +66,7 @@ jobs:
           path: release/Minecraft-Reputation.jar
           if-no-files-found: error
       - name: Publish single rolling release
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash

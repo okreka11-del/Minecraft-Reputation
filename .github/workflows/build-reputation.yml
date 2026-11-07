@@ -1,0 +1,38 @@
+name: Build Minecraft Reputation
+on:
+  push:
+    branches:
+      - main
+      - feature/large-village-overhaul
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.2.1'
+      - name: Build mod
+        run: gradle --no-daemon clean build --stacktrace
+      - name: Upload single mod JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: minecraft-reputation-build
+          path: build/libs/*.jar
+          if-no-files-found: error
+          retention-days: 14

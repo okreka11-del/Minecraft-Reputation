@@ -13,12 +13,13 @@ import net.neoforged.neoforge.client.event.ScreenEvent;
 @EventBusSubscriber(modid = ReputationMod.ID, value = Dist.CLIENT)
 public final class ReputationHud {
     private ReputationHud() {}
-    private static int syncedScore = 100;
+    private static int syncedScore = 0;
     private static final int[] THRESHOLDS = {-100, -80, -60, -20, 0, 100, 120, 140, 160, 180, 200};
     private static final String[] TITLES = {
-        "Повелитель Тьмы", "Злодей", "Враг", "Недруг", "Нейтральный",
-        "Знакомый", "Союзник", "Надёжный союзник", "Хороший союзник",
-        "Лучший союзник", "Герой Света"
+        "reputation.rank.dark_lord", "reputation.rank.villain", "reputation.rank.enemy",
+        "reputation.rank.unfriendly", "reputation.rank.neutral", "reputation.rank.acquaintance",
+        "reputation.rank.ally", "reputation.rank.reliable_ally", "reputation.rank.good_ally",
+        "reputation.rank.best_ally", "reputation.rank.hero_of_light"
     };
     private static final String[] SYMBOLS = {"✦", "☠", "⚔", "!", "•", "◇", "◆", "❖", "★", "✶", "☀"};
 
@@ -85,12 +86,12 @@ public final class ReputationHud {
     private static void drawHud(GuiGraphics gui, Minecraft mc) {
         int x = 12, y = 20, w = 176, h = 12;
         int score = syncedScore;
-        String label = "Репутация: ";
+        String label = net.minecraft.network.chat.Component.translatable("reputation.hud.label").getString() + ": ";
         String number = (score > 0 ? "+" : "") + score;
         // Use Minecraft's own pixel font and scale it up without smoothing.
         gui.pose().pushPose();
         gui.pose().translate(x + 13, y - 19, 0);
-        gui.pose().scale(1.22f, 1.22f, 1.0f);
+        gui.pose().scale(1.30f, 1.30f, 1.0f);
         gui.drawString(mc.font, label, 0, 0, 0xFFFFFFFF, true);
         gui.drawString(mc.font, number, mc.font.width(label) + 3, 0, 0xFFFFD44C, true);
         gui.pose().popPose();
@@ -102,13 +103,14 @@ public final class ReputationHud {
         gui.fill(marker - 1, y - 3, marker + 2, y + h + 3, 0xFFFFFFA5);
         gui.fill(marker - 5, y - 6, marker + 6, y - 4, 0xFFFFD957);
         gui.fill(marker - 5, y + h + 4, marker + 6, y + h + 6, 0xFFFFD957);
-        String title = TITLES[rankIndex(score)];
+        String title = net.minecraft.network.chat.Component.translatable(TITLES[rankIndex(score)]).getString();
         int textWidth = mc.font.width(title);
         int labelW = Math.max(100, textWidth + 20);
         int labelX = x + (w - labelW) / 2;
         gui.fill(labelX + 3, y + 17, labelX + labelW - 3, y + 34, 0xFFB98B35);
         gui.fill(labelX, y + 20, labelX + labelW, y + 31, 0xFFB98B35);
         gui.fill(labelX + 4, y + 19, labelX + labelW - 4, y + 32, 0xFF171015);
+        gui.drawString(mc.font, title, labelX + (labelW - textWidth) / 2 + 1, y + 21, 0xFF5D3718, false);
         gui.drawString(mc.font, title, labelX + (labelW - textWidth) / 2, y + 21, 0xFFFFD966, true);
     }
 
@@ -148,7 +150,7 @@ public final class ReputationHud {
         }
         gui.fill(px, py, px + panelW, py + panelH, 0xF419131B);
         gui.fill(px, py, px + panelW, py + 2, 0xFFB88A39);
-        gui.drawString(mc.font, "Звания репутации  •  -100 ... +200", px + 8, py + 8, 0xFFFFD46A, true);
+        gui.drawString(mc.font, net.minecraft.network.chat.Component.translatable("reputation.hud.ranks").getString(), px + 8, py + 8, 0xFFFFD46A, true);
         int current = rankIndex(syncedScore);
         for (int i = 0; i < count; i++) {
             int cx = px + padding + (i % columns) * cellW;
@@ -159,7 +161,7 @@ public final class ReputationHud {
             String value = (THRESHOLDS[i] > 0 ? "+" : "") + THRESHOLDS[i];
             gui.drawCenteredString(mc.font, value, cx + (cellW - 3) / 2, cy + 9, active ? 0xFFFFD74C : 0xFFE8D5D6);
             gui.drawCenteredString(mc.font, SYMBOLS[i], cx + (cellW - 3) / 2, cy + 20, colorAt(THRESHOLDS[i]));
-            String title = TITLES[i];
+            String title = net.minecraft.network.chat.Component.translatable(TITLES[i]).getString();
             if (mc.font.width(title) > cellW - 7 && title.contains(" ")) {
                 int split = title.lastIndexOf(' ');
                 gui.drawCenteredString(mc.font, title.substring(0, split), cx + (cellW - 3) / 2, cy + 30, 0xFFFFFFFF);

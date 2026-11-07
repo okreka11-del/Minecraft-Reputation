@@ -7,22 +7,26 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 public final class ReputationRewards {
     private ReputationRewards() {}
-    private static final Map<UUID, Long> LAST_REWARD = new HashMap<>();
 
     public static void tick(PlayerTickEvent.Post event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
-        long tick = player.level().getGameTime();
+        long tick = player.server.overworld().getGameTime();
         if (tick % 100 != 0) return;
         int score = player.getData(ReputationMod.REP);
         if (score < 101) return;
-        long last = LAST_REWARD.getOrDefault(player.getUUID(), Long.MIN_VALUE / 2);
-        if (tick - last < 2400) return;
+        // Persist the daily cap per player, across logouts and dimension changes.
+        long day = tick / 24000L;
+        if (GiftRewardPolicy.shouldResetDailyCount(day, player.getData(ReputationMod.GIFT_DAY))) {
+            player.setData(ReputationMod.GIFT_DAY, day);
+            player.setData(ReputationMod.GIFT_COUNT, 0);
+        }
+        if (!GiftRewardPolicy.canAward(player.getData(ReputationMod.GIFT_COUNT))) return;
+        long last = player.getData(ReputationMod.GIFT_LAST_TICK);
+        // A reset game clock must not strand a player behind a previous-world cooldown.
+        if (last >= 0 && !GiftRewardPolicy.cooldownElapsed(tick, last)) return;
         boolean villagerNearby = !player.level().getEntitiesOfClass(Villager.class,
             player.getBoundingBox().inflate(10)).isEmpty();
         boolean animalNearby = !player.level().getEntitiesOfClass(Animal.class,
@@ -32,6 +36,7 @@ public final class ReputationRewards {
             : new ItemStack(Items.WHEAT, score >= 151 ? 4 : 2);
         if (!player.addItem(gift)) player.drop(gift, false);
         player.displayClientMessage(Component.translatable("reputation.message.gift"), true);
-        LAST_REWARD.put(player.getUUID(), tick);
+        player.setData(ReputationMod.GIFT_LAST_TICK, tick);
+        player.setData(ReputationMod.GIFT_COUNT, player.getData(ReputationMod.GIFT_COUNT) + 1);
     }
 }

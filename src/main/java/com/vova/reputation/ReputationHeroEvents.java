@@ -25,12 +25,14 @@ import java.util.UUID;
 /** First-pass hero reactions. Cooldowns are server-session local. */
 public final class ReputationHeroEvents {
     private static final Map<UUID, Long> GIFTS = new HashMap<>();
+
     private ReputationHeroEvents() {}
 
     public static void tick(PlayerTickEvent.Post event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         if (!(player.level() instanceof ServerLevel level)) return;
-        long time = level.getGameTime();
+        // Use a single server clock across dimensions so teleporting cannot bypass gift cooldowns.
+        long time = player.getServer().overworld().getGameTime();
         if ((time + player.getId()) % 40 != 0) return;
         int reputation = player.getData(ReputationMod.REP);
         if (reputation < 151) return;
@@ -41,12 +43,18 @@ public final class ReputationHeroEvents {
             }
         }
 
-        for (Monster monster : level.getEntitiesOfClass(Monster.class, player.getBoundingBox().inflate(20))) {
-            if (monster.getTarget() == player) monster.setTarget(null);
-        }
+        // Do not cancel hostile targeting: heroes of Light are deliberately hunted.
 
+        // Match monster rewards: monotonic game time prevents /time set from resetting gift limits.
+        long day = time / 24000L;
+        if (player.getData(ReputationMod.GIFT_DAY) != day) {
+            player.setData(ReputationMod.GIFT_DAY, day);
+            player.setData(ReputationMod.GIFT_COUNT, 0);
+        }
+        if (player.getData(ReputationMod.GIFT_COUNT) >= 10) return;
         long last = GIFTS.getOrDefault(player.getUUID(), -100000L);
-        if (time - last < 2400) return;
+        // A world time rollback must not permanently block future gifts.
+        if (last <= time && time - last < 2400) return;
         ItemStack gift = ItemStack.EMPTY;
         String donor = "";
         if (!level.getEntitiesOfClass(IronGolem.class, player.getBoundingBox().inflate(8)).isEmpty()) {
@@ -54,21 +62,22 @@ public final class ReputationHeroEvents {
         } else if (!level.getEntitiesOfClass(EnderMan.class, player.getBoundingBox().inflate(8)).isEmpty()) {
             gift = new ItemStack(Items.IRON_ORE); donor = "enderman";
         } else if (!level.getEntitiesOfClass(Blaze.class, player.getBoundingBox().inflate(8)).isEmpty()) {
-            gift = new ItemStack(Items.BLAZE_POWDER, 2); donor = "blaze";
+            gift = new ItemStack(Items.BLAZE_POWDER); donor = "blaze";
         } else if (!level.getEntitiesOfClass(WitherSkeleton.class, player.getBoundingBox().inflate(8)).isEmpty()) {
-            gift = new ItemStack(Items.BONE, 2); donor = "wither_skeleton";
+            gift = new ItemStack(Items.BONE); donor = "wither_skeleton";
         } else if (!level.getEntitiesOfClass(ZombifiedPiglin.class, player.getBoundingBox().inflate(8)).isEmpty()
                 || !level.getEntitiesOfClass(Piglin.class, player.getBoundingBox().inflate(8)).isEmpty()) {
-            gift = new ItemStack(Items.GOLD_NUGGET, 4); donor = "piglin";
+            gift = new ItemStack(Items.GOLD_NUGGET); donor = "piglin";
         } else if (!level.getEntitiesOfClass(AbstractHorse.class, player.getBoundingBox().inflate(8)).isEmpty()) {
             gift = new ItemStack(Items.SADDLE); donor = "horse";
         } else if (!level.getEntitiesOfClass(Villager.class, player.getBoundingBox().inflate(8)).isEmpty()) {
-            gift = new ItemStack(Items.EMERALD, 3); donor = "villager";
+            gift = new ItemStack(Items.EMERALD); donor = "villager";
         }
         if (!gift.isEmpty()) {
             if (!player.addItem(gift)) player.drop(gift, false);
             player.displayClientMessage(Component.translatable("reputation.hero.gift", Component.translatable("reputation.hero.donor." + donor)), true);
             GIFTS.put(player.getUUID(), time);
+            player.setData(ReputationMod.GIFT_COUNT, player.getData(ReputationMod.GIFT_COUNT) + 1);
             level.sendParticles(ParticleTypes.HAPPY_VILLAGER, player.getX(), player.getY() + 1.4,
                 player.getZ(), 8, .4, .4, .4, .02);
         }
