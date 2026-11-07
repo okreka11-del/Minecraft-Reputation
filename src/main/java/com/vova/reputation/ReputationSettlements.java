@@ -311,6 +311,7 @@ public final class ReputationSettlements {
         for (int x = -3; x <= 3; x++) for (int z = -3; z <= 3; z++) {
             BlockPos column = base.offset(x, 0, z);
             if (!level.hasChunkAt(column) || !level.hasChunkAt(column.below())) return false;
+            if (!level.getWorldBorder().isWithinBounds(column)) return false;
             BlockPos foundation = column.below();
             BlockState ground = level.getBlockState(foundation);
             // Hero homes must not claim player-made platforms, just like village extensions.
@@ -417,6 +418,7 @@ public final class ReputationSettlements {
         for (int x = -radius; x <= radius; x++) for (int z = -radius; z <= radius; z++) {
             BlockPos p = base.offset(x, 0, z);
             if (!level.hasChunkAt(p)) return false;
+            if (!level.getWorldBorder().isWithinBounds(p)) return false;
             BlockPos foundation = p.below();
             BlockState ground = level.getBlockState(foundation);
             // A clear air volume is not proof of an unclaimed site: a player may
