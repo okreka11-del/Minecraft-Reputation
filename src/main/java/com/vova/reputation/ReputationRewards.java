@@ -19,7 +19,7 @@ public final class ReputationRewards {
         if (score < 101) return;
         // Persist the daily cap per player, across logouts and dimension changes.
         long day = tick / 24000L;
-        if (player.getData(ReputationMod.GIFT_DAY) != day) {
+        if (GiftRewardPolicy.shouldResetDailyCount(day, player.getData(ReputationMod.GIFT_DAY))) {
             player.setData(ReputationMod.GIFT_DAY, day);
             player.setData(ReputationMod.GIFT_COUNT, 0);
         }

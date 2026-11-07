@@ -4,6 +4,14 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class GiftRewardPolicyTest {
+    @Test void giftDayAdvancesOnlyForward() {
+        assertTrue(GiftRewardPolicy.shouldResetDailyCount(0, -1));
+        assertTrue(GiftRewardPolicy.shouldResetDailyCount(5, 4));
+        assertFalse(GiftRewardPolicy.shouldResetDailyCount(5, 5));
+        assertFalse(GiftRewardPolicy.shouldResetDailyCount(3, 5));
+        assertFalse(GiftRewardPolicy.shouldResetDailyCount(0, Long.MAX_VALUE));
+    }
+
     @Test void dailyLimit() {
         assertTrue(GiftRewardPolicy.canAward(0));
         assertTrue(GiftRewardPolicy.canAward(9));
