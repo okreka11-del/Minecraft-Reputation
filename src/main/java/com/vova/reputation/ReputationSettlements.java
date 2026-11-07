@@ -306,6 +306,8 @@ public final class ReputationSettlements {
     private static boolean placeCottage(ServerLevel level, BlockPos base, String ownerName) {
         // Include the entrance sign in the preflight check; never leave an unnamed home.
         BlockPos signPos = base.offset(1, 2, -4);
+        if (level.isOutsideBuildHeight(base.below()) || level.isOutsideBuildHeight(base.above(5))
+                || level.isOutsideBuildHeight(signPos)) return false;
         if (!level.hasChunkAt(signPos) || !level.getWorldBorder().isWithinBounds(signPos)
                 || !level.getBlockState(signPos).isAir()) return false;
         // Validate every block before placing anything; no overwrites.
@@ -416,6 +418,8 @@ public final class ReputationSettlements {
     }
 
     private static boolean clearSite(ServerLevel level, BlockPos base, int radius, int height) {
+        // Reject the whole footprint before any block writes at the world's vertical limits.
+        if (level.isOutsideBuildHeight(base.below()) || level.isOutsideBuildHeight(base.above(height))) return false;
         for (int x = -radius; x <= radius; x++) for (int z = -radius; z <= radius; z++) {
             BlockPos p = base.offset(x, 0, z);
             if (!level.hasChunkAt(p) || !level.hasChunkAt(p.below())) return false;
