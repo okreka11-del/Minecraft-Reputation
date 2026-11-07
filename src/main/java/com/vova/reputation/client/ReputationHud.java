@@ -88,13 +88,13 @@ public final class ReputationHud {
         int score = syncedScore;
         String label = net.minecraft.network.chat.Component.translatable("reputation.hud.label").getString() + ": ";
         String number = (score > 0 ? "+" : "") + score;
-        // Use Minecraft's own pixel font and scale it up without smoothing.
-        gui.pose().pushPose();
-        gui.pose().translate(x + 13, y - 19, 0);
-        gui.pose().scale(1.30f, 1.30f, 1.0f);
-        gui.drawString(mc.font, label, 0, 0, 0xFFFFFFFF, true);
-        gui.drawString(mc.font, number, mc.font.width(label) + 3, 0, 0xFFFFD44C, true);
-        gui.pose().popPose();
+        // Render at native GUI pixel size. Fractional pose scaling (previously 1.30x)
+        // resamples the vanilla bitmap font and blurs glyph edges at GUI scales.
+        // Integer draw coordinates keep the HUD aligned to the GUI pixel grid.
+        int textX = x + 13;
+        int textY = y - 19;
+        gui.drawString(mc.font, label, textX, textY, 0xFFFFFFFF, true);
+        gui.drawString(mc.font, number, textX + mc.font.width(label) + 3, textY, 0xFFFFD44C, true);
         roundedBar(gui, x, y, w, h);
         drawCrest(gui, x - 15, y - 7);
         int marker = x + 7 + Math.round((score + 100) * (w - 14) / 300.0f);
