@@ -81,7 +81,9 @@ public final class ReputationWorldEvents {
             }
 
             int villageStanding = ReputationMod.factionStandings(player)[0];
-            if (score < 0 || villageStanding <= -40) {
+            // A merchant with an active customer must not be forced to flee by
+            // another nearby player: doing so interrupts multiplayer trading.
+            if ((score < 0 || villageStanding <= -40) && villager.getTradingPlayer() == null) {
                 double dx = villager.getX() - player.getX();
                 double dz = villager.getZ() - player.getZ();
                 double distance = Math.max(0.1, Math.sqrt(dx * dx + dz * dz));
