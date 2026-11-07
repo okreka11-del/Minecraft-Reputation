@@ -347,8 +347,11 @@ public final class ReputationSettlements {
         int kind = village.structuresBuilt;
         int[][] offsets = {{21,0},{-21,0},{0,21},{0,-21},{23,13},{-23,-13},{38,8},{-38,8},{8,38},{8,-38},{-38,-18},{38,-18},{28,24},{-28,24},{24,-28},{-24,-28}};
         for (int[] offset : offsets) {
+            BlockPos candidate = village.center.offset(offset[0], 0, offset[1]);
+            // Do not query a heightmap in an unloaded chunk: that may trigger generation.
+            if (!level.hasChunkAt(candidate)) continue;
             BlockPos base = level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                village.center.offset(offset[0], 0, offset[1]));
+                candidate);
             if (Math.abs(base.getY() - village.center.getY()) > 4 || !clearSite(level, base, 2, 7)) continue;
             if (kind >= 3) { buildSpecial(level, base, kind); return true; }
             // Market stall, watch post and supply depot; all are non-destructive.
@@ -418,8 +421,11 @@ public final class ReputationSettlements {
         int[][] offsets = {{40, 0}, {-40, 0}, {0, 40}, {0, -40},
             {34, 20}, {-34, -20}, {20, -34}, {-20, 34}};
         for (int[] offset : offsets) {
+            BlockPos candidate = village.center.offset(offset[0], 0, offset[1]);
+            // Do not query a heightmap in an unloaded chunk: that may trigger generation.
+            if (!level.hasChunkAt(candidate)) continue;
             BlockPos base = level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                village.center.offset(offset[0], 0, offset[1]));
+                candidate);
             if (Math.abs(base.getY() - village.center.getY()) > 4 || !clearSite(level, base, 1, 4)) continue;
             BlockState ground = level.getBlockState(base.below());
             if (!ground.is(Blocks.GRASS_BLOCK) && !ground.is(Blocks.DIRT)
