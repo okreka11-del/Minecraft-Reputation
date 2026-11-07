@@ -11,10 +11,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.Pillager;
-import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.EnderMan;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
-import net.neoforged.neoforge.event.level.ExplosionEvent;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.neoforged.bus.api.EventPriority;
@@ -53,8 +51,6 @@ public final class ReputationRules {
         NeoForge.EVENT_BUS.addListener(ReputationRules::interact);
         NeoForge.EVENT_BUS.addListener(ReputationRules::onServerStopped);
         NeoForge.EVENT_BUS.addListener(ReputationRules::damage);
-        // Block protection requires tracked structure ownership, not villager proximity.
-        NeoForge.EVENT_BUS.addListener(ReputationRules::explosion);
     }
 
     // Keep cooldowns across logout: otherwise repeatedly reconnecting grants
@@ -119,14 +115,5 @@ public final class ReputationRules {
         }
     }
 
-    private static void explosion(ExplosionEvent.Start event) {
-        // Prevent creeper explosions triggered around nearby heroes.
-        if (!(event.getExplosion().getDirectSourceEntity() instanceof Creeper creeper)) return;
-        if (!(creeper.level() instanceof net.minecraft.server.level.ServerLevel level)) return;
-        boolean heroNearby = !level.getEntitiesOfClass(ServerPlayer.class,
-            creeper.getBoundingBox().inflate(5),
-            p -> p.getData(ReputationMod.REP) >= 151).isEmpty();
-        if (heroNearby) event.setCanceled(true);
-    }
 
 }
