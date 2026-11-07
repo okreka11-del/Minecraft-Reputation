@@ -294,11 +294,17 @@ public final class ReputationSettlements {
             {12,42},{12,-42},{48,0},{0,48},{-48,0},{0,-48}};
         for (int[] offset : offsets) for (int y = -6; y <= 6; y++) {
             BlockPos base = village.center.offset(offset[0], y, offset[1]);
-            if (!level.hasChunkAt(base)) continue;
+            // The legacy signature spans neighboring blocks, which may be in
+            // different chunks. Never load/generate chunks just to migrate a home.
+            BlockPos roof = base.above(4);
+            BlockPos table = base.offset(0, 1, 1);
+            BlockPos chest = base.offset(1, 1, 1);
+            if (!level.hasChunkAt(base) || !level.hasChunkAt(roof)
+                    || !level.hasChunkAt(table) || !level.hasChunkAt(chest)) continue;
             if (level.getBlockState(base).is(Blocks.OAK_PLANKS)
-                    && level.getBlockState(base.above(4)).is(Blocks.SPRUCE_PLANKS)
-                    && level.getBlockState(base.offset(0, 1, 1)).is(Blocks.CRAFTING_TABLE)
-                    && level.getBlockState(base.offset(1, 1, 1)).is(Blocks.CHEST)) return base;
+                    && level.getBlockState(roof).is(Blocks.SPRUCE_PLANKS)
+                    && level.getBlockState(table).is(Blocks.CRAFTING_TABLE)
+                    && level.getBlockState(chest).is(Blocks.CHEST)) return base;
         }
         return null;
     }
