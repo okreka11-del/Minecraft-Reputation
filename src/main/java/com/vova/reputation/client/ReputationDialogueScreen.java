@@ -39,6 +39,16 @@ public final class ReputationDialogueScreen extends Screen {
         addRenderableWidget(Button.builder(Component.literal("Закрыть"), b -> onClose())
             .bounds(x + 115, y + 26, 105, 20).build());
     }
+    // Constrain server-provided text without fractional font transforms.
+    private void drawFittedCentered(GuiGraphics g, String value, int y) {
+        String safe = value == null ? "" : value;
+        int maxWidth = 220;
+        if (font.width(safe) > maxWidth) {
+            safe = font.plainSubstrByWidth(safe, maxWidth - font.width("...")) + "...";
+        }
+        g.drawCenteredString(font, safe, width / 2, y, 0xFF49301F);
+    }
+
     @Override public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         g.fill(0, 0, width, height, 0xB0100B10);
         int x = width / 2 - 125, y = height / 2 - 78;
@@ -46,8 +56,8 @@ public final class ReputationDialogueScreen extends Screen {
         g.fill(x, y, x + 250, y + 155, 0xFFD3B483);
         g.fill(x + 5, y + 5, x + 245, y + 150, 0xFFF1DEB6);
         g.drawCenteredString(font, title, width / 2, y + 13, 0xFF59361E);
-        g.drawCenteredString(font, greeting, width / 2, y + 45, 0xFF49301F);
-        g.drawCenteredString(font, response, width / 2, y + 66, 0xFF49301F);
+        drawFittedCentered(g, greeting, y + 45);
+        drawFittedCentered(g, response, y + 66);
         super.render(g, mouseX, mouseY, partialTick);
     }
     @Override public boolean isPauseScreen() { return false; }
