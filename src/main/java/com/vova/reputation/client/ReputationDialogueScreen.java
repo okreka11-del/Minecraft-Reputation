@@ -19,15 +19,15 @@ public final class ReputationDialogueScreen extends Screen {
         this.score = score;
         this.greeting = greeting;
     }
-    private int panelWidth() { return Math.min(250, Math.max(120, width - 12)); }
-    private int panelHeight() { return Math.min(155, Math.max(110, height - 12)); }
+    private int panelWidth() { return Math.max(1, Math.min(250, width - 12)); }
+    private int panelHeight() { return Math.max(1, Math.min(155, height - 12)); }
     private int panelX() { return (width - panelWidth()) / 2; }
     private int panelY() { return (height - panelHeight()) / 2; }
 
     @Override protected void init() {
-        int available = panelWidth() - 20;
+        int available = Math.max(2, panelWidth() - 20);
         int gap = 6;
-        int buttonWidth = (available - gap) / 2;
+        int buttonWidth = Math.max(1, (available - gap) / 2);
         int x = panelX() + 10, y = panelY() + panelHeight() - 57;
         addRenderableWidget(Button.builder(Component.literal("Поговорить"), b -> {
             response = score <= -80 ? "Не причиняй вреда нашей деревне!"
@@ -50,9 +50,10 @@ public final class ReputationDialogueScreen extends Screen {
     // Constrain server-provided text without fractional font transforms.
     private void drawFittedCentered(GuiGraphics g, String value, int y) {
         String safe = value == null ? "" : value;
-        int maxWidth = Math.max(40, panelWidth() - 30);
+        int maxWidth = Math.max(1, panelWidth() - 30);
         if (font.width(safe) > maxWidth) {
-            safe = font.plainSubstrByWidth(safe, maxWidth - font.width("...")) + "...";
+            String ellipsis = font.width("...") <= maxWidth ? "..." : "";
+            safe = font.plainSubstrByWidth(safe, Math.max(0, maxWidth - font.width(ellipsis))) + ellipsis;
         }
         g.drawCenteredString(font, safe, width / 2, y, 0xFF49301F);
     }
@@ -64,7 +65,7 @@ public final class ReputationDialogueScreen extends Screen {
         g.fill(x - 3, y - 3, x + w + 3, y + h + 3, 0xFF302018);
         g.fill(x, y, x + w, y + h, 0xFFD3B483);
         g.fill(x + 5, y + 5, x + w - 5, y + h - 5, 0xFFF1DEB6);
-        g.drawCenteredString(font, title, width / 2, y + 13, 0xFF59361E);
+        drawFittedCentered(g, title.getString(), y + 13);
         drawFittedCentered(g, greeting, y + 45);
         drawFittedCentered(g, response, y + 66);
         super.render(g, mouseX, mouseY, partialTick);
