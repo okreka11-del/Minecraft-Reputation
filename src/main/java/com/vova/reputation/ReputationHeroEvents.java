@@ -18,14 +18,9 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
-/** First-pass hero reactions. Cooldowns are server-session local. */
+/** First-pass hero reactions. Gift limits and cooldowns persist per player. */
 public final class ReputationHeroEvents {
-    private static final Map<UUID, Long> GIFTS = new HashMap<>();
-
     private ReputationHeroEvents() {}
 
     public static void tick(PlayerTickEvent.Post event) {
@@ -52,8 +47,9 @@ public final class ReputationHeroEvents {
             player.setData(ReputationMod.GIFT_COUNT, 0);
         }
         if (!GiftRewardPolicy.canAward(player.getData(ReputationMod.GIFT_COUNT))) return;
-        long last = GIFTS.getOrDefault(player.getUUID(), -100000L);
-        // A world time rollback must not permanently block future gifts.
+        // Share the persisted cooldown with ordinary gifts so the two sources
+        // cannot alternate to bypass the per-player cooldown after relogging.
+        long last = player.getData(ReputationMod.GIFT_LAST_TICK);
         if (!GiftRewardPolicy.cooldownElapsed(time, last)) return;
         ItemStack gift = ItemStack.EMPTY;
         String donor = "";
@@ -76,7 +72,7 @@ public final class ReputationHeroEvents {
         if (!gift.isEmpty()) {
             if (!player.addItem(gift)) player.drop(gift, false);
             player.displayClientMessage(Component.translatable("reputation.hero.gift", Component.translatable("reputation.hero.donor." + donor)), true);
-            GIFTS.put(player.getUUID(), time);
+            player.setData(ReputationMod.GIFT_LAST_TICK, time);
             player.setData(ReputationMod.GIFT_COUNT, player.getData(ReputationMod.GIFT_COUNT) + 1);
             level.sendParticles(ParticleTypes.HAPPY_VILLAGER, player.getX(), player.getY() + 1.4,
                 player.getZ(), 8, .4, .4, .4, .02);
