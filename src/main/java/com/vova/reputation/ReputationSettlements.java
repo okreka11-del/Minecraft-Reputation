@@ -411,10 +411,24 @@ public final class ReputationSettlements {
     private static boolean clearSite(ServerLevel level, BlockPos base, int radius, int height) {
         for (int x = -radius; x <= radius; x++) for (int z = -radius; z <= radius; z++) {
             BlockPos p = base.offset(x, 0, z);
-            if (!level.hasChunkAt(p) || !level.getBlockState(p.below()).isSolidRender(level, p.below())) return false;
+            if (!level.hasChunkAt(p)) return false;
+            BlockPos foundation = p.below();
+            BlockState ground = level.getBlockState(foundation);
+            // A clear air volume is not proof of an unclaimed site: a player may
+            // have built a flat floor here. Only extend onto natural terrain.
+            if (!ground.isSolidRender(level, foundation) || !isNaturalFoundation(ground)) return false;
             for (int y = 0; y <= height; y++) if (!level.getBlockState(p.above(y)).isAir()) return false;
         }
         return true;
+    }
+
+    private static boolean isNaturalFoundation(BlockState ground) {
+        return ground.is(net.minecraft.tags.BlockTags.DIRT)
+            || ground.is(Blocks.STONE) || ground.is(Blocks.DEEPSLATE)
+            || ground.is(Blocks.TUFF) || ground.is(Blocks.GRAVEL)
+            || ground.is(Blocks.SAND) || ground.is(Blocks.RED_SAND)
+            || ground.is(Blocks.SNOW_BLOCK) || ground.is(Blocks.CLAY)
+            || ground.is(Blocks.TERRACOTTA);
     }
 
     private static boolean placeDecoration(ServerLevel level, Village village) {
