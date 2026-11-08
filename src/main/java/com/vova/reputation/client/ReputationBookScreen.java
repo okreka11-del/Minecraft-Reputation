@@ -92,7 +92,13 @@ public final class ReputationBookScreen extends Screen {
 
     private void text(GuiGraphics g, String s, int x, int y, int color) {
         int max = x < 340 ? 200 : 210;
-        String shown = font.width(s) > max ? font.plainSubstrByWidth(s, max - 10) + "..." : s;
+        // Reserve the actual glyph width of the suffix before truncating. The old
+        // fixed 10px allowance was smaller than the bitmap-font ellipsis and
+        // could spill into the page margin at native GUI scale.
+        String suffix = "...";
+        String shown = font.width(s) > max
+            ? font.plainSubstrByWidth(s, Math.max(0, max - font.width(suffix))) + suffix
+            : s;
         // One crisp text pass: the old translucent offset made glyphs look doubled.
         g.drawString(font, shown, x, y, color, false);
     }
