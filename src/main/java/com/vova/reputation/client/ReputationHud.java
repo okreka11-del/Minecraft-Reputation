@@ -102,8 +102,10 @@ public final class ReputationHud {
         if (mc.font.width(label) > maxLabelWidth) {
             label = mc.font.plainSubstrByWidth(label, maxLabelWidth);
         }
-        gui.drawString(mc.font, label, textX, textY, 0xFFFFFFFF, true);
-        gui.drawString(mc.font, number, textX + mc.font.width(label) + 3, textY, 0xFFFFD44C, true);
+        // A second offset shadow pass makes small pixel glyphs appear doubled.
+        // Keep both HUD text runs on one crisp GUI-pixel pass.
+        gui.drawString(mc.font, label, textX, textY, 0xFFFFFFFF, false);
+        gui.drawString(mc.font, number, textX + mc.font.width(label) + 3, textY, 0xFFFFD44C, false);
         roundedBar(gui, x, y, w, h);
         drawCrest(gui, x - 15, y - 7);
         int marker = x + 7 + Math.round((score + 100) * (w - 14) / 300.0f);
