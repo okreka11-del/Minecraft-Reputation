@@ -155,10 +155,10 @@ public final class ReputationHud {
         // A compact two-column list fits ordinary GUI scales without resampling.
         int columns = sw >= 240 ? 2 : 1;
         int rows = (THRESHOLDS.length + columns - 1) / columns;
-        int cellW = Math.max(92, Math.min(154, (sw - 16) / columns));
+        int cellW = Math.max(1, Math.min(154, (sw - 20) / columns));
         int rowH = 19;
         int visibleRows = Math.max(1, Math.min(rows, (sh - 32) / rowH));
-        int panelW = Math.min(sw - 8, columns * cellW + 12);
+        int panelW = Math.max(1, Math.min(sw - 8, columns * cellW + 12));
         int panelH = visibleRows * rowH + 23;
         int px = Math.max(4, Math.min(10, sw - panelW - 4));
         int py = Math.max(4, Math.min(54, sh - panelH - 4));
