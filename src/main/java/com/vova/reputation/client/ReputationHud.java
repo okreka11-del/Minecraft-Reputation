@@ -170,8 +170,15 @@ public final class ReputationHud {
         int firstRow = Math.max(0, Math.min(rows - visibleRows, current / columns - visibleRows / 2));
         gui.fill(px, py, px + panelW, py + panelH, 0xF419131B);
         gui.fill(px, py, px + panelW, py + 2, 0xFFB88A39);
-        gui.drawString(mc.font, net.minecraft.network.chat.Component.translatable("reputation.hud.ranks").getString(),
-            px + 6, py + 7, 0xFFFFD46A, false);
+        // Clip translated headings by native bitmap glyph width, never by scaling.
+        String heading = net.minecraft.network.chat.Component.translatable("reputation.hud.ranks").getString();
+        int headingWidth = Math.max(0, panelW - 12);
+        if (mc.font.width(heading) > headingWidth) {
+            String suffix = mc.font.width("...") <= headingWidth ? "..." : "";
+            heading = mc.font.plainSubstrByWidth(heading,
+                Math.max(0, headingWidth - mc.font.width(suffix))) + suffix;
+        }
+        gui.drawString(mc.font, heading, px + 6, py + 7, 0xFFFFD46A, false);
         for (int row = 0; row < visibleRows; row++) {
             for (int col = 0; col < columns; col++) {
                 int i = (firstRow + row) * columns + col;
