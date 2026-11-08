@@ -176,9 +176,14 @@ public final class ReputationHud {
                 gui.fill(cx + 2, cy + 3, cx + 4, cy + rowH - 5, colorAt(THRESHOLDS[i]));
                 String value = (THRESHOLDS[i] > 0 ? "+" : "") + THRESHOLDS[i];
                 String title = net.minecraft.network.chat.Component.translatable(TITLES[i]).getString();
-                int available = Math.max(12, cellW - 13 - mc.font.width(value) - 5);
-                if (mc.font.width(title) > available)
-                    title = mc.font.plainSubstrByWidth(title, Math.max(1, available - mc.font.width("..."))) + "...";
+                // Reserve the score and spacing first; never let an ellipsis
+                // overflow a narrow rank cell or rescale the bitmap font.
+                int available = Math.max(0, cellW - 19 - mc.font.width(value));
+                if (mc.font.width(title) > available) {
+                    String suffix = mc.font.width("...") <= available ? "..." : "";
+                    title = mc.font.plainSubstrByWidth(title,
+                        Math.max(0, available - mc.font.width(suffix))) + suffix;
+                }
                 gui.drawString(mc.font, title, cx + 8, cy + 5, 0xFFFFFFFF, false);
                 gui.drawString(mc.font, value, cx + cellW - 6 - mc.font.width(value), cy + 5,
                     i == current ? 0xFFFFD74C : 0xFFE8D5D6, false);
