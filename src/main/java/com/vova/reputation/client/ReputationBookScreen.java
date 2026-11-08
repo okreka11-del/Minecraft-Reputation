@@ -183,7 +183,7 @@ public final class ReputationBookScreen extends Screen {
     }
 
     @Override public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (section == 5 && scrollY != 0 && SCALE == 1) {
+        if (section == 5 && scrollY != 0) {
             double x = mouseX - ox, y = mouseY - oy;
             if (x >= 115 && x <= 581 && y >= 15 && y <= 285) {
                 historyPage = Math.max(0, Math.min(historyPages() - 1,
