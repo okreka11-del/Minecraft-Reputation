@@ -18,16 +18,23 @@ public final class ReputationVillageScreen extends Screen {
         this.standing = standing;
         this.score = score;
     }
+    private int panelWidth() { return Math.max(1, Math.min(290, width - 12)); }
+    private int panelHeight() { return Math.max(1, Math.min(212, height - 12)); }
+    private int panelX() { return (width - panelWidth()) / 2; }
+    private int panelY() { return (height - panelHeight()) / 2; }
+
     @Override protected void init() {
         addRenderableWidget(Button.builder(Component.literal("Закрыть"), b -> onClose())
-            .bounds(width / 2 - 55, height / 2 + 76, 110, 20).build());
+            .bounds(panelX() + Math.max(0, (panelWidth() - Math.min(110, panelWidth())) / 2),
+                panelY() + Math.max(0, panelHeight() - 27), Math.min(110, panelWidth()),
+                Math.min(20, panelHeight())).build());
     }
     @Override public void render(GuiGraphics g, int mx, int my, float tick) {
         g.fill(0, 0, width, height, 0xB0100B10);
-        int x = width / 2 - 145, y = height / 2 - 112;
-        g.fill(x - 3, y - 3, x + 293, y + 218, 0xFF35241D);
-        g.fill(x, y, x + 290, y + 212, 0xFFD4B584);
-        g.fill(x + 6, y + 6, x + 284, y + 206, 0xFFF1DFB8);
+        int x = panelX(), y = panelY(), w = panelWidth(), h = panelHeight();
+        g.fill(x - 3, y - 3, x + w + 3, y + h + 3, 0xFF35241D);
+        g.fill(x, y, x + w, y + h, 0xFFD4B584);
+        if (w > 12 && h > 12) g.fill(x + 6, y + 6, x + w - 6, y + h - 6, 0xFFF1DFB8);
         g.drawCenteredString(font, title, width / 2, y + 16, 0xFF56331C);
         String[] lines = {
             "Статус: " + status,
@@ -39,8 +46,18 @@ public final class ReputationVillageScreen extends Screen {
             "Торговля: " + (score < 0 || standing <= -40 ? "Недоступна" :
                 standing >= 100 ? "Особые скидки" : standing >= 40 ? "Скидки" : "Обычные условия")
         };
-        for (int i = 0; i < lines.length; i++)
-            g.drawString(font, lines[i], x + 17, y + 43 + i * 18, 0xFF49301F, false);
+        // Keep glyphs at native 1:1 pixel size and reserve space for the close button.
+        int availableWidth = Math.max(0, w - 24);
+        int lineHeight = 18;
+        int visible = Math.max(0, Math.min(lines.length, (h - 75) / lineHeight));
+        for (int i = 0; i < visible; i++) {
+            String line = lines[i];
+            if (font.width(line) > availableWidth) {
+                String suffix = font.width("...") <= availableWidth ? "..." : "";
+                line = font.plainSubstrByWidth(line, Math.max(0, availableWidth - font.width(suffix))) + suffix;
+            }
+            g.drawString(font, line, x + 12, y + 43 + i * lineHeight, 0xFF49301F, false);
+        }
         super.render(g, mx, my, tick);
     }
     @Override public boolean isPauseScreen() { return false; }
