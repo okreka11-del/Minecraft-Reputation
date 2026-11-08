@@ -102,6 +102,14 @@ public final class ReputationBookScreen extends Screen {
         // One crisp text pass: the old translucent offset made glyphs look doubled.
         g.drawString(font, shown, x, y, color, false);
     }
+    // Vanilla drawCenteredString always adds a shadow pass. Draw bitmap glyphs once
+    // at integral coordinates to avoid the doubled pixel edges in journal labels.
+    private void centeredText(GuiGraphics g, Component value, int centerX, int y, int color) {
+        g.drawString(font, value, centerX - font.width(value) / 2, y, color, false);
+    }
+    private void centeredText(GuiGraphics g, String value, int centerX, int y, int color) {
+        g.drawString(font, value, centerX - font.width(value) / 2, y, color, false);
+    }
     private void tr(GuiGraphics g, String key, int x, int y, Object... args) {
         text(g, Component.translatable(key, args).getString(), x, y, INK);
     }
@@ -131,7 +139,7 @@ public final class ReputationBookScreen extends Screen {
         paper(g, 351, 15, 230, 270);
         g.fill(344, 13, 352, 286, 0xFF70402A);
         g.fill(347, 15, 350, 284, 0xFFB7844A);
-        g.drawCenteredString(font, title, 347, 25, INK);
+        centeredText(g, title, 347, 25, INK);
         rule(g, 138, 42, 183);
         rule(g, 373, 42, 183);
         for (int i = 0; i < SECTIONS.length; i++) {
@@ -142,7 +150,7 @@ public final class ReputationBookScreen extends Screen {
                 g.fill(3, tabTop, 109, tabTop + 2, 0xFF9B73B7);
             }
             // Draw labels after the selected-tab decoration so they remain legible.
-            g.drawCenteredString(font, Component.translatable("reputation.journal.tab." + SECTIONS[i]),
+            centeredText(g, Component.translatable("reputation.journal.tab." + SECTIONS[i]),
                 54, tabTop + 12, i == section ? 0xFFFFD46A : 0xFFE5D3B1);
         }
         switch (section) {
@@ -154,16 +162,16 @@ public final class ReputationBookScreen extends Screen {
             case 5 -> historyPage(g);
             default -> helpPage(g);
         }
-        g.drawCenteredString(font, (section + 1) + " / " + SECTIONS.length, 349, 275, GOLD);
+        centeredText(g, (section + 1) + " / " + SECTIONS.length, 349, 275, GOLD);
         // Folded parchment corners are the navigation controls.
         g.fill(115, 253, 143, 283, 0xFFB18A57);
         g.fill(119, 257, 140, 280, 0xFFF1DDB2);
-        g.drawCenteredString(font, "◀", 129, 266, INK);
+        centeredText(g, "◀", 129, 266, INK);
         g.fill(552, 253, 581, 283, 0xFFB18A57);
         g.fill(556, 257, 578, 280, 0xFFF1DDB2);
-        g.drawCenteredString(font, "▶", 567, 266, INK);
+        centeredText(g, "▶", 567, 266, INK);
         g.fill(574, 0, 599, 24, 0xFF532A2A);
-        g.drawCenteredString(font, "X", 586, 8, 0xFFFFFFFF);
+        centeredText(g, "X", 586, 8, 0xFFFFFFFF);
         g.pose().popPose();
         // Buttons are positioned in actual GUI coordinates for correct mouse hitboxes.
         // No vanilla buttons or screen background blur.
