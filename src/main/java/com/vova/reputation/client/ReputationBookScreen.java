@@ -18,7 +18,7 @@ public final class ReputationBookScreen extends Screen {
     private final int[] factions = new int[6];
     private int section;
     private int historyPage;
-    private float scale;
+    private static final int SCALE = 1;
     private int ox, oy;
 
     public ReputationBookScreen(int score, int suspicion, String history, String factionData,
@@ -38,21 +38,18 @@ public final class ReputationBookScreen extends Screen {
     }
 
     private void geometry() {
-        // Never enlarge the pixel font with a fractional GUI transform.
-        // When the window is smaller, use the largest fitting scale.
-        float fit = Math.min((width - 12f) / W, (height - 12f) / H);
-        scale = fit >= 1f ? 1f : Math.max(0.1f, fit);
-        ox = Math.round((width - W * scale) / 2f);
-        oy = Math.round((height - H * scale) / 2f);
+        // Native GUI pixels only. Pan the unscaled book on small screens.
+        ox = Math.max(Math.min(0, width - W), Math.min(0, (width - W) / 2));
+        oy = Math.max(Math.min(0, height - H), Math.min(0, (height - H) / 2));
     }
 
-    private int sx(int x) { return ox + Math.round(x * scale); }
-    private int sy(int y) { return oy + Math.round(y * scale); }
+    private int sx(int x) { return ox + x; }
+    private int sy(int y) { return oy + y; }
 
     private void button(int x, int y, int w, int h, Component label, Runnable action) {
         addRenderableWidget(Button.builder(label, b -> action.run())
-            .bounds(sx(x), sy(y), Math.max(12, Math.round(w * scale)),
-                Math.max(10, Math.round(h * scale))).build());
+            .bounds(sx(x), sy(y), Math.max(12, w),
+                Math.max(10, h)).build());
     }
 
     @Override protected void init() { geometry(); }
@@ -122,10 +119,8 @@ public final class ReputationBookScreen extends Screen {
 
     @Override public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         g.fill(0, 0, width, height, 0xFF100B10);
-        geometry();
         g.pose().pushPose();
         g.pose().translate(ox, oy, 0);
-        g.pose().scale(scale, scale, 1);
         // A real two-leaf book, not the old compact dialog.
         g.fill(108, 9, 599, 291, 0xFF37201A);
         paper(g, 115, 15, 230, 270);
@@ -169,9 +164,9 @@ public final class ReputationBookScreen extends Screen {
         // Buttons are positioned in actual GUI coordinates for correct mouse hitboxes.
         // No vanilla buttons or screen background blur.
         // Long history entries remain readable without changing persisted history data.
-        if (section == 5 && !history.isEmpty() && scale > 0f) {
-            double localX = (mouseX - ox) / scale;
-            double localY = (mouseY - oy) / scale;
+        if (section == 5 && !history.isEmpty() && SCALE == 1) {
+            double localX = mouseX - ox;
+            double localY = mouseY - oy;
             int column = localX >= 137 && localX < 337 ? 0
                 : localX >= 373 && localX < 573 ? 1 : -1;
             int row = localY >= 83 && localY < 219 ? (int) ((localY - 83) / 34) : -1;
@@ -185,9 +180,19 @@ public final class ReputationBookScreen extends Screen {
         }
     }
 
+    @Override public boolean mouseDragged(double mouseX, double mouseY, int button,
+                                          double dragX, double dragY) {
+        if (button == 2) {
+            ox = Math.max(Math.min(0, width - W), Math.min(0, ox + (int) Math.round(dragX)));
+            oy = Math.max(Math.min(0, height - H), Math.min(0, oy + (int) Math.round(dragY)));
+            return true;
+        }
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
     @Override public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (section == 5 && scrollY != 0 && scale > 0f) {
-            double x = (mouseX - ox) / scale, y = (mouseY - oy) / scale;
+        if (section == 5 && scrollY != 0 && SCALE == 1) {
+            double x = mouseX - ox, y = mouseY - oy;
             if (x >= 115 && x <= 581 && y >= 15 && y <= 285) {
                 historyPage = Math.max(0, Math.min(historyPages() - 1,
                     historyPage + (scrollY < 0 ? 1 : -1)));
@@ -198,9 +203,9 @@ public final class ReputationBookScreen extends Screen {
     }
 
     @Override public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button == 0 && scale > 0f) {
-            double x = (mouseX - ox) / scale;
-            double y = (mouseY - oy) / scale;
+        if (button == 0 && mouseX >= 0 && mouseX < width && mouseY >= 0 && mouseY < height) {
+            double x = mouseX - ox;
+            double y = mouseY - oy;
             if (x >= 0 && x <= 109 && y >= 27 && y < 27 + SECTIONS.length * 39) {
                 int index = (int) ((y - 27) / 39);
                 if (y >= 27 + index * 39 + 34) return true;
