@@ -55,7 +55,10 @@ public final class ReputationDialogueScreen extends Screen {
             String ellipsis = font.width("...") <= maxWidth ? "..." : "";
             safe = font.plainSubstrByWidth(safe, Math.max(0, maxWidth - font.width(ellipsis))) + ellipsis;
         }
-        g.drawCenteredString(font, safe, panelX() + panelWidth() / 2, y, 0xFF49301F);
+        // drawCenteredString adds a shadow pass, which doubles dark bitmap glyph edges.
+        // Keep the conversation text centered on integer GUI pixels with one crisp pass.
+        int textX = panelX() + (panelWidth() - font.width(safe)) / 2;
+        g.drawString(font, safe, textX, y, 0xFF49301F, false);
     }
 
     @Override public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
