@@ -35,7 +35,11 @@ public final class ReputationVillageScreen extends Screen {
         g.fill(x - 3, y - 3, x + w + 3, y + h + 3, 0xFF35241D);
         g.fill(x, y, x + w, y + h, 0xFFD4B584);
         if (w > 12 && h > 12) g.fill(x + 6, y + 6, x + w - 6, y + h - 6, 0xFFF1DFB8);
-        g.drawCenteredString(font, title, width / 2, y + 16, 0xFF56331C);
+        // Draw native-size bitmap glyphs once, without an offset shadow pass.
+        // Fit long translations into the panel rather than resampling the font.
+        int titleWidth = Math.max(0, w - 24);
+        String heading = font.plainSubstrByWidth(title.getString(), titleWidth);
+        g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + 16, 0xFF56331C, false);
         String[] lines = {
             "Статус: " + status,
             "Развитие: " + stage + " / 3",
