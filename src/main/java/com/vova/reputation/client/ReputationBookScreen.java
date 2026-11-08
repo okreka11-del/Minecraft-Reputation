@@ -35,8 +35,14 @@ public final class ReputationBookScreen extends Screen {
         }
     }
 
-    private int clampPanX(int value) { return Math.max(Math.min(0, width - W), Math.min(0, value)); }
-    private int clampPanY(int value) { return Math.max(Math.min(0, height - H), Math.min(0, value)); }
+    // Keep the book centered when it fits; only allow panning on smaller GUI viewports.
+    // All offsets remain integral so bitmap fonts and parchment pixels are not resampled.
+    private int clampPanX(int value) {
+        return width >= W ? (width - W) / 2 : Math.max(width - W, Math.min(0, value));
+    }
+    private int clampPanY(int value) {
+        return height >= H ? (height - H) / 2 : Math.max(height - H, Math.min(0, value));
+    }
 
     private void geometry() {
         // Native GUI pixels only. Pan the unscaled book on small screens.
