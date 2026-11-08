@@ -109,9 +109,20 @@ public final class ReputationHud {
         gui.fill(marker - 5, y - 6, marker + 6, y - 4, 0xFFFFD957);
         gui.fill(marker - 5, y + h + 4, marker + 6, y + h + 6, 0xFFFFD957);
         String title = net.minecraft.network.chat.Component.translatable(TITLES[rankIndex(score)]).getString();
+        // Never scale the bitmap font to squeeze long localized rank names.
+        // Keep the badge inside the GUI and truncate at integer pixel widths.
+        int screenW = mc.getWindow().getGuiScaledWidth();
+        int badgeLeft = Math.min(x, Math.max(0, screenW - 1));
+        int maxBadgeW = Math.max(1, screenW - badgeLeft);
+        int maxTitleW = Math.max(0, maxBadgeW - 20);
+        if (mc.font.width(title) > maxTitleW) {
+            String suffix = mc.font.width("...") <= maxTitleW ? "..." : "";
+            title = mc.font.plainSubstrByWidth(title,
+                Math.max(0, maxTitleW - mc.font.width(suffix))) + suffix;
+        }
         int textWidth = mc.font.width(title);
-        int labelW = Math.max(100, textWidth + 20);
-        int labelX = x + (w - labelW) / 2;
+        int labelW = Math.min(maxBadgeW, Math.max(100, textWidth + 20));
+        int labelX = Math.max(0, Math.min(x + (w - labelW) / 2, screenW - labelW));
         gui.fill(labelX + 3, y + 17, labelX + labelW - 3, y + 34, 0xFFB98B35);
         gui.fill(labelX, y + 20, labelX + labelW, y + 31, 0xFFB98B35);
         gui.fill(labelX + 4, y + 19, labelX + labelW - 4, y + 32, 0xFF171015);
