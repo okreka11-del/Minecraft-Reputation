@@ -55,7 +55,7 @@ public final class ReputationDialogueScreen extends Screen {
             String ellipsis = font.width("...") <= maxWidth ? "..." : "";
             safe = font.plainSubstrByWidth(safe, Math.max(0, maxWidth - font.width(ellipsis))) + ellipsis;
         }
-        g.drawCenteredString(font, safe, width / 2, y, 0xFF49301F);
+        g.drawCenteredString(font, safe, panelX() + panelWidth() / 2, y, 0xFF49301F);
     }
 
     @Override public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
