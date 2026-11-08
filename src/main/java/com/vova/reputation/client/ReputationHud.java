@@ -130,8 +130,9 @@ public final class ReputationHud {
         gui.fill(labelX + 3, y + 17, labelX + labelW - 3, y + 34, 0xFFB98B35);
         gui.fill(labelX, y + 20, labelX + labelW, y + 31, 0xFFB98B35);
         gui.fill(labelX + 4, y + 19, labelX + labelW - 4, y + 32, 0xFF171015);
-        gui.drawString(mc.font, title, labelX + (labelW - textWidth) / 2 + 1, y + 21, 0xFF5D3718, false);
-        gui.drawString(mc.font, title, labelX + (labelW - textWidth) / 2, y + 21, 0xFFFFD966, true);
+        // Render the bitmap glyphs once: the former 1px duplicate plus built-in
+        // font shadow produced a soft-looking double outline on the rank badge.
+        gui.drawString(mc.font, title, labelX + (labelW - textWidth) / 2, y + 21, 0xFFFFD966, false);
     }
 
     @SubscribeEvent
