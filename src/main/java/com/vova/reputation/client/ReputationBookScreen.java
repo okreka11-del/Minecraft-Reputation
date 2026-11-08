@@ -150,8 +150,17 @@ public final class ReputationBookScreen extends Screen {
                 g.fill(3, tabTop, 109, tabTop + 2, 0xFF9B73B7);
             }
             // Draw labels after the selected-tab decoration so they remain legible.
-            centeredText(g, Component.translatable("reputation.journal.tab." + SECTIONS[i]),
-                54, tabTop + 12, i == section ? 0xFFFFD46A : 0xFFE5D3B1);
+            // Keep translated labels inside the 104px tab at native bitmap-font size.
+            // Clipping by glyph width avoids scaling/resampling on narrow GUI scales.
+            String tabLabel = Component.translatable("reputation.journal.tab." + SECTIONS[i]).getString();
+            int tabWidth = 96;
+            if (font.width(tabLabel) > tabWidth) {
+                String ellipsis = "...";
+                tabLabel = font.plainSubstrByWidth(tabLabel,
+                    Math.max(0, tabWidth - font.width(ellipsis))) + ellipsis;
+            }
+            centeredText(g, tabLabel, 54, tabTop + 12,
+                i == section ? 0xFFFFD46A : 0xFFE5D3B1);
         }
         switch (section) {
             case 0 -> scorePage(g);
