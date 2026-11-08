@@ -84,7 +84,11 @@ public final class ReputationHud {
     }
 
     private static void drawHud(GuiGraphics gui, Minecraft mc) {
-        int x = 12, y = 20, w = 176, h = 12;
+        // Fit the track to the actual GUI width without scaling the font or crest.
+        // The bar renderer needs at least 15 pixels for its end caps and ticks.
+        int screenWidth = mc.getWindow().getGuiScaledWidth();
+        int x = Math.min(12, Math.max(0, screenWidth - 16));
+        int y = 20, w = Math.max(16, Math.min(176, screenWidth - x - 4)), h = 12;
         int score = syncedScore;
         String label = net.minecraft.network.chat.Component.translatable("reputation.hud.label").getString() + ": ";
         String number = (score > 0 ? "+" : "") + score;
