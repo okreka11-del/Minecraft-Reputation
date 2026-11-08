@@ -93,6 +93,11 @@ public final class ReputationHud {
         // Integer draw coordinates keep the HUD aligned to the GUI pixel grid.
         int textX = x + 13;
         int textY = y - 19;
+        // Reserve the score width before truncating translated labels on narrow GUIs.
+        int maxLabelWidth = Math.max(0, mc.getWindow().getGuiScaledWidth() - textX - mc.font.width(number) - 7);
+        if (mc.font.width(label) > maxLabelWidth) {
+            label = mc.font.plainSubstrByWidth(label, maxLabelWidth);
+        }
         gui.drawString(mc.font, label, textX, textY, 0xFFFFFFFF, true);
         gui.drawString(mc.font, number, textX + mc.font.width(label) + 3, textY, 0xFFFFD44C, true);
         roundedBar(gui, x, y, w, h);
