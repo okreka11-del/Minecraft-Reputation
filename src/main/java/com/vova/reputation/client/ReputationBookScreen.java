@@ -2,7 +2,6 @@ package com.vova.reputation.client;
 
 import com.vova.reputation.ReputationMod;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
@@ -18,7 +17,6 @@ public final class ReputationBookScreen extends Screen {
     private final int[] factions = new int[6];
     private int section;
     private int historyPage;
-    private static final int SCALE = 1;
     private int ox, oy;
 
     public ReputationBookScreen(int score, int suspicion, String history, String factionData,
@@ -37,19 +35,13 @@ public final class ReputationBookScreen extends Screen {
         }
     }
 
+    private int clampPanX(int value) { return Math.max(Math.min(0, width - W), Math.min(0, value)); }
+    private int clampPanY(int value) { return Math.max(Math.min(0, height - H), Math.min(0, value)); }
+
     private void geometry() {
         // Native GUI pixels only. Pan the unscaled book on small screens.
-        ox = Math.max(Math.min(0, width - W), Math.min(0, (width - W) / 2));
-        oy = Math.max(Math.min(0, height - H), Math.min(0, (height - H) / 2));
-    }
-
-    private int sx(int x) { return ox + x; }
-    private int sy(int y) { return oy + y; }
-
-    private void button(int x, int y, int w, int h, Component label, Runnable action) {
-        addRenderableWidget(Button.builder(label, b -> action.run())
-            .bounds(sx(x), sy(y), Math.max(12, w),
-                Math.max(10, h)).build());
+        ox = clampPanX((width - W) / 2);
+        oy = clampPanY((height - H) / 2);
     }
 
     @Override protected void init() { geometry(); }
@@ -164,7 +156,7 @@ public final class ReputationBookScreen extends Screen {
         // Buttons are positioned in actual GUI coordinates for correct mouse hitboxes.
         // No vanilla buttons or screen background blur.
         // Long history entries remain readable without changing persisted history data.
-        if (section == 5 && !history.isEmpty() && SCALE == 1) {
+        if (section == 5 && !history.isEmpty()) {
             double localX = mouseX - ox;
             double localY = mouseY - oy;
             int column = localX >= 137 && localX < 337 ? 0
@@ -183,8 +175,8 @@ public final class ReputationBookScreen extends Screen {
     @Override public boolean mouseDragged(double mouseX, double mouseY, int button,
                                           double dragX, double dragY) {
         if (button == 2) {
-            ox = Math.max(Math.min(0, width - W), Math.min(0, ox + (int) Math.round(dragX)));
-            oy = Math.max(Math.min(0, height - H), Math.min(0, oy + (int) Math.round(dragY)));
+            ox = clampPanX(ox + (int) Math.round(dragX));
+            oy = clampPanY(oy + (int) Math.round(dragY));
             return true;
         }
         return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
