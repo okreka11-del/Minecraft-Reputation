@@ -41,14 +41,18 @@ public final class ReputationArmyScreen extends Screen {
             .bounds(x + 8, firstButtonY + 3 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
         disengage.active = available > 0;
         addRenderableWidget(disengage);
+        Button attack = Button.builder(Component.literal("Атаковать отмеченного монстра"), b -> issue(4))
+            .bounds(x + 8, firstButtonY + 4 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
+        attack.active = available > 0;
+        addRenderableWidget(attack);
         addRenderableWidget(Button.builder(Component.literal("Закрыть"), b -> onClose())
-            .bounds(x + 8, firstButtonY + 4 * (buttonHeight + buttonGap), w - 16, buttonHeight).build());
+            .bounds(x + 8, firstButtonY + 5 * (buttonHeight + buttonGap), w - 16, buttonHeight).build());
     }
 
     private int panelTop() {
         int buttonHeight = height < 165 ? 16 : 20;
         int buttonGap = height < 165 ? 2 : 6;
-        int contentHeight = (height < 165 ? 37 : 48) + 5 * buttonHeight + 4 * buttonGap + 8;
+        int contentHeight = (height < 165 ? 37 : 48) + 6 * buttonHeight + 5 * buttonGap + 8;
         return Math.max(4, (height - contentHeight) / 2);
     }
 
@@ -64,7 +68,7 @@ public final class ReputationArmyScreen extends Screen {
         int buttonHeight = height < 165 ? 16 : 20;
         int buttonGap = height < 165 ? 2 : 6;
         int firstButtonY = y + (height < 165 ? 37 : 48);
-        int panelBottom = Math.min(height - 2, firstButtonY + 5 * buttonHeight + 4 * buttonGap + 8);
+        int panelBottom = Math.min(height - 2, firstButtonY + 6 * buttonHeight + 5 * buttonGap + 8);
         g.fill(x - 3, y - 3, x + w + 3, panelBottom, 0xFF30251A);
         g.fill(x, y, x + w, panelBottom - 3, 0xFFE2C796);
         // Pixel-sharp inset frame and faction-neutral gold accent.
