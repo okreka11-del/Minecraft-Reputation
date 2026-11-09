@@ -268,7 +268,22 @@ public final class ReputationSettlements {
         if (village.occupied) return;
         if (saved.heroHouses.size() >= MAX_VILLAGES * 8) return;
         int[][] offsets = {{24,0},{-24,0},{0,24},{0,-24},{30,12},{-30,-12},{12,-30},{-12,30},{35,0},{-35,0},{0,35},{0,-35},{28,28},{-28,28},{28,-28},{-28,-28},{42,12},{-42,12},{12,42},{12,-42},{48,0},{0,48},{-48,0},{0,-48}};
-        for (int[] offset : offsets) {
+        // Try the familiar sites first, then scan additional nearby loaded terrain.
+        // Villages with roads, houses or uneven ground often block all 24 original sites.
+        // The existing placeCottage preflight still prevents overwriting any blocks.
+        List<int[]> candidates = new ArrayList<>();
+        for (int[] offset : offsets) candidates.add(offset);
+        for (int radius = 16; radius <= 64; radius += 8) {
+            for (int dx = -radius; dx <= radius; dx += 8) {
+                candidates.add(new int[] {dx, -radius});
+                candidates.add(new int[] {dx, radius});
+            }
+            for (int dz = -radius + 8; dz < radius; dz += 8) {
+                candidates.add(new int[] {-radius, dz});
+                candidates.add(new int[] {radius, dz});
+            }
+        }
+        for (int[] offset : candidates) {
             BlockPos site = village.center.offset(offset[0], 0, offset[1]);
             if (!level.hasChunkAt(site)) continue;
             BlockPos base = level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, site);
