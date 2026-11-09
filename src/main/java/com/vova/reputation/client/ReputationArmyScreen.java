@@ -22,9 +22,9 @@ public final class ReputationArmyScreen extends Screen {
         int w = Math.min(238, Math.max(90, width - 16));
         int x = (width - w) / 2;
         int y = panelTop();
-        int buttonHeight = height < 165 ? 16 : 20;
-        int buttonGap = height < 165 ? 2 : 6;
-        int firstButtonY = y + (height < 165 ? 37 : 48);
+        int buttonHeight = commandButtonHeight();
+        int buttonGap = commandButtonGap();
+        int firstButtonY = y + headerHeight();
         Button follow = Button.builder(Component.literal("За мной"), b -> issue(0))
             .bounds(x + 8, firstButtonY, w - 16, buttonHeight).build();
         follow.active = available > 0;
@@ -49,10 +49,18 @@ public final class ReputationArmyScreen extends Screen {
             .bounds(x + 8, firstButtonY + 5 * (buttonHeight + buttonGap), w - 16, buttonHeight).build());
     }
 
+    // Fit all six commands into short GUI-scaled windows without fractional font scaling.
+    private int headerHeight() { return height < 120 ? 30 : height < 165 ? 37 : 48; }
+    private int commandButtonGap() { return height < 165 ? 1 : 6; }
+    private int commandButtonHeight() {
+        if (height >= 165) return 20;
+        return Math.max(10, Math.min(16, (height - 12 - headerHeight() - 5 * commandButtonGap()) / 6));
+    }
+
     private int panelTop() {
-        int buttonHeight = height < 165 ? 16 : 20;
-        int buttonGap = height < 165 ? 2 : 6;
-        int contentHeight = (height < 165 ? 37 : 48) + 6 * buttonHeight + 5 * buttonGap + 8;
+        int buttonHeight = commandButtonHeight();
+        int buttonGap = commandButtonGap();
+        int contentHeight = headerHeight() + 6 * buttonHeight + 5 * buttonGap + 8;
         return Math.max(4, (height - contentHeight) / 2);
     }
 
@@ -65,9 +73,9 @@ public final class ReputationArmyScreen extends Screen {
         // Keep the world fully visible behind squad commands; no fullscreen dim layer.
         int w = Math.min(238, Math.max(90, width - 16));
         int x = (width - w) / 2, y = panelTop();
-        int buttonHeight = height < 165 ? 16 : 20;
-        int buttonGap = height < 165 ? 2 : 6;
-        int firstButtonY = y + (height < 165 ? 37 : 48);
+        int buttonHeight = commandButtonHeight();
+        int buttonGap = commandButtonGap();
+        int firstButtonY = y + headerHeight();
         int panelBottom = Math.min(height - 2, firstButtonY + 6 * buttonHeight + 5 * buttonGap + 8);
         g.fill(x - 3, y - 3, x + w + 3, panelBottom, 0xFF30251A);
         g.fill(x, y, x + w, panelBottom - 3, 0xFFE2C796);
@@ -77,7 +85,9 @@ public final class ReputationArmyScreen extends Screen {
         String heading = font.plainSubstrByWidth(title.getString(), w - 16);
         g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + 8, 0xFF45301B, false);
         String count = available == 0 ? "Нет ваших волков поблизости" : "Ваши волки рядом: " + available;
-        g.drawString(font, font.plainSubstrByWidth(count, w - 16), x + 8, y + 25, 0xFF45301B, false);
+        if (height >= 120) {
+            g.drawString(font, font.plainSubstrByWidth(count, w - 16), x + 8, y + 25, 0xFF45301B, false);
+        }
         // On compact GUI heights the first button starts at y + 37.
         // Omit this optional hint rather than drawing text over a clickable command.
         if (height >= 165) {
