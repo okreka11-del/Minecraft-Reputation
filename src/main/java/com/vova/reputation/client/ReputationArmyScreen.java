@@ -47,8 +47,11 @@ public final class ReputationArmyScreen extends Screen {
         g.fill(x, y, x + w, y + 118, 0xFFE2C796);
         String heading = font.plainSubstrByWidth(title.getString(), w - 16);
         g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + 8, 0xFF45301B, false);
-        String count = available == 0 ? "Нет приручённых волков в радиусе 24 блоков" : "Ваши волки рядом: " + available;
+        String count = available == 0 ? "Нет ваших волков поблизости" : "Ваши волки рядом: " + available;
         g.drawString(font, font.plainSubstrByWidth(count, w - 16), x + 8, y + 25, 0xFF45301B, false);
+        // Show the actual server-side command range, including on narrow GUI scales.
+        String range = "Радиус приказов: 24 блока";
+        g.drawString(font, font.plainSubstrByWidth(range, w - 16), x + 8, y + 35, 0xFF705438, false);
         super.render(g, mouseX, mouseY, partialTick);
     }
 
