@@ -155,10 +155,14 @@ public final class ReputationNetwork {
                     var candidate = player.getLastHurtMob();
                     if (candidate == null || !candidate.isAlive()
                             || candidate.level() != player.level()
+                            // A previous hit is not a permanent attack marker. Require a
+                            // recent strike and a visible target before issuing a squad attack.
+                            || player.tickCount - player.getLastHurtMobTimestamp() > 200
+                            || !player.hasLineOfSight(candidate)
                             || candidate.distanceToSqr(player) > 24.0D * 24.0D
                             || !(candidate instanceof net.minecraft.world.entity.monster.Monster)) {
                         player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                            "Нет подходящей враждебной цели: сначала ударьте монстра в радиусе 24 блоков."), true);
+                            "Нет видимой недавно отмеченной цели: ударьте монстра в радиусе 24 блоков."), true);
                         return;
                     }
                     attackTarget = candidate;
