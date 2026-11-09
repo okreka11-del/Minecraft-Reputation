@@ -165,6 +165,7 @@ public final class ReputationSettlements {
 
     private static void commands(RegisterCommandsEvent event) {
         event.getDispatcher().register(Commands.literal("herohouse")
+            .then(Commands.literal("spawn").executes(ctx -> spawnHeroHouse(ctx.getSource().getPlayerOrException())))
             .then(Commands.literal("locate").executes(ctx -> {
                 ServerPlayer player = ctx.getSource().getPlayerOrException();
                 HeroHouse house = ownHouse(data(player.server.overworld()), player.getUUID());
@@ -202,6 +203,67 @@ public final class ReputationSettlements {
             .then(Commands.literal("liberate").executes(ctx -> change(ctx.getSource().getPlayerOrException(), false))));
     }
 
+
+    /** Explicit, safe player-triggered house placement with actionable failure messages. */
+    private static int spawnHeroHouse(ServerPlayer player) {
+        ServerLevel level = player.serverLevel();
+        if (level != player.server.overworld()) {
+            player.sendSystemMessage(Component.literal("Hero houses can only be built in the Overworld."));
+            return 0;
+        }
+        Data saved = data(level);
+        HeroHouse existing = ownHouse(saved, player.getUUID());
+        if (existing != null) {
+            player.sendSystemMessage(Component.literal("You already own a hero house at "
+                + existing.position.getX() + " " + existing.position.getY() + " " + existing.position.getZ()));
+            return 0;
+        }
+        if (player.getData(ReputationMod.REP) < 151) {
+            player.sendSystemMessage(Component.literal("Hero house requires reputation 151 or higher."));
+            return 0;
+        }
+        if (saved.heroHouses.size() >= MAX_VILLAGES * 8) {
+            player.sendSystemMessage(Component.literal("Hero house capacity reached."));
+            return 0;
+        }
+        BlockPos origin = player.blockPosition();
+        for (int radius = 16; radius <= 64; radius += 8) {
+            for (int dx = -radius; dx <= radius; dx += 8) {
+                for (int side = 0; side < 2; side++) {
+                    BlockPos candidate = origin.offset(dx, 0, side == 0 ? -radius : radius);
+                    if (trySpawnHeroHouseAt(level, player, saved, candidate)) return 1;
+                }
+            }
+            for (int dz = -radius + 8; dz < radius; dz += 8) {
+                for (int side = 0; side < 2; side++) {
+                    BlockPos candidate = origin.offset(side == 0 ? -radius : radius, 0, dz);
+                    if (trySpawnHeroHouseAt(level, player, saved, candidate)) return 1;
+                }
+            }
+        }
+        player.sendSystemMessage(Component.literal("No safe 7x7 natural terrain found in loaded chunks within 64 blocks. Move near flat open land and retry."));
+        return 0;
+    }
+
+    private static boolean trySpawnHeroHouseAt(ServerLevel level, ServerPlayer player, Data saved, BlockPos candidate) {
+        if (!level.hasChunkAt(candidate)) return false;
+        BlockPos base = level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, candidate);
+        String name = player.getGameProfile().getName();
+        if (!placeCottage(level, base, name)) return false;
+        saved.heroHouses.add(new HeroHouse(player.getUUID(), base, name));
+        Village village = closest(saved, player.blockPosition(), VILLAGE_SEPARATION);
+        if (village != null && !village.occupied) {
+            village.houseBuilt = true;
+            if (village.houseOwner == null) {
+                village.houseOwner = player.getUUID();
+                village.houseOwnerName = name;
+            }
+        }
+        saved.setDirty();
+        player.sendSystemMessage(Component.literal("Hero house built at "
+            + base.getX() + " " + base.getY() + " " + base.getZ() + ". Use /herohouse locate."));
+        return true;
+    }
 
     private static HeroHouse ownHouse(Data saved, UUID owner) {
         for (HeroHouse house : saved.heroHouses) if (house.owner.equals(owner)) return house;
