@@ -58,7 +58,7 @@ public final class ReputationArmyScreen extends Screen {
     }
 
     @Override public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        g.fill(0, 0, width, height, 0xB0100B10);
+        // Keep the world fully visible behind squad commands; no fullscreen dim layer.
         int w = Math.min(238, Math.max(90, width - 16));
         int x = (width - w) / 2, y = panelTop();
         int buttonHeight = height < 165 ? 16 : 20;
@@ -67,6 +67,9 @@ public final class ReputationArmyScreen extends Screen {
         int panelBottom = Math.min(height - 2, firstButtonY + 5 * buttonHeight + 4 * buttonGap + 8);
         g.fill(x - 3, y - 3, x + w + 3, panelBottom, 0xFF30251A);
         g.fill(x, y, x + w, panelBottom - 3, 0xFFE2C796);
+        // Pixel-sharp inset frame and faction-neutral gold accent.
+        g.fill(x + 2, y + 2, x + w - 2, y + 4, 0xFFD4A64E);
+        g.fill(x + 3, panelBottom - 7, x + w - 3, panelBottom - 5, 0xFF8B6334);
         String heading = font.plainSubstrByWidth(title.getString(), w - 16);
         g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + 8, 0xFF45301B, false);
         String count = available == 0 ? "Нет ваших волков поблизости" : "Ваши волки рядом: " + available;
