@@ -16,6 +16,9 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 /** Three server-driven specialist roles, stored in entity persistent NBT. */
 public final class ReputationSpecialists {
@@ -62,13 +65,17 @@ public final class ReputationSpecialists {
     private static void tick(LevelTickEvent.Post event) {
         if (!(event.getLevel() instanceof ServerLevel level) || level.getGameTime() % 100 != 0) return;
         // Bounded processing around active players; never scan every loaded entity globally.
+        // A specialist visible to multiple players must work only once per server tick.
+        Set<UUID> processed = new HashSet<>();
         for (ServerPlayer player : level.players()) {
             for (Villager villager : level.getEntitiesOfClass(Villager.class, player.getBoundingBox().inflate(32))) {
+                if (!processed.add(villager.getUUID())) continue;
                 String role = villager.getPersistentData().getString(ROLE);
                 if (role.equals("guard")) guard(level, villager);
                 else if (role.equals("builder")) builder(level, villager);
             }
             for (Pillager pillager : level.getEntitiesOfClass(Pillager.class, player.getBoundingBox().inflate(32))) {
+                if (!processed.add(pillager.getUUID())) continue;
                 if (pillager.getPersistentData().getString(ROLE).equals("armorer")) armorer(level, pillager);
             }
         }
