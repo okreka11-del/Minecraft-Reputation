@@ -165,8 +165,17 @@ public final class ReputationNetwork {
                         wolf.setLastHurtByMob(null);
                         wolf.getNavigation().stop();
                         if (wolf.getNavigation().moveTo(player, 1.2D)) changed++;
+                    } else if (payload.order() == 1) {
+                        // Guard means hold this spot now, even if the wolf was chasing
+                        // a target or navigating to a previous rally destination.
+                        wolf.setTarget(null);
+                        wolf.setLastHurtByMob(null);
+                        wolf.getNavigation().stop();
+                        wolf.setOrderedToSit(true);
+                        changed++;
                     } else {
-                        wolf.setOrderedToSit(payload.order() == 1);
+                        // Follow must release a previously guarding (sitting) wolf.
+                        wolf.setOrderedToSit(false);
                         changed++;
                     }
                 }
