@@ -108,6 +108,7 @@ public final class ReputationMod {
 
     public ReputationMod(IEventBus bus) {
         ATTACHMENTS.register(bus);
+        ReputationBeer.register(bus);
         ReputationProfessionRegistry.register(bus);
         ReputationWorkstationAssignment.register();
         NeoForge.EVENT_BUS.addListener(ReputationMod::commands);
@@ -122,6 +123,7 @@ public final class ReputationMod {
         NeoForge.EVENT_BUS.addListener(ReputationRewards::tick);
         // ReputationVillagePerks is registered via ReputationSettlements; no duplicate effect tick.
         NeoForge.EVENT_BUS.addListener(ReputationHeroEvents::tick);
+        NeoForge.EVENT_BUS.addListener(ReputationCatEating::tick);
     }
 
     public static String rank(int score) {
