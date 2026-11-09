@@ -6,6 +6,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.lwjgl.glfw.GLFW;
 
 /**
  * First server-controlled squad orders: only the player's own nearby tamed wolves.
@@ -91,10 +92,20 @@ public final class ReputationArmyScreen extends Screen {
         // On compact GUI heights the first button starts at y + 37.
         // Omit this optional hint rather than drawing text over a clickable command.
         if (height >= 165) {
-            String range = "Радиус приказов: 24 блока";
+            String range = "Клавиши 1–5 · Радиус 24 блока";
             g.drawString(font, font.plainSubstrByWidth(range, w - 16), x + 8, y + 35, 0xFF705438, false);
         }
         super.render(g, mouseX, mouseY, partialTick);
+    }
+
+    // Number keys mirror the five visible squad commands for quick combat orders.
+    // Disabled commands must never send packets when no owned squad is nearby.
+    @Override public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (keyCode >= GLFW.GLFW_KEY_1 && keyCode <= GLFW.GLFW_KEY_5) {
+            if (available > 0) issue(keyCode - GLFW.GLFW_KEY_1);
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override public boolean isPauseScreen() { return false; }
