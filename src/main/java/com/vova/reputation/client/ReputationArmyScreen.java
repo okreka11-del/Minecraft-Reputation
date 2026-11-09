@@ -21,10 +21,10 @@ public final class ReputationArmyScreen extends Screen {
     @Override protected void init() {
         int w = Math.min(238, Math.max(90, width - 16));
         int x = (width - w) / 2;
-        int y = Math.max(4, (height - 172) / 2);
+        int y = panelTop();
         int buttonHeight = height < 165 ? 16 : 20;
         int buttonGap = height < 165 ? 2 : 6;
-        int firstButtonY = y + (height < 165 ? 37 : 42);
+        int firstButtonY = y + (height < 165 ? 37 : 48);
         Button follow = Button.builder(Component.literal("За мной"), b -> issue(0))
             .bounds(x + 8, firstButtonY, w - 16, buttonHeight).build();
         follow.active = available > 0;
@@ -45,6 +45,13 @@ public final class ReputationArmyScreen extends Screen {
             .bounds(x + 8, firstButtonY + 4 * (buttonHeight + buttonGap), w - 16, buttonHeight).build());
     }
 
+    private int panelTop() {
+        int buttonHeight = height < 165 ? 16 : 20;
+        int buttonGap = height < 165 ? 2 : 6;
+        int contentHeight = (height < 165 ? 37 : 48) + 5 * buttonHeight + 4 * buttonGap + 8;
+        return Math.max(4, (height - contentHeight) / 2);
+    }
+
     private void issue(int order) {
         PacketDistributor.sendToServer(new ReputationNetwork.ArmyOrder(order));
         onClose();
@@ -53,8 +60,11 @@ public final class ReputationArmyScreen extends Screen {
     @Override public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         g.fill(0, 0, width, height, 0xB0100B10);
         int w = Math.min(238, Math.max(90, width - 16));
-        int x = (width - w) / 2, y = Math.max(4, (height - 146) / 2);
-        int panelBottom = Math.min(height - 3, y + (height < 165 ? 132 : 173));
+        int x = (width - w) / 2, y = panelTop();
+        int buttonHeight = height < 165 ? 16 : 20;
+        int buttonGap = height < 165 ? 2 : 6;
+        int firstButtonY = y + (height < 165 ? 37 : 48);
+        int panelBottom = Math.min(height - 2, firstButtonY + 5 * buttonHeight + 4 * buttonGap + 8);
         g.fill(x - 3, y - 3, x + w + 3, panelBottom, 0xFF30251A);
         g.fill(x, y, x + w, panelBottom - 3, 0xFFE2C796);
         String heading = font.plainSubstrByWidth(title.getString(), w - 16);
