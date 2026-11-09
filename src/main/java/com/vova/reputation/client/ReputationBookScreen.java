@@ -147,7 +147,10 @@ public final class ReputationBookScreen extends Screen {
         rule(g, 373, 42, 183);
         for (int i = 0; i < SECTIONS.length; i++) {
             int tabTop = 27 + i * 39;
-            g.fill(2, tabTop, 106, tabTop + 34, i == section ? 0xFF654085 : 0xFF352634);
+            boolean hoveredTab = mouseX >= ox + 2 && mouseX < ox + 106
+                && mouseY >= oy + tabTop && mouseY < oy + tabTop + 34;
+            g.fill(2, tabTop, 106, tabTop + 34, i == section ? 0xFF654085
+                : hoveredTab ? 0xFF513B58 : 0xFF352634);
             if (i == section) {
                 g.fill(0, tabTop, 3, tabTop + 34, 0xFFFFCF68);
                 g.fill(3, tabTop, 109, tabTop + 2, 0xFF9B73B7);
@@ -176,13 +179,19 @@ public final class ReputationBookScreen extends Screen {
         }
         centeredText(g, (section + 1) + " / " + SECTIONS.length, 349, 275, GOLD);
         // Folded parchment corners are the navigation controls.
-        g.fill(115, 253, 143, 283, 0xFFB18A57);
+        boolean hoverPrevious = mouseX >= ox + 115 && mouseX <= ox + 145
+            && mouseY >= oy + 250 && mouseY <= oy + 287;
+        boolean hoverNext = mouseX >= ox + 550 && mouseX <= ox + 585
+            && mouseY >= oy + 250 && mouseY <= oy + 287;
+        boolean hoverClose = mouseX >= ox + 572 && mouseX <= ox + 600
+            && mouseY >= oy && mouseY <= oy + 26;
+        g.fill(115, 253, 143, 283, hoverPrevious ? 0xFFD5AB70 : 0xFFB18A57);
         g.fill(119, 257, 140, 280, 0xFFF1DDB2);
         centeredText(g, "◀", 129, 266, INK);
-        g.fill(552, 253, 581, 283, 0xFFB18A57);
+        g.fill(552, 253, 581, 283, hoverNext ? 0xFFD5AB70 : 0xFFB18A57);
         g.fill(556, 257, 578, 280, 0xFFF1DDB2);
         centeredText(g, "▶", 567, 266, INK);
-        g.fill(574, 0, 599, 24, 0xFF532A2A);
+        g.fill(574, 0, 599, 24, hoverClose ? 0xFF854040 : 0xFF532A2A);
         centeredText(g, "X", 586, 8, 0xFFFFFFFF);
         g.pose().popPose();
         // Buttons are positioned in actual GUI coordinates for correct mouse hitboxes.
