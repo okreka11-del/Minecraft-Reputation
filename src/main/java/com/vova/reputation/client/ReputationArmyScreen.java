@@ -22,10 +22,14 @@ public final class ReputationArmyScreen extends Screen {
         int w = Math.min(238, Math.max(90, width - 16));
         int x = (width - w) / 2;
         int y = height / 2 - 54;
-        addRenderableWidget(Button.builder(Component.literal("За мной"), b -> issue(0))
-            .bounds(x + 8, y + 42, w - 16, 20).build());
-        addRenderableWidget(Button.builder(Component.literal("Охранять позицию"), b -> issue(1))
-            .bounds(x + 8, y + 68, w - 16, 20).build());
+        Button follow = Button.builder(Component.literal("За мной"), b -> issue(0))
+            .bounds(x + 8, y + 42, w - 16, 20).build();
+        follow.active = available > 0;
+        addRenderableWidget(follow);
+        Button guard = Button.builder(Component.literal("Охранять позицию"), b -> issue(1))
+            .bounds(x + 8, y + 68, w - 16, 20).build();
+        guard.active = available > 0;
+        addRenderableWidget(guard);
         addRenderableWidget(Button.builder(Component.literal("Закрыть"), b -> onClose())
             .bounds(x + 8, y + 94, w - 16, 20).build());
     }
@@ -43,7 +47,7 @@ public final class ReputationArmyScreen extends Screen {
         g.fill(x, y, x + w, y + 118, 0xFFE2C796);
         String heading = font.plainSubstrByWidth(title.getString(), w - 16);
         g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + 8, 0xFF45301B, false);
-        String count = "Ваши волки рядом: " + available;
+        String count = available == 0 ? "Нет приручённых волков в радиусе 24 блоков" : "Ваши волки рядом: " + available;
         g.drawString(font, font.plainSubstrByWidth(count, w - 16), x + 8, y + 25, 0xFF45301B, false);
         super.render(g, mouseX, mouseY, partialTick);
     }
