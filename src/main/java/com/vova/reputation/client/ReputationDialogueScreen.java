@@ -61,13 +61,21 @@ public final class ReputationDialogueScreen extends Screen {
         g.drawString(font, safe, textX, y, 0xFF49301F, false);
     }
 
+    // Do not invoke vanilla's blurred/dimmed menu background for conversations.
+    @Override public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+        // The world remains visible while the pixel-art dialogue panel is open.
+    }
+
     @Override public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        g.fill(0, 0, width, height, 0xB0100B10);
         int x = panelX(), y = panelY();
         int w = panelWidth(), h = panelHeight();
         g.fill(x - 3, y - 3, x + w + 3, y + h + 3, 0xFF302018);
         g.fill(x, y, x + w, y + h, 0xFFD3B483);
         g.fill(x + 5, y + 5, x + w - 5, y + h - 5, 0xFFF1DEB6);
+        // Crisp inset frame and decorative gold title separator.
+        g.fill(x + 5, y + 5, x + w - 5, y + 7, 0xFFB5843B);
+        g.fill(x + 9, y + 30, x + w - 9, y + 32, 0xFFB5843B);
+        g.fill(x + 7, y + h - 8, x + w - 7, y + h - 6, 0xFF8C6034);
         drawFittedCentered(g, title.getString(), y + 13);
         drawFittedCentered(g, greeting, y + 45);
         drawFittedCentered(g, response, y + 66);
