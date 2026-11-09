@@ -174,7 +174,12 @@ public final class ReputationNetwork {
                         wolf.setOrderedToSit(true);
                         changed++;
                     } else {
-                        // Follow must release a previously guarding (sitting) wolf.
+                        // Following must override a previous guard, rally or combat chase.
+                        // Clearing navigation lets vanilla owner-follow AI take control
+                        // immediately instead of finishing an obsolete destination.
+                        wolf.setTarget(null);
+                        wolf.setLastHurtByMob(null);
+                        wolf.getNavigation().stop();
                         wolf.setOrderedToSit(false);
                         changed++;
                     }
