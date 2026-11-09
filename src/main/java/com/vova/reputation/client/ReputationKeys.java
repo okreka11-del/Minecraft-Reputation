@@ -27,11 +27,16 @@ public final class ReputationKeys {
         "key.reputation.village", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_V,
         "key.categories.reputation");
 
+    public static final KeyMapping ARMY = new KeyMapping(
+        "key.reputation.army", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_G,
+        "key.categories.reputation");
+
     @EventBusSubscriber(modid = ReputationMod.ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     public static final class Registration {
         @SubscribeEvent public static void keys(RegisterKeyMappingsEvent event) {
             event.register(JOURNAL);
             event.register(VILLAGE);
+            event.register(ARMY);
         }
     }
 
@@ -49,6 +54,10 @@ public final class ReputationKeys {
                 } else lastShiftTap = now;
             }
             shiftWasDown = shiftDown;
+            while (ARMY.consumeClick()) {
+                if (mc.player != null && mc.screen == null)
+                    PacketDistributor.sendToServer(new ReputationNetwork.ArmyRequest());
+            }
             while (VILLAGE.consumeClick()) {
                 if (mc.player != null && mc.screen == null)
                     PacketDistributor.sendToServer(new ReputationNetwork.VillageRequest());
