@@ -7,6 +7,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.animal.Cat;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.monster.EnderMan;
@@ -38,6 +39,23 @@ public final class ReputationHeroEvents {
             if (animal instanceof TamableAnimal pet && pet.isOrderedToSit()) continue;
             if (animal.distanceToSqr(player) > 9) {
                 animal.getNavigation().moveTo(player, 1.0);
+            }
+        }
+
+        // Loyal cats defend their owner from nearby hostile mobs, but never while sitting.
+        // Reuse the existing 40-tick server cadence to bound damage and entity scans.
+        for (Cat cat : level.getEntitiesOfClass(Cat.class, player.getBoundingBox().inflate(12))) {
+            if (!cat.isTame() || cat.isOrderedToSit() || !player.getUUID().equals(cat.getOwnerUUID())) continue;
+            Monster enemy = level.getEntitiesOfClass(Monster.class, cat.getBoundingBox().inflate(6),
+                mob -> mob.isAlive() && mob.distanceToSqr(player) <= 144
+                    && !mob.isAlliedTo(player) && !mob.isAlliedTo(cat))
+                .stream().min(java.util.Comparator.comparingDouble(cat::distanceToSqr)).orElse(null);
+            if (enemy == null) continue;
+            if (cat.distanceToSqr(enemy) > 3.5) {
+                cat.getNavigation().moveTo(enemy, 1.25);
+            } else if (cat.hasLineOfSight(enemy)) {
+                enemy.hurt(level.damageSources().mobAttack(cat), 2.0F);
+                cat.swing(net.minecraft.world.InteractionHand.MAIN_HAND);
             }
         }
 
