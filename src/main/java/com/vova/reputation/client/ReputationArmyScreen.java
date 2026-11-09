@@ -54,7 +54,7 @@ public final class ReputationArmyScreen extends Screen {
         g.fill(0, 0, width, height, 0xB0100B10);
         int w = Math.min(238, Math.max(90, width - 16));
         int x = (width - w) / 2, y = Math.max(4, (height - 146) / 2);
-        int panelBottom = Math.min(height - 3, y + (height < 165 ? 113 : 173));
+        int panelBottom = Math.min(height - 3, y + (height < 165 ? 132 : 173));
         g.fill(x - 3, y - 3, x + w + 3, panelBottom, 0xFF30251A);
         g.fill(x, y, x + w, panelBottom - 3, 0xFFE2C796);
         String heading = font.plainSubstrByWidth(title.getString(), w - 16);
