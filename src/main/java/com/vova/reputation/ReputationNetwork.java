@@ -149,6 +149,11 @@ public final class ReputationNetwork {
                     if (payload.order() == 2) {
                         // Rally nearby owned wolves without teleporting or changing their owner.
                         wolf.setOrderedToSit(false);
+                        // A rally is a disengage order, not just a new path request:
+                        // clear combat targets so the wolf does not immediately resume attacking.
+                        wolf.setTarget(null);
+                        wolf.setLastHurtByMob(null);
+                        wolf.getNavigation().stop();
                         if (wolf.getNavigation().moveTo(player, 1.2D)) changed++;
                     } else {
                         wolf.setOrderedToSit(payload.order() == 1);
