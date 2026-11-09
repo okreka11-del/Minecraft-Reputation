@@ -142,5 +142,9 @@
   "reputation.journal.tab.settlements": "Поселения",
   "reputation.journal.tab.unlocks": "Бонусы",
   "reputation.journal.tab.actions": "История",
-  "reputation.journal.tab.help": "Справка"
+  "reputation.journal.tab.help": "Справка",
+  "key.categories.reputation": "Minecraft Reputation",
+  "key.reputation.journal": "Открыть книгу репутации",
+  "key.reputation.village": "Управление поселением",
+  "key.reputation.army": "Приказы отряду"
 }
