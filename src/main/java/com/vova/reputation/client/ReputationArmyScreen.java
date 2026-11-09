@@ -92,17 +92,23 @@ public final class ReputationArmyScreen extends Screen {
         // On compact GUI heights the first button starts at y + 37.
         // Omit this optional hint rather than drawing text over a clickable command.
         if (height >= 165) {
-            String range = "Клавиши 1–5 · Радиус 24 блока";
+            String range = "1–5 / Num 1–5 · Радиус 24 блока";
             g.drawString(font, font.plainSubstrByWidth(range, w - 16), x + 8, y + 35, 0xFF705438, false);
         }
         super.render(g, mouseX, mouseY, partialTick);
     }
 
-    // Number keys mirror the five visible squad commands for quick combat orders.
+    // Number row and numeric keypad mirror the five visible squad commands.
     // Disabled commands must never send packets when no owned squad is nearby.
     @Override public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        int order = -1;
         if (keyCode >= GLFW.GLFW_KEY_1 && keyCode <= GLFW.GLFW_KEY_5) {
-            if (available > 0) issue(keyCode - GLFW.GLFW_KEY_1);
+            order = keyCode - GLFW.GLFW_KEY_1;
+        } else if (keyCode >= GLFW.GLFW_KEY_KP_1 && keyCode <= GLFW.GLFW_KEY_KP_5) {
+            order = keyCode - GLFW.GLFW_KEY_KP_1;
+        }
+        if (order >= 0) {
+            if (available > 0) issue(order);
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
