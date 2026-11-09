@@ -6,6 +6,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.monster.EnderMan;
@@ -33,6 +34,8 @@ public final class ReputationHeroEvents {
         if (reputation < 151) return;
 
         for (Animal animal : level.getEntitiesOfClass(Animal.class, player.getBoundingBox().inflate(10))) {
+            // A sitting pet must never receive a navigation order from reputation effects.
+            if (animal instanceof TamableAnimal pet && pet.isOrderedToSit()) continue;
             if (animal.distanceToSqr(player) > 9) {
                 animal.getNavigation().moveTo(player, 1.0);
             }
