@@ -91,7 +91,10 @@ public final class ReputationBookScreen extends Screen {
     }
 
     private void text(GuiGraphics g, String s, int x, int y, int color) {
-        // Bound each label by its actual parchment column, including labels starting\n        // near the gutter (e.g. faction scores at x=300). A fixed 200px limit\n        // allowed glyphs to spill across the book's central seam.\n        int max = Math.max(0, (x < 340 ? 322 : 557) - x);
+        // Bound each label by its actual parchment column, including labels starting
+        // near the gutter (e.g. faction scores at x=300). A fixed 200px limit
+        // allowed glyphs to spill across the book's central seam.
+        int max = Math.max(0, (x < 340 ? 322 : 557) - x);
         // Reserve the actual glyph width of the suffix before truncating. The old
         // fixed 10px allowance was smaller than the bitmap-font ellipsis and
         // could spill into the page margin at native GUI scale.
