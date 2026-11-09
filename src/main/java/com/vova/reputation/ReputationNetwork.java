@@ -148,8 +148,14 @@ public final class ReputationNetwork {
                 if (!(context.player() instanceof ServerPlayer player)) return;
                 // Only explicit known orders, only living tame wolves owned by this player.
                 if (payload.order() < 0 || payload.order() > 3) return;
+                var wolves = ownedWolves(player);
+                if (wolves.isEmpty()) {
+                    player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                        "Приказ не выполнен: ваших приручённых волков нет в радиусе 24 блоков."), true);
+                    return;
+                }
                 int changed = 0;
-                for (var wolf : ownedWolves(player)) {
+                for (var wolf : wolves) {
                     if (payload.order() == 3) {
                         // Disengage without changing the player's existing sit/follow order.
                         wolf.setTarget(null);
