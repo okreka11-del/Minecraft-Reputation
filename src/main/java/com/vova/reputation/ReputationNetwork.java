@@ -117,7 +117,11 @@ public final class ReputationNetwork {
     private static java.util.List<net.minecraft.world.entity.animal.Wolf> ownedWolves(ServerPlayer player) {
         return player.serverLevel().getEntitiesOfClass(net.minecraft.world.entity.animal.Wolf.class,
             player.getBoundingBox().inflate(24),
-            wolf -> wolf.isAlive() && wolf.isTame() && player.getUUID().equals(wolf.getOwnerUUID()));
+            wolf -> wolf.isAlive() && wolf.isTame()
+                && player.getUUID().equals(wolf.getOwnerUUID())
+                // The bounding box is only a broad-phase lookup; enforce the advertised
+                // 24-block radius rather than including distant diagonal corners.
+                && wolf.distanceToSqr(player) <= 24.0D * 24.0D);
     }
 
     public record FartRequest() implements CustomPacketPayload {
