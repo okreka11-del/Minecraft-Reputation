@@ -147,7 +147,22 @@ public final class ReputationNetwork {
             (payload, context) -> context.enqueueWork(() -> {
                 if (!(context.player() instanceof ServerPlayer player)) return;
                 // Only explicit known orders, only living tame wolves owned by this player.
-                if (payload.order() < 0 || payload.order() > 3) return;
+                if (payload.order() < 0 || payload.order() > 4) return;
+                // Attack only the last hostile non-player target actually struck by the owner.
+                // Never allow this packet to designate another player or a peaceful villager.
+                net.minecraft.world.entity.LivingEntity attackTarget = null;
+                if (payload.order() == 4) {
+                    var candidate = player.getLastHurtMob();
+                    if (candidate == null || !candidate.isAlive()
+                            || candidate.level() != player.level()
+                            || candidate.distanceToSqr(player) > 24.0D * 24.0D
+                            || !(candidate instanceof net.minecraft.world.entity.monster.Monster)) {
+                        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                            "Нет подходящей враждебной цели: сначала ударьте монстра в радиусе 24 блоков."), true);
+                        return;
+                    }
+                    attackTarget = candidate;
+                }
                 var wolves = ownedWolves(player);
                 if (wolves.isEmpty()) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
@@ -156,7 +171,12 @@ public final class ReputationNetwork {
                 }
                 int changed = 0;
                 for (var wolf : wolves) {
-                    if (payload.order() == 3) {
+                    if (payload.order() == 4) {
+                        wolf.setOrderedToSit(false);
+                        wolf.getNavigation().stop();
+                        wolf.setTarget(attackTarget);
+                        changed++;
+                    } else if (payload.order() == 3) {
                         // Disengage without changing the player's existing sit/follow order.
                         wolf.setTarget(null);
                         wolf.setLastHurtByMob(null);
@@ -191,7 +211,7 @@ public final class ReputationNetwork {
                     }
                 }
                 player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                    (payload.order() == 0 ? "Следовать: " : payload.order() == 1 ? "Охранять: " : payload.order() == 2 ? "Сбор отряда: " : "Прекратили бой: ") + changed + " волков"), true);
+                    (payload.order() == 0 ? "Следовать: " : payload.order() == 1 ? "Охранять: " : payload.order() == 2 ? "Сбор отряда: " : payload.order() == 3 ? "Прекратили бой: " : "Атакуют цель: ") + changed + " волков"), true);
             }));
         registrar.playToServer(FartRequest.TYPE, FartRequest.STREAM_CODEC,
             (payload, context) -> context.enqueueWork(() -> {
