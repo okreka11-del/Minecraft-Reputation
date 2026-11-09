@@ -30,14 +30,14 @@ public final class ReputationWorldEvents {
 
         if (ReputationFarts.repulsive(player)) {
             for (net.minecraft.world.entity.Mob mob : level.getEntitiesOfClass(
-                    net.minecraft.world.entity.Mob.class, player.getBoundingBox().inflate(30))) {
+                    net.minecraft.world.entity.Mob.class, player.getBoundingBox().inflate(8))) {
                 if (mob.getTarget() == player) mob.setTarget(null);
                 double dx = mob.getX() - player.getX();
                 double dz = mob.getZ() - player.getZ();
                 double distance = Math.sqrt(dx * dx + dz * dz);
-                if (distance < 29.5) {
+                if (distance < 7.5) {
                     if (distance < 0.1) { dx = 1; dz = 0; distance = 1; }
-                    double retreat = Math.min(12.0, 30.0 - distance + 2.0);
+                    double retreat = Math.min(4.0, 8.0 - distance + 1.0);
                     mob.getNavigation().moveTo(
                         mob.getX() + dx / distance * retreat,
                         mob.getY(), mob.getZ() + dz / distance * retreat, 1.4);
