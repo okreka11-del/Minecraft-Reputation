@@ -176,7 +176,13 @@ public final class ReputationNetwork {
                 int changed = 0;
                 for (var wolf : wolves) {
                     if (payload.order() == 4) {
+                        // Do not dispatch a pet against a target it cannot reach from
+                        // the squad's local area. The owner's 24-block check alone
+                        // permits a wolf on the opposite edge to chase 48 blocks.
+                        if (wolf.distanceToSqr(attackTarget) > 24.0D * 24.0D
+                                || !wolf.hasLineOfSight(attackTarget)) continue;
                         wolf.setOrderedToSit(false);
+                        wolf.setLastHurtByMob(null);
                         wolf.getNavigation().stop();
                         wolf.setTarget(attackTarget);
                         changed++;
