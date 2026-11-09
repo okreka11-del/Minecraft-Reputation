@@ -249,7 +249,7 @@ public final class ReputationSettlements {
         if (!level.hasChunkAt(candidate)) return false;
         BlockPos base = level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, candidate);
         String name = player.getGameProfile().getName();
-        if (!placeCottage(level, base, name)) return false;
+        if (!placeCottage(level, base, name, true)) return false;
         saved.heroHouses.add(new HeroHouse(player.getUUID(), base, name));
         Village village = closest(saved, player.blockPosition(), VILLAGE_SEPARATION);
         if (village != null && !village.occupied) {
@@ -387,12 +387,16 @@ public final class ReputationSettlements {
     }
 
     private static boolean placeCottage(ServerLevel level, BlockPos base, String ownerName) {
+        return placeCottage(level, base, ownerName, false);
+    }
+
+    private static boolean placeCottage(ServerLevel level, BlockPos base, String ownerName, boolean clearVegetation) {
         // Include the entrance sign in the preflight check; never leave an unnamed home.
         BlockPos signPos = base.offset(1, 2, -4);
         if (level.isOutsideBuildHeight(base.below()) || level.isOutsideBuildHeight(base.above(5))
                 || level.isOutsideBuildHeight(signPos)) return false;
         if (!level.hasChunkAt(signPos) || !level.getWorldBorder().isWithinBounds(signPos)
-                || !level.getBlockState(signPos).isAir()) return false;
+                || !isClearForHouse(level.getBlockState(signPos), clearVegetation)) return false;
         // Validate every block before placing anything; no overwrites.
         for (int x = -3; x <= 3; x++) for (int z = -3; z <= 3; z++) {
             BlockPos column = base.offset(x, 0, z);
@@ -403,7 +407,21 @@ public final class ReputationSettlements {
             // Hero homes must not claim player-made platforms, just like village extensions.
             // This is a conservative terrain check, not proof of block ownership.
             if (!ground.isSolidRender(level, foundation) || !isNaturalFoundation(ground)) return false;
-            for (int y = 0; y <= 5; y++) if (!level.getBlockState(column.above(y)).isAir()) return false;
+            for (int y = 0; y <= 5; y++)
+                if (!isClearForHouse(level.getBlockState(column.above(y)), clearVegetation)) return false;
+        }
+        // Only after the entire footprint passes validation, clear replaceable vegetation.
+        // Never destroy solid blocks, fluids, containers or existing player structures.
+        if (clearVegetation) {
+            for (int x = -3; x <= 3; x++) for (int z = -3; z <= 3; z++) {
+                BlockPos column = base.offset(x, 0, z);
+                for (int y = 0; y <= 5; y++) {
+                    BlockPos p = column.above(y);
+                    if (!level.getBlockState(p).isAir()) level.setBlockAndUpdate(p, Blocks.AIR.defaultBlockState());
+                }
+            }
+            if (!level.getBlockState(signPos).isAir())
+                level.setBlockAndUpdate(signPos, Blocks.AIR.defaultBlockState());
         }
         for (int x = -3; x <= 3; x++) for (int z = -3; z <= 3; z++) {
             BlockPos floor = base.offset(x, 0, z);
@@ -431,6 +449,10 @@ public final class ReputationSettlements {
             .setValue(WallSignBlock.FACING, Direction.NORTH));
         refreshSign(level, new HeroHouse(new UUID(0, 0), base, ownerName), ownerName);
         return true;
+    }
+
+    private static boolean isClearForHouse(BlockState state, boolean clearVegetation) {
+        return state.isAir() || (clearVegetation && state.canBeReplaced() && state.getFluidState().isEmpty());
     }
 
     /** One additional structure per visit stage, with a strict clear-footprint check. */
