@@ -106,6 +106,9 @@ public final class ReputationMod {
     public static final Supplier<AttachmentType<Long>> GIFT_LAST_TICK = ATTACHMENTS.register("gift_last_tick",
         () -> AttachmentType.builder(() -> -1L).serialize(Codec.LONG).copyOnDeath().build());
 
+    public static final Supplier<AttachmentType<Integer>> BEER_DRINKS = ATTACHMENTS.register("beer_drinks",
+        () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().build());
+
     public ReputationMod(IEventBus bus) {
         ATTACHMENTS.register(bus);
         ReputationBeer.register(bus);
@@ -124,6 +127,7 @@ public final class ReputationMod {
         // ReputationVillagePerks is registered via ReputationSettlements; no duplicate effect tick.
         NeoForge.EVENT_BUS.addListener(ReputationHeroEvents::tick);
         NeoForge.EVENT_BUS.addListener(ReputationCatEating::tick);
+        NeoForge.EVENT_BUS.addListener(ReputationBeerSobriety::tick);
     }
 
     public static String rank(int score) {
