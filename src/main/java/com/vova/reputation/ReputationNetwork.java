@@ -143,10 +143,16 @@ public final class ReputationNetwork {
             (payload, context) -> context.enqueueWork(() -> {
                 if (!(context.player() instanceof ServerPlayer player)) return;
                 // Only explicit known orders, only living tame wolves owned by this player.
-                if (payload.order() < 0 || payload.order() > 2) return;
+                if (payload.order() < 0 || payload.order() > 3) return;
                 int changed = 0;
                 for (var wolf : ownedWolves(player)) {
-                    if (payload.order() == 2) {
+                    if (payload.order() == 3) {
+                        // Disengage without changing the player's existing sit/follow order.
+                        wolf.setTarget(null);
+                        wolf.setLastHurtByMob(null);
+                        wolf.getNavigation().stop();
+                        changed++;
+                    } else if (payload.order() == 2) {
                         // Rally nearby owned wolves without teleporting or changing their owner.
                         wolf.setOrderedToSit(false);
                         // A rally is a disengage order, not just a new path request:
@@ -161,7 +167,7 @@ public final class ReputationNetwork {
                     }
                 }
                 player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                    (payload.order() == 0 ? "Следовать: " : payload.order() == 1 ? "Охранять: " : "Сбор отряда: ") + changed + " волков"), true);
+                    (payload.order() == 0 ? "Следовать: " : payload.order() == 1 ? "Охранять: " : payload.order() == 2 ? "Сбор отряда: " : "Прекратили бой: ") + changed + " волков"), true);
             }));
         registrar.playToServer(FartRequest.TYPE, FartRequest.STREAM_CODEC,
             (payload, context) -> context.enqueueWork(() -> {
