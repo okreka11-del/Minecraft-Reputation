@@ -21,7 +21,7 @@ public final class ReputationArmyScreen extends Screen {
     @Override protected void init() {
         int w = Math.min(238, Math.max(90, width - 16));
         int x = (width - w) / 2;
-        int y = Math.max(4, (height - 146) / 2);
+        int y = Math.max(4, (height - 172) / 2);
         int buttonHeight = height < 165 ? 16 : 20;
         int buttonGap = height < 165 ? 2 : 6;
         int firstButtonY = y + (height < 165 ? 37 : 42);
@@ -37,8 +37,12 @@ public final class ReputationArmyScreen extends Screen {
             .bounds(x + 8, firstButtonY + 2 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
         rally.active = available > 0;
         addRenderableWidget(rally);
+        Button disengage = Button.builder(Component.literal("Прекратить бой"), b -> issue(3))
+            .bounds(x + 8, firstButtonY + 3 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
+        disengage.active = available > 0;
+        addRenderableWidget(disengage);
         addRenderableWidget(Button.builder(Component.literal("Закрыть"), b -> onClose())
-            .bounds(x + 8, firstButtonY + 3 * (buttonHeight + buttonGap), w - 16, buttonHeight).build());
+            .bounds(x + 8, firstButtonY + 4 * (buttonHeight + buttonGap), w - 16, buttonHeight).build());
     }
 
     private void issue(int order) {
@@ -50,7 +54,7 @@ public final class ReputationArmyScreen extends Screen {
         g.fill(0, 0, width, height, 0xB0100B10);
         int w = Math.min(238, Math.max(90, width - 16));
         int x = (width - w) / 2, y = Math.max(4, (height - 146) / 2);
-        int panelBottom = Math.min(height - 3, y + (height < 165 ? 113 : 147));
+        int panelBottom = Math.min(height - 3, y + (height < 165 ? 113 : 173));
         g.fill(x - 3, y - 3, x + w + 3, panelBottom, 0xFF30251A);
         g.fill(x, y, x + w, panelBottom - 3, 0xFFE2C796);
         String heading = font.plainSubstrByWidth(title.getString(), w - 16);
