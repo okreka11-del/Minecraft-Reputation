@@ -142,5 +142,9 @@
   "reputation.journal.tab.settlements": "Settlements",
   "reputation.journal.tab.unlocks": "Benefits",
   "reputation.journal.tab.actions": "History",
-  "reputation.journal.tab.help": "Help"
+  "reputation.journal.tab.help": "Help",
+  "key.categories.reputation": "Minecraft Reputation",
+  "key.reputation.journal": "Open Reputation Journal",
+  "key.reputation.village": "Manage Settlement",
+  "key.reputation.army": "Squad Orders"
 }
