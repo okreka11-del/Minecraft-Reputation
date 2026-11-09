@@ -70,6 +70,13 @@ public final class ReputationArmyScreen extends Screen {
         onClose();
     }
 
+    // Vanilla Screen.renderBackground applies the menu blur to the world. This
+    // tactical overlay intentionally leaves the scene readable so players can
+    // see threats while choosing an order. The panel itself is drawn in render().
+    @Override public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        // No fullscreen darkening or post-processing blur.
+    }
+
     @Override public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         // Keep the world fully visible behind squad commands; no fullscreen dim layer.
         int w = Math.min(238, Math.max(90, width - 16));
