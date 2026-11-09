@@ -4,6 +4,7 @@ import com.vova.reputation.client.ReputationHud;
 import com.vova.reputation.client.ReputationBookScreen;
 import com.vova.reputation.client.ReputationDialogueScreen;
 import com.vova.reputation.client.ReputationVillageScreen;
+import com.vova.reputation.client.ReputationArmyScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -89,6 +90,36 @@ public final class ReputationNetwork {
         @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
     }
 
+    public record ArmyRequest() implements CustomPacketPayload {
+        public static final Type<ArmyRequest> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(ReputationMod.ID, "army_request"));
+        public static final StreamCodec<FriendlyByteBuf, ArmyRequest> STREAM_CODEC =
+            StreamCodec.unit(new ArmyRequest());
+        @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
+    }
+
+    public record ArmyOverview(int count) implements CustomPacketPayload {
+        public static final Type<ArmyOverview> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(ReputationMod.ID, "army_overview"));
+        public static final StreamCodec<FriendlyByteBuf, ArmyOverview> STREAM_CODEC =
+            StreamCodec.of((buf, p) -> buf.writeInt(p.count()), buf -> new ArmyOverview(buf.readInt()));
+        @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
+    }
+
+    public record ArmyOrder(int order) implements CustomPacketPayload {
+        public static final Type<ArmyOrder> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(ReputationMod.ID, "army_order"));
+        public static final StreamCodec<FriendlyByteBuf, ArmyOrder> STREAM_CODEC =
+            StreamCodec.of((buf, p) -> buf.writeInt(p.order()), buf -> new ArmyOrder(buf.readInt()));
+        @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
+    }
+
+    private static java.util.List<net.minecraft.world.entity.animal.Wolf> ownedWolves(ServerPlayer player) {
+        return player.serverLevel().getEntitiesOfClass(net.minecraft.world.entity.animal.Wolf.class,
+            player.getBoundingBox().inflate(24),
+            wolf -> wolf.isAlive() && wolf.isTame() && player.getUUID().equals(wolf.getOwnerUUID()));
+    }
+
     public record FartRequest() implements CustomPacketPayload {
         public static final Type<FartRequest> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(ReputationMod.ID, "fart_request"));
@@ -100,6 +131,27 @@ public final class ReputationNetwork {
     @SubscribeEvent
     public static void register(RegisterPayloadHandlersEvent event) {
         var registrar = event.registrar("1");
+        registrar.playToServer(ArmyRequest.TYPE, ArmyRequest.STREAM_CODEC,
+            (payload, context) -> context.enqueueWork(() -> {
+                if (context.player() instanceof ServerPlayer player)
+                    PacketDistributor.sendToPlayer(player, new ArmyOverview(ownedWolves(player).size()));
+            }));
+        registrar.playToClient(ArmyOverview.TYPE, ArmyOverview.STREAM_CODEC,
+            (payload, context) -> context.enqueueWork(() ->
+                Minecraft.getInstance().setScreen(new ReputationArmyScreen(payload.count()))));
+        registrar.playToServer(ArmyOrder.TYPE, ArmyOrder.STREAM_CODEC,
+            (payload, context) -> context.enqueueWork(() -> {
+                if (!(context.player() instanceof ServerPlayer player)) return;
+                // Only explicit known orders, only living tame wolves owned by this player.
+                if (payload.order() != 0 && payload.order() != 1) return;
+                int changed = 0;
+                for (var wolf : ownedWolves(player)) {
+                    wolf.setOrderedToSit(payload.order() == 1);
+                    changed++;
+                }
+                player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                    (payload.order() == 0 ? "Следовать: " : "Охранять: ") + changed + " волков"), true);
+            }));
         registrar.playToServer(FartRequest.TYPE, FartRequest.STREAM_CODEC,
             (payload, context) -> context.enqueueWork(() -> {
                 if (context.player() instanceof ServerPlayer player)
