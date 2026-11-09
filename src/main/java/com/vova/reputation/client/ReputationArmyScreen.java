@@ -57,9 +57,12 @@ public final class ReputationArmyScreen extends Screen {
         g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + 8, 0xFF45301B, false);
         String count = available == 0 ? "Нет ваших волков поблизости" : "Ваши волки рядом: " + available;
         g.drawString(font, font.plainSubstrByWidth(count, w - 16), x + 8, y + 25, 0xFF45301B, false);
-        // Show the actual server-side command range, including on narrow GUI scales.
-        String range = "Радиус приказов: 24 блока";
-        g.drawString(font, font.plainSubstrByWidth(range, w - 16), x + 8, y + 35, 0xFF705438, false);
+        // On compact GUI heights the first button starts at y + 37.
+        // Omit this optional hint rather than drawing text over a clickable command.
+        if (height >= 165) {
+            String range = "Радиус приказов: 24 блока";
+            g.drawString(font, font.plainSubstrByWidth(range, w - 16), x + 8, y + 35, 0xFF705438, false);
+        }
         super.render(g, mouseX, mouseY, partialTick);
     }
 
