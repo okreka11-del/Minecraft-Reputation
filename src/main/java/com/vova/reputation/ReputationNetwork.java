@@ -178,7 +178,20 @@ public final class ReputationNetwork {
                         return;
                     }
                     waypoint = blockHit.getBlockPos().relative(blockHit.getDirection());
-                    if (!player.serverLevel().getWorldBorder().isWithinBounds(waypoint)) return;
+                    // Reject unsafe destinations before disturbing any wolf's current order.
+                    // A click on a wall, cliff edge or unloaded chunk is not a safe
+                    // standing position; don't route pets into a fall or solid block.
+                    var level = player.serverLevel();
+                    var ground = waypoint.below();
+                    if (!level.getWorldBorder().isWithinBounds(waypoint)
+                            || !level.hasChunkAt(waypoint)
+                            || !level.hasChunkAt(ground)
+                            || !level.getBlockState(waypoint).getCollisionShape(level, waypoint).isEmpty()
+                            || !level.getBlockState(ground).isFaceSturdy(level, ground, net.minecraft.core.Direction.UP)) {
+                        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                            "Небезопасная точка: выберите свободное место на твёрдой поверхности."), true);
+                        return;
+                    }
                 }
                 var wolves = ownedWolves(player);
                 if (wolves.isEmpty()) {
