@@ -187,11 +187,16 @@ public final class ReputationNetwork {
                         wolf.setTarget(attackTarget);
                         changed++;
                     } else if (payload.order() == 3) {
-                        // Disengage without changing the player's existing sit/follow order.
+                        // Retreat must actually withdraw from combat, not just clear a target.
+                        // Resume movement even if this wolf was previously guarding.
                         wolf.setTarget(null);
                         wolf.setLastHurtByMob(null);
                         wolf.getNavigation().stop();
-                        changed++;
+                        wolf.setOrderedToSit(false);
+                        // Count wolves already safe beside the owner as withdrawn.
+                        // Otherwise only count wolves for which a retreat route was found.
+                        if (wolf.distanceToSqr(player) <= 3.0D * 3.0D
+                                || wolf.getNavigation().moveTo(player, 1.35D)) changed++;
                     } else if (payload.order() == 2) {
                         // Rally nearby owned wolves without teleporting or changing their owner.
                         wolf.setOrderedToSit(false);
@@ -226,12 +231,15 @@ public final class ReputationNetwork {
                 // A valid target from the owner's perspective may still be hidden
                 // or out of range for every squad member. Explain that case rather
                 // than reporting an ambiguous successful "0 wolves" attack.
-                if (payload.order() == 4 && changed == 0) {
+                if (payload.order() == 3 && changed == 0) {
+                    player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                        "Отступление не удалось: волки не могут проложить путь к вам."), true);
+                } else if (payload.order() == 4 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                         "Приказ не выполнен: ни один ваш волк не видит цель в радиусе 24 блоков."), true);
                 } else {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                        (payload.order() == 0 ? "Следовать: " : payload.order() == 1 ? "Охранять: " : payload.order() == 2 ? "Сбор отряда: " : payload.order() == 3 ? "Прекратили бой: " : "Атакуют цель: ") + changed + " волков"), true);
+                        (payload.order() == 0 ? "Следовать: " : payload.order() == 1 ? "Охранять: " : payload.order() == 2 ? "Сбор отряда: " : payload.order() == 3 ? "Отступают к вам: " : "Атакуют цель: ") + changed + " волков"), true);
                 }
             }));
         registrar.playToServer(FartRequest.TYPE, FartRequest.STREAM_CODEC,
