@@ -3,6 +3,7 @@ package com.vova.reputation.client;
 import com.vova.reputation.ReputationNetwork;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -28,22 +29,27 @@ public final class ReputationArmyScreen extends Screen {
         int firstButtonY = y + headerHeight();
         Button follow = Button.builder(commandLabel(1, "За мной", w - 16), b -> issue(0))
             .bounds(x + 8, firstButtonY, w - 16, buttonHeight).build();
+        follow.setTooltip(Tooltip.create(Component.literal("Волки следуют за вами и выходят из режима охраны.")));
         follow.active = available > 0;
         addRenderableWidget(follow);
         Button guard = Button.builder(commandLabel(2, "Охранять позицию", w - 16), b -> issue(1))
             .bounds(x + 8, firstButtonY + buttonHeight + buttonGap, w - 16, buttonHeight).build();
+        guard.setTooltip(Tooltip.create(Component.literal("Волки остаются охранять текущую позицию.")));
         guard.active = available > 0;
         addRenderableWidget(guard);
         Button rally = Button.builder(commandLabel(3, "Собрать рядом", w - 16), b -> issue(2))
             .bounds(x + 8, firstButtonY + 2 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
+        rally.setTooltip(Tooltip.create(Component.literal("Позвать принадлежащих вам волков к себе.")));
         rally.active = available > 0;
         addRenderableWidget(rally);
         Button disengage = Button.builder(commandLabel(4, "Прекратить бой", w - 16), b -> issue(3))
             .bounds(x + 8, firstButtonY + 3 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
+        disengage.setTooltip(Tooltip.create(Component.literal("Сбросить текущие цели боя у вашего отряда.")));
         disengage.active = available > 0;
         addRenderableWidget(disengage);
         Button attack = Button.builder(commandLabel(5, "Атаковать отмеченного монстра", w - 16), b -> issue(4))
             .bounds(x + 8, firstButtonY + 4 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
+        attack.setTooltip(Tooltip.create(Component.literal("Приказать волкам атаковать недавно отмеченного враждебного моба.")));
         attack.active = available > 0;
         addRenderableWidget(attack);
         addRenderableWidget(Button.builder(Component.literal("Закрыть"), b -> onClose())
