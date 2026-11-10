@@ -147,7 +147,7 @@ public final class ReputationNetwork {
             (payload, context) -> context.enqueueWork(() -> {
                 if (!(context.player() instanceof ServerPlayer player)) return;
                 // Only explicit known orders, only living tame wolves owned by this player.
-                if (payload.order() < 0 || payload.order() > 4) return;
+                if (payload.order() < 0 || payload.order() > 5) return;
                 // Attack only the last hostile non-player target actually struck by the owner.
                 // Never allow this packet to designate another player or a peaceful villager.
                 net.minecraft.world.entity.LivingEntity attackTarget = null;
@@ -166,6 +166,19 @@ public final class ReputationNetwork {
                         return;
                     }
                     attackTarget = candidate;
+                }
+                // Select a waypoint from the server-side player's view, not client coordinates.
+                net.minecraft.core.BlockPos waypoint = null;
+                if (payload.order() == 5) {
+                    var hit = player.pick(24.0D, 0.0F, false);
+                    if (!(hit instanceof net.minecraft.world.phys.BlockHitResult blockHit)
+                            || hit.getType() != net.minecraft.world.phys.HitResult.Type.BLOCK) {
+                        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                            "Укажите взглядом на блок в радиусе 24 блоков."), true);
+                        return;
+                    }
+                    waypoint = blockHit.getBlockPos().relative(blockHit.getDirection());
+                    if (!player.serverLevel().getWorldBorder().isWithinBounds(waypoint)) return;
                 }
                 var wolves = ownedWolves(player);
                 if (wolves.isEmpty()) {
@@ -186,6 +199,14 @@ public final class ReputationNetwork {
                         wolf.getNavigation().stop();
                         wolf.setTarget(attackTarget);
                         changed++;
+                    } else if (payload.order() == 5) {
+                        // One-shot waypoint command; not a persistent patrol.
+                        wolf.setTarget(null);
+                        wolf.setLastHurtByMob(null);
+                        wolf.getNavigation().stop();
+                        wolf.setOrderedToSit(false);
+                        if (wolf.getNavigation().moveTo(
+                                waypoint.getX() + 0.5D, waypoint.getY(), waypoint.getZ() + 0.5D, 1.2D)) changed++;
                     } else if (payload.order() == 3) {
                         // Retreat must actually withdraw from combat, not just clear a target.
                         // Resume movement even if this wolf was previously guarding.
@@ -231,7 +252,10 @@ public final class ReputationNetwork {
                 // A valid target from the owner's perspective may still be hidden
                 // or out of range for every squad member. Explain that case rather
                 // than reporting an ambiguous successful "0 wolves" attack.
-                if (payload.order() == 2 && changed == 0) {
+                if (payload.order() == 5 && changed == 0) {
+                    player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                        "Ни один волк не нашёл путь к указанной точке."), true);
+                } else if (payload.order() == 2 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                         "Сбор не удался: волки не могут проложить путь к вам. Подойдите ближе или уберите препятствия."), true);
                 } else if (payload.order() == 3 && changed == 0) {
@@ -242,7 +266,7 @@ public final class ReputationNetwork {
                         "Приказ не выполнен: ни один ваш волк не видит цель в радиусе 24 блоков."), true);
                 } else {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                        (payload.order() == 0 ? "Следовать: " : payload.order() == 1 ? "Охранять: " : payload.order() == 2 ? "Сбор отряда: " : payload.order() == 3 ? "Отступают к вам: " : "Атакуют цель: ") + changed + " волков"), true);
+                        (payload.order() == 0 ? "Следовать: " : payload.order() == 1 ? "Охранять: " : payload.order() == 2 ? "Сбор отряда: " : payload.order() == 3 ? "Отступают к вам: " : payload.order() == 4 ? "Атакуют цель: " : "Идут к точке: ") + changed + " волков"), true);
                 }
             }));
         registrar.playToServer(FartRequest.TYPE, FartRequest.STREAM_CODEC,
