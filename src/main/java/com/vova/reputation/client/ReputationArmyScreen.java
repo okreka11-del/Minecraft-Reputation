@@ -42,14 +42,14 @@ public final class ReputationArmyScreen extends Screen {
         rally.setTooltip(Tooltip.create(Component.literal("Позвать принадлежащих вам волков к себе.")));
         rally.active = available > 0;
         addRenderableWidget(rally);
-        Button disengage = Button.builder(commandLabel(4, "Прекратить бой", w - 16), b -> issue(3))
+        Button disengage = Button.builder(commandLabel(4, "Отступить ко мне", w - 16), b -> issue(3))
             .bounds(x + 8, firstButtonY + 3 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
-        disengage.setTooltip(Tooltip.create(Component.literal("Сбросить текущие цели боя у вашего отряда.")));
+        disengage.setTooltip(Tooltip.create(Component.literal("Волки прекращают бой, встают и возвращаются к вам. Близкие волки уже в безопасности.")));
         disengage.active = available > 0;
         addRenderableWidget(disengage);
         Button attack = Button.builder(commandLabel(5, "Атаковать отмеченного монстра", w - 16), b -> issue(4))
             .bounds(x + 8, firstButtonY + 4 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
-        attack.setTooltip(Tooltip.create(Component.literal("Приказать волкам атаковать недавно отмеченного враждебного моба.")));
+        attack.setTooltip(Tooltip.create(Component.literal("Ударьте монстра не более 10 секунд назад. Вы и волки должны видеть цель в радиусе 24 блоков.")));
         attack.active = available > 0;
         addRenderableWidget(attack);
         addRenderableWidget(Button.builder(Component.literal("Закрыть"), b -> onClose())
