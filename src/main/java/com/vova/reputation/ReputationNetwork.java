@@ -200,7 +200,10 @@ public final class ReputationNetwork {
                         wolf.setTarget(null);
                         wolf.setLastHurtByMob(null);
                         wolf.getNavigation().stop();
-                        if (wolf.getNavigation().moveTo(player, 1.2D)) changed++;
+                        // Wolves already within regrouping distance have completed the order.
+                        // Avoid repeatedly pathing into the owner and falsely reporting 0.
+                        if (wolf.distanceToSqr(player) <= 3.0D * 3.0D
+                                || wolf.getNavigation().moveTo(player, 1.2D)) changed++;
                     } else if (payload.order() == 1) {
                         // Guard means hold this spot now, even if the wolf was chasing
                         // a target or navigating to a previous rally destination.
