@@ -65,11 +65,11 @@ public final class ReputationArmyScreen extends Screen {
     }
 
     // Fit all six commands into short GUI-scaled windows without fractional font scaling.
-    private int headerHeight() { return height < 120 ? 30 : height < 165 ? 37 : 48; }
+    private int headerHeight() { return height < 105 ? 16 : height < 120 ? 26 : height < 165 ? 37 : 48; }
     private int commandButtonGap() { return height < 165 ? 1 : 6; }
     private int commandButtonHeight() {
         if (height >= 165) return 20;
-        return Math.max(10, Math.min(16, (height - 12 - headerHeight() - 5 * commandButtonGap()) / 6));
+        return Math.max(7, Math.min(16, (height - 12 - headerHeight() - 5 * commandButtonGap()) / 6));
     }
 
     private int panelTop() {
@@ -105,7 +105,7 @@ public final class ReputationArmyScreen extends Screen {
         g.fill(x + 2, y + 2, x + w - 2, y + 4, 0xFFD4A64E);
         g.fill(x + 3, panelBottom - 7, x + w - 3, panelBottom - 5, 0xFF8B6334);
         String heading = font.plainSubstrByWidth(title.getString(), w - 16);
-        g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + 8, 0xFF45301B, false);
+        g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + (height < 105 ? 3 : 8), 0xFF45301B, false);
         String count = available == 0 ? "Нет ваших волков поблизости" : "Ваши волки рядом: " + available;
         if (height >= 120) {
             g.drawString(font, font.plainSubstrByWidth(count, w - 16), x + 8, y + 25, 0xFF45301B, false);
@@ -128,7 +128,7 @@ public final class ReputationArmyScreen extends Screen {
         } else if (keyCode >= GLFW.GLFW_KEY_KP_1 && keyCode <= GLFW.GLFW_KEY_KP_5) {
             order = keyCode - GLFW.GLFW_KEY_KP_1;
         }
-        if (order >= 0) {
+        // G toggles the command panel closed, matching the key that opens it.\n        if (keyCode == GLFW.GLFW_KEY_G && modifiers == 0) {\n            onClose();\n            return true;\n        }\n        if (order >= 0) {
             if (available > 0) issue(order);
             return true;
         }
