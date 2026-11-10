@@ -52,8 +52,13 @@ public final class ReputationArmyScreen extends Screen {
         attack.setTooltip(Tooltip.create(Component.literal("Ударьте монстра не более 10 секунд назад. Вы и волки должны видеть цель в радиусе 24 блоков.")));
         attack.active = available > 0;
         addRenderableWidget(attack);
+        Button waypoint = Button.builder(commandLabel(6, "К точке взгляда", w - 16), b -> issue(5))
+            .bounds(x + 8, firstButtonY + 5 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
+        waypoint.setTooltip(Tooltip.create(Component.literal("Наведите взгляд на блок не дальше 24 блоков. Волки попытаются добежать до этой точки.")));
+        waypoint.active = available > 0;
+        addRenderableWidget(waypoint);
         addRenderableWidget(Button.builder(Component.literal("Закрыть"), b -> onClose())
-            .bounds(x + 8, firstButtonY + 5 * (buttonHeight + buttonGap), w - 16, buttonHeight).build());
+            .bounds(x + 8, firstButtonY + 6 * (buttonHeight + buttonGap), w - 16, buttonHeight).build());
     }
 
     // Numbered actions make the keyboard shortcuts discoverable without a separate
@@ -69,13 +74,13 @@ public final class ReputationArmyScreen extends Screen {
     private int commandButtonGap() { return height < 165 ? 1 : 6; }
     private int commandButtonHeight() {
         if (height >= 165) return 20;
-        return Math.max(7, Math.min(16, (height - 12 - headerHeight() - 5 * commandButtonGap()) / 6));
+        return Math.max(7, Math.min(16, (height - 12 - headerHeight() - 6 * commandButtonGap()) / 7));
     }
 
     private int panelTop() {
         int buttonHeight = commandButtonHeight();
         int buttonGap = commandButtonGap();
-        int contentHeight = headerHeight() + 6 * buttonHeight + 5 * buttonGap + 8;
+        int contentHeight = headerHeight() + 7 * buttonHeight + 6 * buttonGap + 8;
         return Math.max(4, (height - contentHeight) / 2);
     }
 
@@ -118,7 +123,7 @@ public final class ReputationArmyScreen extends Screen {
         // On compact GUI heights the first button starts at y + 37.
         // Omit this optional hint rather than drawing text over a clickable command.
         if (height >= 165) {
-            String range = "1–5 / Num 1–5 · Радиус 24 блока";
+            String range = "1–6 / Num 1–6 · Радиус 24 блока";
             g.drawString(font, font.plainSubstrByWidth(range, w - 16), x + 8, y + 35, 0xFF705438, false);
         }
         super.render(g, mouseX, mouseY, partialTick);
@@ -128,9 +133,9 @@ public final class ReputationArmyScreen extends Screen {
     // Disabled commands must never send packets when no owned squad is nearby.
     @Override public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         int order = -1;
-        if (keyCode >= GLFW.GLFW_KEY_1 && keyCode <= GLFW.GLFW_KEY_5) {
+        if (keyCode >= GLFW.GLFW_KEY_1 && keyCode <= GLFW.GLFW_KEY_6) {
             order = keyCode - GLFW.GLFW_KEY_1;
-        } else if (keyCode >= GLFW.GLFW_KEY_KP_1 && keyCode <= GLFW.GLFW_KEY_KP_5) {
+        } else if (keyCode >= GLFW.GLFW_KEY_KP_1 && keyCode <= GLFW.GLFW_KEY_KP_6) {
             order = keyCode - GLFW.GLFW_KEY_KP_1;
         }
         // G toggles the command panel closed, matching the key that opens it.
