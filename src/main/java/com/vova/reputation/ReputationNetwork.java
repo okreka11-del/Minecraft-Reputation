@@ -334,7 +334,10 @@ public final class ReputationNetwork {
                 if (!(context.player() instanceof ServerPlayer player) || payload.action() != 1) return;
                 var entity = player.serverLevel().getEntity(payload.entityId());
                 if (entity instanceof net.minecraft.world.entity.npc.Villager villager
+                        && villager.isAlive()
+                        && !player.isSpectator()
                         && player.distanceToSqr(villager) <= 64
+                        && player.hasLineOfSight(villager)
                         && player.getData(ReputationMod.REP) >= 0
                         && ReputationMod.factionStandings(player)[0] > -40) {
                     ReputationTrading.open(player, villager);
