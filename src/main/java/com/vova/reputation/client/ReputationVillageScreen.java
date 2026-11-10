@@ -29,6 +29,11 @@ public final class ReputationVillageScreen extends Screen {
                 panelY() + Math.max(0, panelHeight() - 27), Math.min(110, panelWidth()),
                 Math.min(20, panelHeight())).build());
     }
+    // Keep the world sharp behind the village overview; do not trigger vanilla menu blur.
+    @Override public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+        // The translucent overlay in render() provides contrast without a shader pass.
+    }
+
     @Override public void render(GuiGraphics g, int mx, int my, float tick) {
         g.fill(0, 0, width, height, 0xB0100B10);
         int x = panelX(), y = panelY(), w = panelWidth(), h = panelHeight();
