@@ -148,8 +148,8 @@ public final class ReputationArmyScreen extends Screen {
         } else if (keyCode >= GLFW.GLFW_KEY_KP_1 && keyCode <= GLFW.GLFW_KEY_KP_6) {
             order = keyCode - GLFW.GLFW_KEY_KP_1;
         }
-        // G toggles the command panel closed, matching the key that opens it.
-        if (keyCode == GLFW.GLFW_KEY_G && modifiers == 0) {
+        // Use the configured army keybind (including remapped keys) to close the panel.
+        if (ReputationKeys.ARMY.matches(keyCode, scanCode)) {
             onClose();
             return true;
         }
