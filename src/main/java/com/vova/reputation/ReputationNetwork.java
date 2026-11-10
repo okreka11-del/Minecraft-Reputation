@@ -183,10 +183,20 @@ public final class ReputationNetwork {
                     // standing position; don't route pets into a fall or solid block.
                     var level = player.serverLevel();
                     var ground = waypoint.below();
+                    var headroom = waypoint.above();
+                    // A wolf needs both feet and head clearance. Checking only the
+                    // destination block accepted one-block-high gaps and low ceilings.
+                    // Reject liquid destinations as well: empty collision alone does
+                    // not mean a safe place for a ground-based squad to assemble.
                     if (!level.getWorldBorder().isWithinBounds(waypoint)
+                            || !level.getWorldBorder().isWithinBounds(headroom)
                             || !level.hasChunkAt(waypoint)
                             || !level.hasChunkAt(ground)
+                            || !level.hasChunkAt(headroom)
                             || !level.getBlockState(waypoint).getCollisionShape(level, waypoint).isEmpty()
+                            || !level.getBlockState(headroom).getCollisionShape(level, headroom).isEmpty()
+                            || !level.getFluidState(waypoint).isEmpty()
+                            || !level.getFluidState(headroom).isEmpty()
                             || !level.getBlockState(ground).isFaceSturdy(level, ground, net.minecraft.core.Direction.UP)) {
                         player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                             "Небезопасная точка: выберите свободное место на твёрдой поверхности."), true);
