@@ -347,5 +347,11 @@ public final class ReputationBookScreen extends Screen {
         tr(g, "reputation.book.help_history", 137, 123);
         tr(g, "reputation.book.help_score", 137, 152);
     }
+    // Prevent Screen's vanilla menu backdrop from blurring the live world.
+    // The parchment itself is opaque, so a full-screen post-process is unnecessary.
+    @Override public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        // Keep world pixels sharp behind the journal; avoid any blur shader pass.
+    }
+
     @Override public boolean isPauseScreen() { return false; }
 }
