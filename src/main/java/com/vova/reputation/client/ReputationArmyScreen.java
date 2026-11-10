@@ -26,28 +26,36 @@ public final class ReputationArmyScreen extends Screen {
         int buttonHeight = commandButtonHeight();
         int buttonGap = commandButtonGap();
         int firstButtonY = y + headerHeight();
-        Button follow = Button.builder(Component.literal("За мной"), b -> issue(0))
+        Button follow = Button.builder(commandLabel(1, "За мной", w - 16), b -> issue(0))
             .bounds(x + 8, firstButtonY, w - 16, buttonHeight).build();
         follow.active = available > 0;
         addRenderableWidget(follow);
-        Button guard = Button.builder(Component.literal("Охранять позицию"), b -> issue(1))
+        Button guard = Button.builder(commandLabel(2, "Охранять позицию", w - 16), b -> issue(1))
             .bounds(x + 8, firstButtonY + buttonHeight + buttonGap, w - 16, buttonHeight).build();
         guard.active = available > 0;
         addRenderableWidget(guard);
-        Button rally = Button.builder(Component.literal("Собрать рядом"), b -> issue(2))
+        Button rally = Button.builder(commandLabel(3, "Собрать рядом", w - 16), b -> issue(2))
             .bounds(x + 8, firstButtonY + 2 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
         rally.active = available > 0;
         addRenderableWidget(rally);
-        Button disengage = Button.builder(Component.literal("Прекратить бой"), b -> issue(3))
+        Button disengage = Button.builder(commandLabel(4, "Прекратить бой", w - 16), b -> issue(3))
             .bounds(x + 8, firstButtonY + 3 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
         disengage.active = available > 0;
         addRenderableWidget(disengage);
-        Button attack = Button.builder(Component.literal("Атаковать отмеченного монстра"), b -> issue(4))
+        Button attack = Button.builder(commandLabel(5, "Атаковать отмеченного монстра", w - 16), b -> issue(4))
             .bounds(x + 8, firstButtonY + 4 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
         attack.active = available > 0;
         addRenderableWidget(attack);
         addRenderableWidget(Button.builder(Component.literal("Закрыть"), b -> onClose())
             .bounds(x + 8, firstButtonY + 5 * (buttonHeight + buttonGap), w - 16, buttonHeight).build());
+    }
+
+    // Numbered actions make the keyboard shortcuts discoverable without a separate
+    // tooltip. Fit labels into narrow GUI-scaled windows at native pixel resolution.
+    private Component commandLabel(int shortcut, String name, int buttonWidth) {
+        String prefix = shortcut + " · ";
+        int textWidth = Math.max(1, buttonWidth - 12 - font.width(prefix));
+        return Component.literal(prefix + font.plainSubstrByWidth(name, textWidth));
     }
 
     // Fit all six commands into short GUI-scaled windows without fractional font scaling.
