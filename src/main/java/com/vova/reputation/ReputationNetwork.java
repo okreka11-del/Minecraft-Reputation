@@ -231,7 +231,10 @@ public final class ReputationNetwork {
                 // A valid target from the owner's perspective may still be hidden
                 // or out of range for every squad member. Explain that case rather
                 // than reporting an ambiguous successful "0 wolves" attack.
-                if (payload.order() == 3 && changed == 0) {
+                if (payload.order() == 2 && changed == 0) {
+                    player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                        "Сбор не удался: волки не могут проложить путь к вам. Подойдите ближе или уберите препятствия."), true);
+                } else if (payload.order() == 3 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                         "Отступление не удалось: волки не могут проложить путь к вам."), true);
                 } else if (payload.order() == 4 && changed == 0) {
