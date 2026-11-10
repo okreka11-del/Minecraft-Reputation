@@ -154,7 +154,13 @@ public final class ReputationArmyScreen extends Screen {
             return true;
         }
         if (order >= 0) {
-            if (available > 0) issue(order);
+            if (available > 0) {
+                issue(order);
+            } else if (minecraft != null && minecraft.player != null) {
+                // Keyboard shortcuts need the same guidance as disabled buttons.
+                // Keep the order server-authoritative: never send an empty-squad packet.
+                minecraft.player.displayClientMessage(NO_SQUAD_HELP, true);
+            }
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
