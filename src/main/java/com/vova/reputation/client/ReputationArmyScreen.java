@@ -78,10 +78,12 @@ public final class ReputationArmyScreen extends Screen {
 
     // Fit all six commands into short GUI-scaled windows without fractional font scaling.
     private int headerHeight() { return height < 105 ? 16 : height < 120 ? 26 : height < 165 ? 37 : 48; }
-    private int commandButtonGap() { return height < 165 ? 1 : 6; }
+    private int commandButtonGap() { return height < 240 ? (height < 165 ? 1 : 2) : 6; }
     private int commandButtonHeight() {
-        if (height >= 165) return 20;
-        return Math.max(7, Math.min(16, (height - 12 - headerHeight() - 6 * commandButtonGap()) / 7));
+        // Reserve room for all six orders, Close and the frame at medium GUI heights.
+        // Fixed 20px buttons previously pushed Close off-screen at heights 165-235.
+        int space = height - 12 - headerHeight() - 6 * commandButtonGap();
+        return Math.max(7, Math.min(20, space / 7));
     }
 
     private int panelTop() {
