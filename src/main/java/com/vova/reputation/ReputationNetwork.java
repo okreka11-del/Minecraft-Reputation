@@ -200,6 +200,11 @@ public final class ReputationNetwork {
                         wolf.setTarget(attackTarget);
                         changed++;
                     } else if (payload.order() == 5) {
+                        // Keep waypoint orders local to each wolf as well as the owner.
+                        // A wolf at the far edge of the squad radius must not be sent
+                        // up to 48 blocks away across unloaded or dangerous terrain.
+                        if (wolf.distanceToSqr(waypoint.getX() + 0.5D,
+                                waypoint.getY(), waypoint.getZ() + 0.5D) > 24.0D * 24.0D) continue;
                         // One-shot waypoint command; not a persistent patrol.
                         wolf.setTarget(null);
                         wolf.setLastHurtByMob(null);
@@ -254,7 +259,7 @@ public final class ReputationNetwork {
                 // than reporting an ambiguous successful "0 wolves" attack.
                 if (payload.order() == 5 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                        "Ни один волк не нашёл путь к указанной точке."), true);
+                        "Ни один волк не может дойти до точки в радиусе 24 блоков от него."), true);
                 } else if (payload.order() == 2 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                         "Сбор не удался: волки не могут проложить путь к вам. Подойдите ближе или уберите препятствия."), true);
