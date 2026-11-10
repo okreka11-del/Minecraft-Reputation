@@ -21,7 +21,7 @@ public final class ReputationArmyScreen extends Screen {
     }
 
     @Override protected void init() {
-        int w = Math.min(238, Math.max(90, width - 16));
+        int w = Math.max(24, Math.min(238, width - 16));
         int x = (width - w) / 2;
         int y = panelTop();
         int buttonHeight = commandButtonHeight();
@@ -93,7 +93,7 @@ public final class ReputationArmyScreen extends Screen {
 
     @Override public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         // Keep the world fully visible behind squad commands; no fullscreen dim layer.
-        int w = Math.min(238, Math.max(90, width - 16));
+        int w = Math.max(24, Math.min(238, width - 16));
         int x = (width - w) / 2, y = panelTop();
         int buttonHeight = commandButtonHeight();
         int buttonGap = commandButtonGap();
@@ -104,7 +104,7 @@ public final class ReputationArmyScreen extends Screen {
         // Pixel-sharp inset frame and faction-neutral gold accent.
         g.fill(x + 2, y + 2, x + w - 2, y + 4, 0xFFD4A64E);
         g.fill(x + 3, panelBottom - 7, x + w - 3, panelBottom - 5, 0xFF8B6334);
-        String heading = font.plainSubstrByWidth(title.getString(), w - 16);
+        // Compact windows cannot fit the secondary squad-count line: show the\n        // actionable squad state in the heading instead of silently hiding it.\n        String headingText = height < 120\n            ? (available == 0 ? "Нет отряда" : "Отряд: " + available)\n            : title.getString();\n        String heading = font.plainSubstrByWidth(headingText, Math.max(1, w - 16));
         g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + (height < 105 ? 3 : 8), 0xFF45301B, false);
         String count = available == 0 ? "Нет ваших волков поблизости" : "Ваши волки рядом: " + available;
         if (height >= 120) {
