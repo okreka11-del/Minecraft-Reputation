@@ -51,6 +51,9 @@ public final class ReputationWorkstationAssignment {
     private static void onWorkstationUse(PlayerInteractEvent.RightClickBlock event) {
         Level level = event.getLevel();
         if (level.isClientSide() || !(event.getEntity() instanceof ServerPlayer player)) return;
+        // Spectators cannot claim NPC professions; require normal interaction reach.
+        if (player.isSpectator() || player.distanceToSqr(event.getPos().getX() + 0.5,
+            event.getPos().getY() + 0.5, event.getPos().getZ() + 0.5) > 64.0) return;
 
         var blockKey = BuiltInRegistries.BLOCK.getKey(level.getBlockState(event.getPos()).getBlock());
         // Never treat another mod's block with the same path as our workstation.
@@ -108,6 +111,7 @@ public final class ReputationWorkstationAssignment {
 
     private static <T extends Entity> T nearest(java.util.List<T> entities, BlockPos position) {
         return entities.stream()
+            .filter(Entity::isAlive)
             .filter(entity -> entity.getPersistentData().getString("ReputationProfession").isEmpty())
             .min((a, b) -> Double.compare(a.distanceToSqr(position.getX() + 0.5,
                 position.getY() + 0.5, position.getZ() + 0.5),
