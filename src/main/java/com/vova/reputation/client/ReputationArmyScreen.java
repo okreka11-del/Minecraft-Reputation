@@ -15,6 +15,7 @@ import org.lwjgl.glfw.GLFW;
  */
 public final class ReputationArmyScreen extends Screen {
     private final int available;
+    private static final Component NO_SQUAD_HELP = Component.literal("Нет доступных волков: приручите волка костями, затем подойдите к нему на расстояние приказов.");
     public ReputationArmyScreen(int available) {
         super(Component.literal("Отряд — приказы"));
         this.available = available;
@@ -30,31 +31,37 @@ public final class ReputationArmyScreen extends Screen {
         Button follow = Button.builder(commandLabel(1, "За мной", w - 16), b -> issue(0))
             .bounds(x + 8, firstButtonY, w - 16, buttonHeight).build();
         follow.setTooltip(Tooltip.create(Component.literal("Волки следуют за вами и выходят из режима охраны.")));
+        if (available == 0) follow.setTooltip(Tooltip.create(NO_SQUAD_HELP));
         follow.active = available > 0;
         addRenderableWidget(follow);
         Button guard = Button.builder(commandLabel(2, "Охранять позицию", w - 16), b -> issue(1))
             .bounds(x + 8, firstButtonY + buttonHeight + buttonGap, w - 16, buttonHeight).build();
         guard.setTooltip(Tooltip.create(Component.literal("Волки остаются охранять текущую позицию.")));
+        if (available == 0) guard.setTooltip(Tooltip.create(NO_SQUAD_HELP));
         guard.active = available > 0;
         addRenderableWidget(guard);
         Button rally = Button.builder(commandLabel(3, "Собрать рядом", w - 16), b -> issue(2))
             .bounds(x + 8, firstButtonY + 2 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
         rally.setTooltip(Tooltip.create(Component.literal("Позвать принадлежащих вам волков к себе.")));
+        if (available == 0) rally.setTooltip(Tooltip.create(NO_SQUAD_HELP));
         rally.active = available > 0;
         addRenderableWidget(rally);
         Button disengage = Button.builder(commandLabel(4, "Отступить ко мне", w - 16), b -> issue(3))
             .bounds(x + 8, firstButtonY + 3 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
         disengage.setTooltip(Tooltip.create(Component.literal("Волки прекращают бой, встают и возвращаются к вам. Близкие волки уже в безопасности.")));
+        if (available == 0) disengage.setTooltip(Tooltip.create(NO_SQUAD_HELP));
         disengage.active = available > 0;
         addRenderableWidget(disengage);
         Button attack = Button.builder(commandLabel(5, "Атаковать отмеченного монстра", w - 16), b -> issue(4))
             .bounds(x + 8, firstButtonY + 4 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
         attack.setTooltip(Tooltip.create(Component.literal("Ударьте монстра не более 10 секунд назад. Вы и волки должны видеть цель в радиусе 24 блоков.")));
+        if (available == 0) attack.setTooltip(Tooltip.create(NO_SQUAD_HELP));
         attack.active = available > 0;
         addRenderableWidget(attack);
         Button waypoint = Button.builder(commandLabel(6, "К точке взгляда", w - 16), b -> issue(5))
             .bounds(x + 8, firstButtonY + 5 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
         waypoint.setTooltip(Tooltip.create(Component.literal("Наведите взгляд на блок не дальше 24 блоков. Волки попытаются добежать до этой точки.")));
+        if (available == 0) waypoint.setTooltip(Tooltip.create(NO_SQUAD_HELP));
         waypoint.active = available > 0;
         addRenderableWidget(waypoint);
         addRenderableWidget(Button.builder(Component.literal("Закрыть"), b -> onClose())
@@ -117,7 +124,7 @@ public final class ReputationArmyScreen extends Screen {
             : title.getString();
         String heading = font.plainSubstrByWidth(headingText, Math.max(1, w - 16));
         g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + (height < 105 ? 3 : 8), 0xFF45301B, false);
-        String count = available == 0 ? "Нет ваших волков поблизости" : "Ваши волки рядом: " + available;
+        String count = available == 0 ? "Приручите волка и подойдите ближе" : "Ваши волки рядом: " + available;
         if (height >= 120) {
             g.drawString(font, font.plainSubstrByWidth(count, w - 16), x + 8, y + 25, 0xFF45301B, false);
         }
