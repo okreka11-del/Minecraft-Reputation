@@ -128,7 +128,12 @@ public final class ReputationArmyScreen extends Screen {
         } else if (keyCode >= GLFW.GLFW_KEY_KP_1 && keyCode <= GLFW.GLFW_KEY_KP_5) {
             order = keyCode - GLFW.GLFW_KEY_KP_1;
         }
-        // G toggles the command panel closed, matching the key that opens it.\n        if (keyCode == GLFW.GLFW_KEY_G && modifiers == 0) {\n            onClose();\n            return true;\n        }\n        if (order >= 0) {
+        // G toggles the command panel closed, matching the key that opens it.
+        if (keyCode == GLFW.GLFW_KEY_G && modifiers == 0) {
+            onClose();
+            return true;
+        }
+        if (order >= 0) {
             if (available > 0) issue(order);
             return true;
         }
