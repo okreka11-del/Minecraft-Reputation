@@ -220,8 +220,16 @@ public final class ReputationNetwork {
                         changed++;
                     }
                 }
-                player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                    (payload.order() == 0 ? "Следовать: " : payload.order() == 1 ? "Охранять: " : payload.order() == 2 ? "Сбор отряда: " : payload.order() == 3 ? "Прекратили бой: " : "Атакуют цель: ") + changed + " волков"), true);
+                // A valid target from the owner's perspective may still be hidden
+                // or out of range for every squad member. Explain that case rather
+                // than reporting an ambiguous successful "0 wolves" attack.
+                if (payload.order() == 4 && changed == 0) {
+                    player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                        "Приказ не выполнен: ни один ваш волк не видит цель в радиусе 24 блоков."), true);
+                } else {
+                    player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                        (payload.order() == 0 ? "Следовать: " : payload.order() == 1 ? "Охранять: " : payload.order() == 2 ? "Сбор отряда: " : payload.order() == 3 ? "Прекратили бой: " : "Атакуют цель: ") + changed + " волков"), true);
+                }
             }));
         registrar.playToServer(FartRequest.TYPE, FartRequest.STREAM_CODEC,
             (payload, context) -> context.enqueueWork(() -> {
