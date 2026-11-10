@@ -103,7 +103,8 @@ public final class ReputationArmyScreen extends Screen {
         int buttonHeight = commandButtonHeight();
         int buttonGap = commandButtonGap();
         int firstButtonY = y + headerHeight();
-        int panelBottom = Math.min(height - 2, firstButtonY + 6 * buttonHeight + 5 * buttonGap + 8);
+        // Include all six orders AND the Close button in the panel frame.
+        int panelBottom = Math.min(height - 2, firstButtonY + 7 * buttonHeight + 6 * buttonGap + 8);
         g.fill(x - 3, y - 3, x + w + 3, panelBottom, 0xFF30251A);
         g.fill(x, y, x + w, panelBottom - 3, 0xFFE2C796);
         // Pixel-sharp inset frame and faction-neutral gold accent.
@@ -129,7 +130,7 @@ public final class ReputationArmyScreen extends Screen {
         super.render(g, mouseX, mouseY, partialTick);
     }
 
-    // Number row and numeric keypad mirror the five visible squad commands.
+    // Number row and numeric keypad mirror the six visible squad commands.
     // Disabled commands must never send packets when no owned squad is nearby.
     @Override public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         int order = -1;
