@@ -104,7 +104,12 @@ public final class ReputationArmyScreen extends Screen {
         // Pixel-sharp inset frame and faction-neutral gold accent.
         g.fill(x + 2, y + 2, x + w - 2, y + 4, 0xFFD4A64E);
         g.fill(x + 3, panelBottom - 7, x + w - 3, panelBottom - 5, 0xFF8B6334);
-        // Compact windows cannot fit the secondary squad-count line: show the\n        // actionable squad state in the heading instead of silently hiding it.\n        String headingText = height < 120\n            ? (available == 0 ? "Нет отряда" : "Отряд: " + available)\n            : title.getString();\n        String heading = font.plainSubstrByWidth(headingText, Math.max(1, w - 16));
+        // Compact windows cannot fit the secondary squad-count line: show the
+        // actionable squad state in the heading instead of silently hiding it.
+        String headingText = height < 120
+            ? (available == 0 ? "Нет отряда" : "Отряд: " + available)
+            : title.getString();
+        String heading = font.plainSubstrByWidth(headingText, Math.max(1, w - 16));
         g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + (height < 105 ? 3 : 8), 0xFF45301B, false);
         String count = available == 0 ? "Нет ваших волков поблизости" : "Ваши волки рядом: " + available;
         if (height >= 120) {
