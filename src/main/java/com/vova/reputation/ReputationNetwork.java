@@ -197,6 +197,15 @@ public final class ReputationNetwork {
                             || !level.getBlockState(headroom).getCollisionShape(level, headroom).isEmpty()
                             || !level.getFluidState(waypoint).isEmpty()
                             || !level.getFluidState(headroom).isEmpty()
+                            // Even with a solid top face, hot blocks can injure a wolf.
+                            // Check the supporting block as well as the destination.
+                            || !level.getFluidState(ground).isEmpty()
+                            || level.getBlockState(ground).is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)
+                            || level.getBlockState(ground).is(net.minecraft.world.level.block.Blocks.CAMPFIRE)
+                            || level.getBlockState(ground).is(net.minecraft.world.level.block.Blocks.SOUL_CAMPFIRE)
+                            || level.getBlockState(waypoint).is(net.minecraft.world.level.block.Blocks.FIRE)
+                            || level.getBlockState(waypoint).is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
+                            || level.getBlockState(waypoint).is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
                             || !level.getBlockState(ground).isFaceSturdy(level, ground, net.minecraft.core.Direction.UP)) {
                         player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                             "Небезопасная точка: выберите свободное место на твёрдой поверхности."), true);
