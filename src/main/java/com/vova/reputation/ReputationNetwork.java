@@ -237,13 +237,16 @@ public final class ReputationNetwork {
                         // up to 48 blocks away across unloaded or dangerous terrain.
                         if (wolf.distanceToSqr(waypoint.getX() + 0.5D,
                                 waypoint.getY(), waypoint.getZ() + 0.5D) > 24.0D * 24.0D) continue;
-                        // One-shot waypoint command; not a persistent patrol.
+                        // Compute the path before cancelling guard/combat/follow.
+                        // If the destination cannot be reached, preserve the wolf's
+                        // existing stance and navigation instead of silently losing it.
+                        var path = wolf.getNavigation().createPath(waypoint, 0);
+                        if (path == null || !path.canReach()) continue;
                         wolf.setTarget(null);
                         wolf.setLastHurtByMob(null);
                         wolf.getNavigation().stop();
                         wolf.setOrderedToSit(false);
-                        if (wolf.getNavigation().moveTo(
-                                waypoint.getX() + 0.5D, waypoint.getY(), waypoint.getZ() + 0.5D, 1.2D)) changed++;
+                        if (wolf.getNavigation().moveTo(path, 1.2D)) changed++;
                     } else if (payload.order() == 3) {
                         // Retreat must actually withdraw from combat, not just clear a target.
                         // Resume movement even if this wolf was previously guarding.
