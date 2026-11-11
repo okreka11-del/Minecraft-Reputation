@@ -355,6 +355,16 @@ public final class ReputationNetwork {
                         var guardFeet = wolf.blockPosition();
                         var guardGround = guardFeet.below();
                         var guardLevel = player.serverLevel();
+                        // The guard command must not freeze a wolf over an unloaded
+                        // edge or on a non-supporting block (e.g. a collapsing ledge).
+                        // Validate both the standing position and its support before
+                        // touching the wolf's navigation or sitting state.
+                        if (!guardLevel.hasChunkAt(guardFeet)
+                                || !guardLevel.hasChunkAt(guardGround)
+                                || !guardLevel.hasChunkAt(guardFeet.above())
+                                || !guardLevel.getWorldBorder().isWithinBounds(guardFeet)
+                                || !guardLevel.getBlockState(guardGround).isFaceSturdy(
+                                    guardLevel, guardGround, net.minecraft.core.Direction.UP)) continue;
                         var guardFeetState = guardLevel.getBlockState(guardFeet);
                         var guardGroundState = guardLevel.getBlockState(guardGround);
                         if (guardGroundState.is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)
