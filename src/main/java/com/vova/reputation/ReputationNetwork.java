@@ -246,14 +246,20 @@ public final class ReputationNetwork {
                                 || feetState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
                                 || headState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
                                 || level.getFluidState(feetNeighbor).is(net.minecraft.tags.FluidTags.LAVA)
-                                || level.getFluidState(headNeighbor).is(net.minecraft.tags.FluidTags.LAVA)) {
+                                || level.getFluidState(headNeighbor).is(net.minecraft.tags.FluidTags.LAVA)
+                                // Powder snow traps ground-based pets; wither roses
+                                // damage them even when their collision is empty.
+                                || feetState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
+                                || headState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
+                                || feetState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
+                                || headState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)) {
                             touchesHazard = true;
                             break;
                         }
                     }
                     if (touchesHazard) {
                         player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                            "Небезопасная точка: рядом огонь, лава, кактус или не загружена местность."), true);
+                            "Небезопасная точка: рядом огонь, лава, колючие растения, рыхлый снег или не загружена местность."), true);
                         return;
                     }
                 }
