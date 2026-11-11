@@ -224,6 +224,25 @@ public final class ReputationNetwork {
                             "Небезопасная точка: выберите свободное место на твёрдой поверхности."), true);
                         return;
                     }
+                    // Cacti hurt entities touching their sides, even when the
+                    // destination itself is empty. A free block directly beside
+                    // a cactus is not a safe standing spot for a wolf.
+                    boolean touchesCactus = false;
+                    for (var direction : net.minecraft.core.Direction.Plane.HORIZONTAL) {
+                        var feetNeighbor = waypoint.relative(direction);
+                        var headNeighbor = headroom.relative(direction);
+                        if (!level.hasChunkAt(feetNeighbor) || !level.hasChunkAt(headNeighbor)
+                                || level.getBlockState(feetNeighbor).is(net.minecraft.world.level.block.Blocks.CACTUS)
+                                || level.getBlockState(headNeighbor).is(net.minecraft.world.level.block.Blocks.CACTUS)) {
+                            touchesCactus = true;
+                            break;
+                        }
+                    }
+                    if (touchesCactus) {
+                        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                            "Небезопасная точка: рядом кактус или не загружена местность."), true);
+                        return;
+                    }
                 }
                 var wolves = ownedWolves(player);
                 if (wolves.isEmpty()) {
