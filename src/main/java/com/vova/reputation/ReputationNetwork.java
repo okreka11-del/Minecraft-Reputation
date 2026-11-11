@@ -443,7 +443,7 @@ public final class ReputationNetwork {
                         "Приказ не выполнен: ни один ваш волк не видит цель в радиусе 24 блоков."), true);
                 } else {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                        (payload.order() == 0 ? "Следовать: " : payload.order() == 1 ? "Охранять: " : payload.order() == 2 ? "Сбор отряда: " : payload.order() == 3 ? "Отступают к вам: " : payload.order() == 4 ? "Атакуют цель: " : "Идут к точке: ") + changed + " волков"), true);
+                        (payload.order() == 0 ? "Следовать: " : payload.order() == 1 ? "Охранять: " : payload.order() == 2 ? "Сбор отряда: " : payload.order() == 3 ? "Отступают к вам: " : payload.order() == 4 ? "Атакуют цель: " : "Идут к точке: ") + changed + " из " + wolves.size() + " волков" + (changed < wolves.size() ? " (остальные не смогли выполнить приказ: проверьте расстояние, путь и безопасность)" : "")), true);
                 }
             }));
         registrar.playToServer(FartRequest.TYPE, FartRequest.STREAM_CODEC,
