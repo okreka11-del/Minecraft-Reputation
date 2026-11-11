@@ -146,6 +146,13 @@ public final class ReputationNetwork {
         registrar.playToServer(ArmyOrder.TYPE, ArmyOrder.STREAM_CODEC,
             (payload, context) -> context.enqueueWork(() -> {
                 if (!(context.player() instanceof ServerPlayer player)) return;
+                // Spectators and dead players must not issue combat or movement orders.
+                // Keep this permission check server-side: clients can forge packets.
+                if (player.isSpectator() || !player.isAlive()) {
+                    player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                        "Приказы отряду недоступны в режиме наблюдателя или после смерти."), true);
+                    return;
+                }
                 // Only explicit known orders, only living tame wolves owned by this player.
                 if (payload.order() < 0 || payload.order() > 5) return;
                 // Attack only the last hostile non-player target actually struck by the owner.
