@@ -138,12 +138,19 @@ public final class ReputationArmyScreen extends Screen {
         g.fill(x + 3, panelBottom - 7, x + w - 3, panelBottom - 5, 0xFF8B6334);
         // Windows below 165 GUI pixels cannot fit the secondary squad-count line: show the
         // actionable squad state in the heading instead of silently hiding it.
-        String headingText = height < 165
-            ? (available == 0 ? "Нет отряда" : "Отряд: " + available)
-            : title.getString();
+        // Show why commands are disabled directly in the panel, not only in tooltips.
+        // Spectators and dead players may still have a nonzero cached squad count.
+        boolean playerInactive = minecraft != null && minecraft.player != null
+            && (!minecraft.player.isAlive() || minecraft.player.isSpectator());
+        String headingText = playerInactive
+            ? (minecraft.player.isSpectator() ? "Режим наблюдателя" : "Игрок погиб")
+            : height < 165
+                ? (available == 0 ? "Нет отряда" : "Отряд: " + available)
+                : title.getString();
         String heading = font.plainSubstrByWidth(headingText, Math.max(1, w - 16));
         g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + (height < 105 ? 3 : 8), 0xFF45301B, false);
-        String count = available == 0 ? "Приручите волка и подойдите ближе" : "Ваши волки рядом: " + available;
+        String count = playerInactive ? "Приказы временно недоступны"
+            : available == 0 ? "Приручите волка и подойдите ближе" : "Ваши волки рядом: " + available;
         if (height >= 165) {
             g.drawString(font, font.plainSubstrByWidth(count, w - 16), x + 8, y + 25, 0xFF45301B, false);
         }
