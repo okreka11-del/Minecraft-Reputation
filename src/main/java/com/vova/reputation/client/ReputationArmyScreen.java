@@ -154,9 +154,9 @@ public final class ReputationArmyScreen extends Screen {
             return true;
         }
         if (order >= 0) {
-            // Modified number keys are commonly used by other controls and accessibility
-            // shortcuts. Never issue a potentially dangerous attack/move order by accident.
-            if ((modifiers & (GLFW.GLFW_MOD_CONTROL | GLFW.GLFW_MOD_ALT | GLFW.GLFW_MOD_SUPER)) != 0) {
+            // Shift+number also selects alternate hotbar actions in some key layouts.
+            // Require unmodified number presses to avoid accidental attack/move orders.
+            if ((modifiers & (GLFW.GLFW_MOD_SHIFT | GLFW.GLFW_MOD_CONTROL | GLFW.GLFW_MOD_ALT | GLFW.GLFW_MOD_SUPER)) != 0) {
                 return super.keyPressed(keyCode, scanCode, modifiers);
             }
             if (available > 0) {
