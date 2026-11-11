@@ -17,6 +17,7 @@ public final class ReputationArmyScreen extends Screen {
     private final int available;
     private final java.util.List<Button> orderButtons = new java.util.ArrayList<>();
     private boolean lastOrdersEnabled;
+    private String lastUnavailableReason = "";
     private static final Component NO_SQUAD_HELP = Component.literal("Нет доступных волков: приручите волка костями, затем подойдите к нему на расстояние приказов.");
     private static final Component INACTIVE_PLAYER_HELP = Component.literal("Нельзя отдавать приказы отряду в режиме наблюдателя или после гибели.");
 
@@ -39,6 +40,7 @@ public final class ReputationArmyScreen extends Screen {
     @Override protected void init() {
         orderButtons.clear();
         lastOrdersEnabled = canIssueOrders();
+        lastUnavailableReason = unavailableHelp().getString();
         int w = Math.max(24, Math.min(238, width - 16));
         int x = (width - w) / 2;
         int y = panelTop();
@@ -89,8 +91,12 @@ public final class ReputationArmyScreen extends Screen {
     // switch). Refresh button availability instead of retaining the init-time snapshot.
     private void refreshOrderAvailability() {
         boolean enabled = canIssueOrders();
-        if (enabled == lastOrdersEnabled) return;
+        String reason = unavailableHelp().getString();
+        // A disabled panel may change from no wolves to spectator/death without
+        // ever becoming enabled. Refresh the explanation as well as the buttons.
+        if (enabled == lastOrdersEnabled && reason.equals(lastUnavailableReason)) return;
         lastOrdersEnabled = enabled;
+        lastUnavailableReason = reason;
         for (Button button : orderButtons) button.active = enabled;
         if (!enabled) {
             for (Button button : orderButtons) button.setTooltip(Tooltip.create(unavailableHelp()));
