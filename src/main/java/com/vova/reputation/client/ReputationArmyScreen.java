@@ -83,7 +83,7 @@ public final class ReputationArmyScreen extends Screen {
         if (!canIssueOrders()) waypoint.setTooltip(Tooltip.create(unavailableHelp()));
         waypoint.active = canIssueOrders();
         orderButtons.add(addRenderableWidget(waypoint));
-        addRenderableWidget(Button.builder(Component.literal("Закрыть"), b -> onClose())
+        addRenderableWidget(Button.builder(commandLabel(7, "Закрыть", w - 16), b -> onClose())
             .bounds(x + 8, firstButtonY + 6 * (buttonHeight + buttonGap), w - 16, buttonHeight).build());
     }
 
@@ -193,19 +193,19 @@ public final class ReputationArmyScreen extends Screen {
         // Only taller GUI heights have room for the optional range hint.
         // Omit this optional hint rather than drawing text over a clickable command.
         if (height >= 165) {
-            String range = "1–6 / Num 1–6 · Радиус 24 блока";
+            String range = "1–7 / Num 1–7 · Радиус 24 блока";
             g.drawString(font, font.plainSubstrByWidth(range, w - 16), x + 8, y + 35, 0xFF705438, false);
         }
         super.render(g, mouseX, mouseY, partialTick);
     }
 
-    // Number row and numeric keypad mirror the six visible squad commands.
+    // Number row and numeric keypad mirror all seven visible panel actions.
     // Disabled commands must never send packets when no owned squad is nearby.
     @Override public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         int order = -1;
-        if (keyCode >= GLFW.GLFW_KEY_1 && keyCode <= GLFW.GLFW_KEY_6) {
+        if (keyCode >= GLFW.GLFW_KEY_1 && keyCode <= GLFW.GLFW_KEY_7) {
             order = keyCode - GLFW.GLFW_KEY_1;
-        } else if (keyCode >= GLFW.GLFW_KEY_KP_1 && keyCode <= GLFW.GLFW_KEY_KP_6) {
+        } else if (keyCode >= GLFW.GLFW_KEY_KP_1 && keyCode <= GLFW.GLFW_KEY_KP_7) {
             order = keyCode - GLFW.GLFW_KEY_KP_1;
         }
         // Use the configured army keybind (including remapped keys) to close the panel.
@@ -219,7 +219,10 @@ public final class ReputationArmyScreen extends Screen {
             if ((modifiers & (GLFW.GLFW_MOD_SHIFT | GLFW.GLFW_MOD_CONTROL | GLFW.GLFW_MOD_ALT | GLFW.GLFW_MOD_SUPER)) != 0) {
                 return super.keyPressed(keyCode, scanCode, modifiers);
             }
-            if (canIssueOrders()) {
+            if (order == 6) {
+                // Closing the tactical overlay must remain possible without a squad.
+                onClose();
+            } else if (canIssueOrders()) {
                 issue(order);
             } else if (minecraft != null && minecraft.player != null) {
                 // Keyboard shortcuts need the same guidance as disabled buttons.
