@@ -380,6 +380,31 @@ public final class ReputationNetwork {
                             }
                         }
                         if (adjacentCactus) continue;
+                        // A wolf can also be hurt by hazards at head height or by
+                        // touching lava/fire beside its body. Check before immobilizing.
+                        var guardHead = guardFeet.above();
+                        var guardHeadState = guardLevel.getBlockState(guardHead);
+                        if (guardHeadState.is(net.minecraft.world.level.block.Blocks.FIRE)
+                                || guardHeadState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
+                                || guardHeadState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                                || guardHeadState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
+                                || guardHeadState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)) continue;
+                        boolean adjacentDanger = false;
+                        for (var direction : net.minecraft.core.Direction.Plane.HORIZONTAL) {
+                            var beside = guardFeet.relative(direction);
+                            var feetState = guardLevel.getBlockState(beside);
+                            var headState = guardLevel.getBlockState(beside.above());
+                            if (feetState.is(net.minecraft.world.level.block.Blocks.FIRE)
+                                    || headState.is(net.minecraft.world.level.block.Blocks.FIRE)
+                                    || feetState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
+                                    || headState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
+                                    || guardLevel.getFluidState(beside).is(net.minecraft.tags.FluidTags.LAVA)
+                                    || guardLevel.getFluidState(beside.above()).is(net.minecraft.tags.FluidTags.LAVA)) {
+                                adjacentDanger = true;
+                                break;
+                            }
+                        }
+                        if (adjacentDanger) continue;
                         // Guard means hold this spot now, even if the wolf was chasing
                         // a target or navigating to a previous rally destination.
                         wolf.setTarget(null);
