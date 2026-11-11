@@ -16,6 +16,19 @@ import org.lwjgl.glfw.GLFW;
 public final class ReputationArmyScreen extends Screen {
     private final int available;
     private static final Component NO_SQUAD_HELP = Component.literal("Нет доступных волков: приручите волка костями, затем подойдите к нему на расстояние приказов.");
+    private static final Component INACTIVE_PLAYER_HELP = Component.literal("Нельзя отдавать приказы отряду в режиме наблюдателя или после гибели.");
+
+    private boolean canIssueOrders() {
+        return available > 0 && minecraft != null && minecraft.player != null
+            && minecraft.player.isAlive() && !minecraft.player.isSpectator();
+    }
+
+    private Component unavailableHelp() {
+        return minecraft != null && minecraft.player != null
+            && (!minecraft.player.isAlive() || minecraft.player.isSpectator())
+            ? INACTIVE_PLAYER_HELP : NO_SQUAD_HELP;
+    }
+
     public ReputationArmyScreen(int available) {
         super(Component.literal("Отряд — приказы"));
         this.available = available;
@@ -31,38 +44,38 @@ public final class ReputationArmyScreen extends Screen {
         Button follow = Button.builder(commandLabel(1, "За мной", w - 16), b -> issue(0))
             .bounds(x + 8, firstButtonY, w - 16, buttonHeight).build();
         follow.setTooltip(Tooltip.create(Component.literal("Волки следуют за вами и выходят из режима охраны.")));
-        if (available == 0) follow.setTooltip(Tooltip.create(NO_SQUAD_HELP));
-        follow.active = available > 0;
+        if (!canIssueOrders()) follow.setTooltip(Tooltip.create(unavailableHelp()));
+        follow.active = canIssueOrders();
         addRenderableWidget(follow);
         Button guard = Button.builder(commandLabel(2, "Охранять позицию", w - 16), b -> issue(1))
             .bounds(x + 8, firstButtonY + buttonHeight + buttonGap, w - 16, buttonHeight).build();
         guard.setTooltip(Tooltip.create(Component.literal("Волки остаются охранять текущую позицию.")));
-        if (available == 0) guard.setTooltip(Tooltip.create(NO_SQUAD_HELP));
-        guard.active = available > 0;
+        if (!canIssueOrders()) guard.setTooltip(Tooltip.create(unavailableHelp()));
+        guard.active = canIssueOrders();
         addRenderableWidget(guard);
         Button rally = Button.builder(commandLabel(3, "Собрать рядом", w - 16), b -> issue(2))
             .bounds(x + 8, firstButtonY + 2 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
         rally.setTooltip(Tooltip.create(Component.literal("Позвать принадлежащих вам волков к себе.")));
-        if (available == 0) rally.setTooltip(Tooltip.create(NO_SQUAD_HELP));
-        rally.active = available > 0;
+        if (!canIssueOrders()) rally.setTooltip(Tooltip.create(unavailableHelp()));
+        rally.active = canIssueOrders();
         addRenderableWidget(rally);
         Button disengage = Button.builder(commandLabel(4, "Отступить ко мне", w - 16), b -> issue(3))
             .bounds(x + 8, firstButtonY + 3 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
         disengage.setTooltip(Tooltip.create(Component.literal("Волки прекращают бой, встают и возвращаются к вам. Близкие волки уже в безопасности.")));
-        if (available == 0) disengage.setTooltip(Tooltip.create(NO_SQUAD_HELP));
-        disengage.active = available > 0;
+        if (!canIssueOrders()) disengage.setTooltip(Tooltip.create(unavailableHelp()));
+        disengage.active = canIssueOrders();
         addRenderableWidget(disengage);
         Button attack = Button.builder(commandLabel(5, "Атаковать отмеченного монстра", w - 16), b -> issue(4))
             .bounds(x + 8, firstButtonY + 4 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
         attack.setTooltip(Tooltip.create(Component.literal("Ударьте монстра не более 10 секунд назад. Вы и волки должны видеть цель в радиусе 24 блоков.")));
-        if (available == 0) attack.setTooltip(Tooltip.create(NO_SQUAD_HELP));
-        attack.active = available > 0;
+        if (!canIssueOrders()) attack.setTooltip(Tooltip.create(unavailableHelp()));
+        attack.active = canIssueOrders();
         addRenderableWidget(attack);
         Button waypoint = Button.builder(commandLabel(6, "К точке взгляда", w - 16), b -> issue(5))
             .bounds(x + 8, firstButtonY + 5 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
         waypoint.setTooltip(Tooltip.create(Component.literal("Наведите взгляд на блок не дальше 24 блоков. Волки попытаются добежать до этой точки.")));
-        if (available == 0) waypoint.setTooltip(Tooltip.create(NO_SQUAD_HELP));
-        waypoint.active = available > 0;
+        if (!canIssueOrders()) waypoint.setTooltip(Tooltip.create(unavailableHelp()));
+        waypoint.active = canIssueOrders();
         addRenderableWidget(waypoint);
         addRenderableWidget(Button.builder(Component.literal("Закрыть"), b -> onClose())
             .bounds(x + 8, firstButtonY + 6 * (buttonHeight + buttonGap), w - 16, buttonHeight).build());
@@ -94,6 +107,10 @@ public final class ReputationArmyScreen extends Screen {
     }
 
     private void issue(int order) {
+        if (!canIssueOrders()) {
+            if (minecraft != null && minecraft.player != null) minecraft.player.displayClientMessage(unavailableHelp(), true);
+            return;
+        }
         PacketDistributor.sendToServer(new ReputationNetwork.ArmyOrder(order));
         onClose();
     }
@@ -159,12 +176,12 @@ public final class ReputationArmyScreen extends Screen {
             if ((modifiers & (GLFW.GLFW_MOD_SHIFT | GLFW.GLFW_MOD_CONTROL | GLFW.GLFW_MOD_ALT | GLFW.GLFW_MOD_SUPER)) != 0) {
                 return super.keyPressed(keyCode, scanCode, modifiers);
             }
-            if (available > 0) {
+            if (canIssueOrders()) {
                 issue(order);
             } else if (minecraft != null && minecraft.player != null) {
                 // Keyboard shortcuts need the same guidance as disabled buttons.
                 // Keep the order server-authoritative: never send an empty-squad packet.
-                minecraft.player.displayClientMessage(NO_SQUAD_HELP, true);
+                minecraft.player.displayClientMessage(unavailableHelp(), true);
             }
             return true;
         }
