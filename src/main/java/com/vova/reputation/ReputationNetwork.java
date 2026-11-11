@@ -349,6 +349,24 @@ public final class ReputationNetwork {
                         // still accept the order independently.
                         if (!wolf.onGround() || wolf.isInWater() || wolf.isInLava()
                                 || wolf.isOnFire()) continue;
+                        // A seated guard cannot step away from damaging terrain.
+                        // Check the actual wolf position on the server, not the
+                        // owner's position or a client-supplied coordinate.
+                        var guardFeet = wolf.blockPosition();
+                        var guardGround = guardFeet.below();
+                        var guardLevel = player.serverLevel();
+                        var guardFeetState = guardLevel.getBlockState(guardFeet);
+                        var guardGroundState = guardLevel.getBlockState(guardGround);
+                        if (guardGroundState.is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)
+                                || guardGroundState.is(net.minecraft.world.level.block.Blocks.CAMPFIRE)
+                                        && guardGroundState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
+                                || guardGroundState.is(net.minecraft.world.level.block.Blocks.SOUL_CAMPFIRE)
+                                        && guardGroundState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
+                                || guardFeetState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                                || guardFeetState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
+                                || guardFeetState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
+                                || guardFeetState.is(net.minecraft.world.level.block.Blocks.FIRE)
+                                || guardFeetState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)) continue;
                         // Guard means hold this spot now, even if the wolf was chasing
                         // a target or navigating to a previous rally destination.
                         wolf.setTarget(null);
