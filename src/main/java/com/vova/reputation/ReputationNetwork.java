@@ -367,6 +367,19 @@ public final class ReputationNetwork {
                                 || guardFeetState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
                                 || guardFeetState.is(net.minecraft.world.level.block.Blocks.FIRE)
                                 || guardFeetState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)) continue;
+                        // Cactus damages entities touching its sides, even when the
+                        // block under their feet is safe. A seated wolf cannot retreat.
+                        // Check both body-height layers at the four cardinal sides.
+                        boolean adjacentCactus = false;
+                        for (var direction : net.minecraft.core.Direction.Plane.HORIZONTAL) {
+                            var beside = guardFeet.relative(direction);
+                            if (guardLevel.getBlockState(beside).is(net.minecraft.world.level.block.Blocks.CACTUS)
+                                    || guardLevel.getBlockState(beside.above()).is(net.minecraft.world.level.block.Blocks.CACTUS)) {
+                                adjacentCactus = true;
+                                break;
+                            }
+                        }
+                        if (adjacentCactus) continue;
                         // Guard means hold this spot now, even if the wolf was chasing
                         // a target or navigating to a previous rally destination.
                         wolf.setTarget(null);
@@ -393,7 +406,7 @@ public final class ReputationNetwork {
                         "Ни один волк не может дойти до точки в радиусе 24 блоков от него."), true);
                 } else if (payload.order() == 1 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                        "Охрана не назначена: волки в воде, огне, лаве или не стоят на земле."), true);
+                        "Охрана не назначена: волки не стоят на земле или находятся рядом с опасными блоками."), true);
                 } else if (payload.order() == 2 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                         "Сбор не удался: волки не могут проложить путь к вам. Подойдите ближе или уберите препятствия."), true);
