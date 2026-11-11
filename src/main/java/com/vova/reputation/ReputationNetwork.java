@@ -206,6 +206,12 @@ public final class ReputationNetwork {
                             || level.getBlockState(waypoint).is(net.minecraft.world.level.block.Blocks.FIRE)
                             || level.getBlockState(waypoint).is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
                             || level.getBlockState(waypoint).is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                            // A wolf occupies two vertical blocks. Non-solid hazards in
+                            // the upper block can still damage it despite free collision.
+                            || level.getBlockState(headroom).is(net.minecraft.world.level.block.Blocks.FIRE)
+                            || level.getBlockState(headroom).is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
+                            || level.getBlockState(headroom).is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                            || level.getBlockState(headroom).is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
                             // Thin damaging blocks may have empty collision shapes.
                             // Keep pets out of thorny plants and freezing powder snow.
                             || level.getBlockState(waypoint).is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
