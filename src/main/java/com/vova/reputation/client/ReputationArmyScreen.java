@@ -121,7 +121,13 @@ public final class ReputationArmyScreen extends Screen {
     private Component commandLabel(int shortcut, String name, int buttonWidth) {
         String prefix = shortcut + " · ";
         int textWidth = Math.max(1, buttonWidth - 12 - font.width(prefix));
-        return Component.literal(prefix + font.plainSubstrByWidth(name, textWidth));
+        // Reserve the ellipsis inside the available width so long order names do not
+        // silently appear complete at large GUI scales or narrow windows.
+        if (font.width(name) <= textWidth) return Component.literal(prefix + name);
+        String ellipsis = "…";
+        int visibleWidth = Math.max(0, textWidth - font.width(ellipsis));
+        return Component.literal(prefix + font.plainSubstrByWidth(name, visibleWidth)
+            + (textWidth >= font.width(ellipsis) ? ellipsis : ""));
     }
 
     // Fit all six commands into short GUI-scaled windows without fractional font scaling.
