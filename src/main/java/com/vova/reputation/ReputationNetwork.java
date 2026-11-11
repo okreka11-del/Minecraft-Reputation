@@ -227,20 +227,33 @@ public final class ReputationNetwork {
                     // Cacti hurt entities touching their sides, even when the
                     // destination itself is empty. A free block directly beside
                     // a cactus is not a safe standing spot for a wolf.
-                    boolean touchesCactus = false;
+                    boolean touchesHazard = false;
                     for (var direction : net.minecraft.core.Direction.Plane.HORIZONTAL) {
                         var feetNeighbor = waypoint.relative(direction);
                         var headNeighbor = headroom.relative(direction);
-                        if (!level.hasChunkAt(feetNeighbor) || !level.hasChunkAt(headNeighbor)
-                                || level.getBlockState(feetNeighbor).is(net.minecraft.world.level.block.Blocks.CACTUS)
-                                || level.getBlockState(headNeighbor).is(net.minecraft.world.level.block.Blocks.CACTUS)) {
-                            touchesCactus = true;
+                        if (!level.hasChunkAt(feetNeighbor) || !level.hasChunkAt(headNeighbor)) {
+                            touchesHazard = true;
+                            break;
+                        }
+                        // Wolves have a physical width: an adjacent lava source, fire
+                        // or cactus can damage them even if their destination is air.
+                        var feetState = level.getBlockState(feetNeighbor);
+                        var headState = level.getBlockState(headNeighbor);
+                        if (feetState.is(net.minecraft.world.level.block.Blocks.CACTUS)
+                                || headState.is(net.minecraft.world.level.block.Blocks.CACTUS)
+                                || feetState.is(net.minecraft.world.level.block.Blocks.FIRE)
+                                || headState.is(net.minecraft.world.level.block.Blocks.FIRE)
+                                || feetState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
+                                || headState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
+                                || level.getFluidState(feetNeighbor).is(net.minecraft.tags.FluidTags.LAVA)
+                                || level.getFluidState(headNeighbor).is(net.minecraft.tags.FluidTags.LAVA)) {
+                            touchesHazard = true;
                             break;
                         }
                     }
-                    if (touchesCactus) {
+                    if (touchesHazard) {
                         player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                            "Небезопасная точка: рядом кактус или не загружена местность."), true);
+                            "Небезопасная точка: рядом огонь, лава, кактус или не загружена местность."), true);
                         return;
                     }
                 }
