@@ -68,6 +68,20 @@ public final class ReputationWorkstationAssignment {
 
         BlockPos workstation = event.getPos().immutable();
         AABB area = new AABB(workstation).inflate(8, 4, 8);
+        // Check the current workstation claim before looking for a free worker.
+        // Otherwise repeated clicks report "no free specialist" even when this
+        // workstation is already assigned, and can reassign another nearby NPC.
+        boolean occupied = level.getEntitiesOfClass(Entity.class, area).stream()
+            .anyMatch(entity -> entity.isAlive()
+                && entity.getPersistentData().getString("ReputationProfession").equals(job)
+                && entity.getPersistentData().getInt("ReputationWorkX") == workstation.getX()
+                && entity.getPersistentData().getInt("ReputationWorkY") == workstation.getY()
+                && entity.getPersistentData().getInt("ReputationWorkZ") == workstation.getZ());
+        if (occupied) {
+            player.sendSystemMessage(Component.literal("This workstation is already occupied."));
+            return;
+        }
+
         Entity worker = illagerJob
             ? nearest(level.getEntitiesOfClass(Pillager.class, area), workstation)
             : nearest(level.getEntitiesOfClass(Villager.class, area), workstation);
@@ -82,18 +96,6 @@ public final class ReputationWorkstationAssignment {
         String existing = worker.getPersistentData().getString("ReputationProfession");
         if (!existing.isEmpty() && existing.equals(job)) {
             player.sendSystemMessage(Component.literal("This specialist already has this profession."));
-            return;
-        }
-
-        // Do not allow two NPCs to claim the same workstation coordinates.
-        boolean occupied = level.getEntitiesOfClass(Entity.class, area).stream()
-            .anyMatch(entity -> entity != worker
-                && entity.getPersistentData().getString("ReputationProfession").equals(job)
-                && entity.getPersistentData().getInt("ReputationWorkX") == workstation.getX()
-                && entity.getPersistentData().getInt("ReputationWorkY") == workstation.getY()
-                && entity.getPersistentData().getInt("ReputationWorkZ") == workstation.getZ());
-        if (occupied) {
-            player.sendSystemMessage(Component.literal("This workstation is already occupied."));
             return;
         }
 
