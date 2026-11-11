@@ -15,6 +15,8 @@ import org.lwjgl.glfw.GLFW;
  */
 public final class ReputationArmyScreen extends Screen {
     private final int available;
+    private final java.util.List<Button> orderButtons = new java.util.ArrayList<>();
+    private boolean lastOrdersEnabled;
     private static final Component NO_SQUAD_HELP = Component.literal("Нет доступных волков: приручите волка костями, затем подойдите к нему на расстояние приказов.");
     private static final Component INACTIVE_PLAYER_HELP = Component.literal("Нельзя отдавать приказы отряду в режиме наблюдателя или после гибели.");
 
@@ -35,6 +37,8 @@ public final class ReputationArmyScreen extends Screen {
     }
 
     @Override protected void init() {
+        orderButtons.clear();
+        lastOrdersEnabled = canIssueOrders();
         int w = Math.max(24, Math.min(238, width - 16));
         int x = (width - w) / 2;
         int y = panelTop();
@@ -46,39 +50,64 @@ public final class ReputationArmyScreen extends Screen {
         follow.setTooltip(Tooltip.create(Component.literal("Волки следуют за вами и выходят из режима охраны.")));
         if (!canIssueOrders()) follow.setTooltip(Tooltip.create(unavailableHelp()));
         follow.active = canIssueOrders();
-        addRenderableWidget(follow);
+        orderButtons.add(addRenderableWidget(follow));
         Button guard = Button.builder(commandLabel(2, "Охранять позицию", w - 16), b -> issue(1))
             .bounds(x + 8, firstButtonY + buttonHeight + buttonGap, w - 16, buttonHeight).build();
         guard.setTooltip(Tooltip.create(Component.literal("Волки остаются охранять текущую позицию.")));
         if (!canIssueOrders()) guard.setTooltip(Tooltip.create(unavailableHelp()));
         guard.active = canIssueOrders();
-        addRenderableWidget(guard);
+        orderButtons.add(addRenderableWidget(guard));
         Button rally = Button.builder(commandLabel(3, "Собрать рядом", w - 16), b -> issue(2))
             .bounds(x + 8, firstButtonY + 2 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
         rally.setTooltip(Tooltip.create(Component.literal("Позвать принадлежащих вам волков к себе.")));
         if (!canIssueOrders()) rally.setTooltip(Tooltip.create(unavailableHelp()));
         rally.active = canIssueOrders();
-        addRenderableWidget(rally);
+        orderButtons.add(addRenderableWidget(rally));
         Button disengage = Button.builder(commandLabel(4, "Отступить ко мне", w - 16), b -> issue(3))
             .bounds(x + 8, firstButtonY + 3 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
         disengage.setTooltip(Tooltip.create(Component.literal("Волки прекращают бой, встают и возвращаются к вам. Близкие волки уже в безопасности.")));
         if (!canIssueOrders()) disengage.setTooltip(Tooltip.create(unavailableHelp()));
         disengage.active = canIssueOrders();
-        addRenderableWidget(disengage);
+        orderButtons.add(addRenderableWidget(disengage));
         Button attack = Button.builder(commandLabel(5, "Атаковать отмеченного монстра", w - 16), b -> issue(4))
             .bounds(x + 8, firstButtonY + 4 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
         attack.setTooltip(Tooltip.create(Component.literal("Ударьте монстра не более 10 секунд назад. Вы и волки должны видеть цель в радиусе 24 блоков.")));
         if (!canIssueOrders()) attack.setTooltip(Tooltip.create(unavailableHelp()));
         attack.active = canIssueOrders();
-        addRenderableWidget(attack);
+        orderButtons.add(addRenderableWidget(attack));
         Button waypoint = Button.builder(commandLabel(6, "К точке взгляда", w - 16), b -> issue(5))
             .bounds(x + 8, firstButtonY + 5 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
         waypoint.setTooltip(Tooltip.create(Component.literal("Наведите взгляд на блок не дальше 24 блоков. Волки попытаются добежать до этой точки.")));
         if (!canIssueOrders()) waypoint.setTooltip(Tooltip.create(unavailableHelp()));
         waypoint.active = canIssueOrders();
-        addRenderableWidget(waypoint);
+        orderButtons.add(addRenderableWidget(waypoint));
         addRenderableWidget(Button.builder(Component.literal("Закрыть"), b -> onClose())
             .bounds(x + 8, firstButtonY + 6 * (buttonHeight + buttonGap), w - 16, buttonHeight).build());
+    }
+
+    // Player state can change while this non-pausing screen is open (death, spectator
+    // switch). Refresh button availability instead of retaining the init-time snapshot.
+    private void refreshOrderAvailability() {
+        boolean enabled = canIssueOrders();
+        if (enabled == lastOrdersEnabled) return;
+        lastOrdersEnabled = enabled;
+        for (Button button : orderButtons) button.active = enabled;
+        if (!enabled) {
+            for (Button button : orderButtons) button.setTooltip(Tooltip.create(unavailableHelp()));
+        } else {
+            // Restore the individual command explanations when the player becomes active.
+            String[] hints = {
+                "Волки следуют за вами и выходят из режима охраны.",
+                "Волки остаются охранять текущую позицию.",
+                "Позвать принадлежащих вам волков к себе.",
+                "Волки прекращают бой, встают и возвращаются к вам. Близкие волки уже в безопасности.",
+                "Ударьте монстра не более 10 секунд назад. Вы и волки должны видеть цель в радиусе 24 блоков.",
+                "Наведите взгляд на блок не дальше 24 блоков. Волки попытаются добежать до этой точки."
+            };
+            for (int i = 0; i < orderButtons.size(); i++) {
+                orderButtons.get(i).setTooltip(Tooltip.create(Component.literal(hints[i])));
+            }
+        }
     }
 
     // Numbered actions make the keyboard shortcuts discoverable without a separate
@@ -123,6 +152,7 @@ public final class ReputationArmyScreen extends Screen {
     }
 
     @Override public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+        refreshOrderAvailability();
         // Keep the world fully visible behind squad commands; no fullscreen dim layer.
         int w = Math.max(24, Math.min(238, width - 16));
         int x = (width - w) / 2, y = panelTop();
