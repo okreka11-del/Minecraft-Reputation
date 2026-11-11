@@ -206,6 +206,13 @@ public final class ReputationNetwork {
                             || level.getBlockState(waypoint).is(net.minecraft.world.level.block.Blocks.FIRE)
                             || level.getBlockState(waypoint).is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
                             || level.getBlockState(waypoint).is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                            // Thin damaging blocks may have empty collision shapes.
+                            // Keep pets out of thorny plants and freezing powder snow.
+                            || level.getBlockState(waypoint).is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
+                            || level.getBlockState(waypoint).is(net.minecraft.world.level.block.Blocks.CACTUS)
+                            || level.getBlockState(headroom).is(net.minecraft.world.level.block.Blocks.CACTUS)
+                            || level.getBlockState(waypoint).is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
+                            || level.getBlockState(headroom).is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
                             || !level.getBlockState(ground).isFaceSturdy(level, ground, net.minecraft.core.Direction.UP)) {
                         player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                             "Небезопасная точка: выберите свободное место на твёрдой поверхности."), true);
