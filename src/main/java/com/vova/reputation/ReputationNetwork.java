@@ -343,6 +343,12 @@ public final class ReputationNetwork {
                         wolf.setOrderedToSit(false);
                         if (alreadyGathered || wolf.getNavigation().moveTo(rallyPath, 1.2D)) changed++;
                     } else if (payload.order() == 1) {
+                        // Sitting disables escape navigation. Never order a wolf to
+                        // stay in water, lava, fire, or mid-air where it could drown,
+                        // burn, or fall before it can move again. Other wolves may
+                        // still accept the order independently.
+                        if (!wolf.onGround() || wolf.isInWater() || wolf.isInLava()
+                                || wolf.isOnFire()) continue;
                         // Guard means hold this spot now, even if the wolf was chasing
                         // a target or navigating to a previous rally destination.
                         wolf.setTarget(null);
@@ -367,6 +373,9 @@ public final class ReputationNetwork {
                 if (payload.order() == 5 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                         "Ни один волк не может дойти до точки в радиусе 24 блоков от него."), true);
+                } else if (payload.order() == 1 && changed == 0) {
+                    player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                        "Охрана не назначена: волки в воде, огне, лаве или не стоят на земле."), true);
                 } else if (payload.order() == 2 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                         "Сбор не удался: волки не могут проложить путь к вам. Подойдите ближе или уберите препятствия."), true);
