@@ -256,6 +256,18 @@ public final class ReputationNetwork {
                                 || level.getFluidState(headNeighbor).is(net.minecraft.tags.FluidTags.LAVA)
                                 // Powder snow traps ground-based pets; wither roses
                                 // damage them even when their collision is empty.
+                                // Berry bushes and lit campfires can also hurt wolves
+                                // when they brush against the neighboring block.
+                                || feetState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                                || headState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                                || feetState.is(net.minecraft.world.level.block.Blocks.CAMPFIRE)
+                                        && feetState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
+                                || headState.is(net.minecraft.world.level.block.Blocks.CAMPFIRE)
+                                        && headState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
+                                || feetState.is(net.minecraft.world.level.block.Blocks.SOUL_CAMPFIRE)
+                                        && feetState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
+                                || headState.is(net.minecraft.world.level.block.Blocks.SOUL_CAMPFIRE)
+                                        && headState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
                                 || feetState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
                                 || headState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
                                 || feetState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
@@ -266,7 +278,7 @@ public final class ReputationNetwork {
                     }
                     if (touchesHazard) {
                         player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                            "Небезопасная точка: рядом огонь, лава, колючие растения, рыхлый снег или не загружена местность."), true);
+                            "Небезопасная точка: рядом огонь, костёр, лава, опасные растения, рыхлый снег или не загружена местность."), true);
                         return;
                     }
                 }
