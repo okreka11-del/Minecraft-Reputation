@@ -250,26 +250,28 @@ public final class ReputationNetwork {
                     } else if (payload.order() == 3) {
                         // Retreat must actually withdraw from combat, not just clear a target.
                         // Resume movement even if this wolf was previously guarding.
+                        // Do not cancel an existing guard or combat order when a
+                        // retreat route cannot be found (e.g. behind a closed door).
+                        boolean alreadySafe = wolf.distanceToSqr(player) <= 3.0D * 3.0D;
+                        var retreatPath = alreadySafe ? null : wolf.getNavigation().createPath(player, 0);
+                        if (!alreadySafe && (retreatPath == null || !retreatPath.canReach())) continue;
                         wolf.setTarget(null);
                         wolf.setLastHurtByMob(null);
                         wolf.getNavigation().stop();
                         wolf.setOrderedToSit(false);
-                        // Count wolves already safe beside the owner as withdrawn.
-                        // Otherwise only count wolves for which a retreat route was found.
-                        if (wolf.distanceToSqr(player) <= 3.0D * 3.0D
-                                || wolf.getNavigation().moveTo(player, 1.35D)) changed++;
+                        if (alreadySafe || wolf.getNavigation().moveTo(retreatPath, 1.35D)) changed++;
                     } else if (payload.order() == 2) {
                         // Rally nearby owned wolves without teleporting or changing their owner.
-                        wolf.setOrderedToSit(false);
-                        // A rally is a disengage order, not just a new path request:
-                        // clear combat targets so the wolf does not immediately resume attacking.
+                        // Keep the existing stance if rally is impossible. An
+                        // unreachable player should not accidentally release a guard.
+                        boolean alreadyGathered = wolf.distanceToSqr(player) <= 3.0D * 3.0D;
+                        var rallyPath = alreadyGathered ? null : wolf.getNavigation().createPath(player, 0);
+                        if (!alreadyGathered && (rallyPath == null || !rallyPath.canReach())) continue;
                         wolf.setTarget(null);
                         wolf.setLastHurtByMob(null);
                         wolf.getNavigation().stop();
-                        // Wolves already within regrouping distance have completed the order.
-                        // Avoid repeatedly pathing into the owner and falsely reporting 0.
-                        if (wolf.distanceToSqr(player) <= 3.0D * 3.0D
-                                || wolf.getNavigation().moveTo(player, 1.2D)) changed++;
+                        wolf.setOrderedToSit(false);
+                        if (alreadyGathered || wolf.getNavigation().moveTo(rallyPath, 1.2D)) changed++;
                     } else if (payload.order() == 1) {
                         // Guard means hold this spot now, even if the wolf was chasing
                         // a target or navigating to a previous rally destination.
