@@ -265,5 +265,17 @@ public final class ReputationArmyScreen extends Screen {
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
+    // Right-click dismisses the tactical overlay without issuing an order.
+    // This is especially useful when the player spots a threat behind the
+    // blur-free panel and needs to return to normal camera control quickly.
+    // Only left-click may activate an order button.
+    @Override public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+            onClose();
+            return true;
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
     @Override public boolean isPauseScreen() { return false; }
 }
