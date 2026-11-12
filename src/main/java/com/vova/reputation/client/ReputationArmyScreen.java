@@ -133,20 +133,20 @@ public final class ReputationArmyScreen extends Screen {
     }
 
     // Fit all six commands into short GUI-scaled windows without fractional font scaling.
-    private int headerHeight() { return height < 105 ? 16 : height < 120 ? 26 : height < 165 ? 37 : 48; }
+    private int headerHeight() { return height < 105 ? 12 : height < 120 ? 26 : height < 165 ? 37 : 48; }
     private int commandButtonGap() { return height < 240 ? (height < 165 ? 1 : 2) : 6; }
     private int commandButtonHeight() {
         // Reserve room for all six orders, Close and the frame at medium GUI heights.
         // Fixed 20px buttons previously pushed Close off-screen at heights 165-235.
         int space = height - 12 - headerHeight() - 6 * commandButtonGap();
-        return Math.max(7, Math.min(20, space / 7));
+        return Math.max(4, Math.min(20, space / 7));
     }
 
     private int panelTop() {
         int buttonHeight = commandButtonHeight();
         int buttonGap = commandButtonGap();
         int contentHeight = headerHeight() + 7 * buttonHeight + 6 * buttonGap + 8;
-        return Math.max(4, (height - contentHeight) / 2);
+        return Math.max(1, (height - contentHeight) / 2);
     }
 
     private void issue(int order) {
@@ -192,7 +192,7 @@ public final class ReputationArmyScreen extends Screen {
                 ? (available == 0 ? "Нет отряда" : "Отряд: " + available)
                 : title.getString();
         String heading = font.plainSubstrByWidth(headingText, Math.max(1, w - 16));
-        g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + (height < 105 ? 3 : 8), 0xFF45301B, false);
+        g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + (height < 105 ? 1 : 8), 0xFF45301B, false);
         String count = playerInactive ? "Приказы временно недоступны"
             : available == 0 ? "Приручите волка и подойдите ближе" : "Ваши волки рядом: " + available;
         if (height >= 165) {
