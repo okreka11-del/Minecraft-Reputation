@@ -17,6 +17,7 @@ public final class ReputationArmyScreen extends Screen {
     private final int available;
     private final java.util.List<Button> orderButtons = new java.util.ArrayList<>();
     private Button closeButton;
+    private double pendingWheelScroll;
     private boolean lastOrdersEnabled;
     private String lastUnavailableReason = "";
     private static final Component NO_SQUAD_HELP = Component.literal("Нет доступных волков: приручите волка костями, затем подойдите к нему на расстояние приказов.");
@@ -40,6 +41,7 @@ public final class ReputationArmyScreen extends Screen {
 
     @Override protected void init() {
         orderButtons.clear();
+        pendingWheelScroll = 0;
         closeButton = null;
         lastOrdersEnabled = canIssueOrders();
         lastUnavailableReason = unavailableHelp().getString();
@@ -281,7 +283,14 @@ public final class ReputationArmyScreen extends Screen {
     // sending any order. This allows quick one-handed selection while preserving
     // Enter/Space activation and the existing numbered shortcuts.
     @Override public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (scrollY == 0) return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        if (scrollY == 0 || !Double.isFinite(scrollY)) return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        // Trackpads send fractional deltas. Accumulate them so a tiny gesture
+        // does not skip an entire command, while preserving fast wheel input.
+        if (pendingWheelScroll != 0 && Math.signum(pendingWheelScroll) != Math.signum(scrollY)) pendingWheelScroll = 0;
+        pendingWheelScroll += scrollY;
+        if (Math.abs(pendingWheelScroll) < 1.0) return true;
+        int wholeSteps = (int) Math.min(1000, Math.floor(Math.abs(pendingWheelScroll)));
+        pendingWheelScroll -= Math.copySign(wholeSteps, pendingWheelScroll);
         java.util.List<Button> selectable = new java.util.ArrayList<>();
         for (Button button : orderButtons) if (button.active) selectable.add(button);
         if (closeButton != null && closeButton.active) selectable.add(closeButton);
@@ -291,7 +300,7 @@ public final class ReputationArmyScreen extends Screen {
         // rather than silently dropping fast wheel/trackpad input; cap the
         // number of steps to keep unusually large deltas predictable.
         int direction = scrollY > 0 ? -1 : 1;
-        int steps = Math.min(selectable.size(), Math.max(1, (int) Math.floor(Math.abs(scrollY))));
+        int steps = wholeSteps % selectable.size();
         int start = current < 0 ? (direction > 0 ? -1 : 0) : current;
         int next = Math.floorMod(start + direction * steps, selectable.size());
         setFocused(selectable.get(next));
