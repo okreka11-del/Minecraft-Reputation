@@ -366,7 +366,17 @@ public final class ReputationNetwork {
                                 || !guardLevel.getBlockState(guardGround).isFaceSturdy(
                                     guardLevel, guardGround, net.minecraft.core.Direction.UP)) continue;
                         var guardFeetState = guardLevel.getBlockState(guardFeet);
+                        var guardHead = guardFeet.above();
+                        var guardHeadState = guardLevel.getBlockState(guardHead);
                         var guardGroundState = guardLevel.getBlockState(guardGround);
+                        // A solid support is not enough: a wolf may be standing in a
+                        // narrow opening, flowing liquid or a newly placed block.
+                        // Never immobilize it where it could suffocate or drown.
+                        if (!guardFeetState.getCollisionShape(guardLevel, guardFeet).isEmpty()
+                                || !guardHeadState.getCollisionShape(guardLevel, guardHead).isEmpty()
+                                || !guardLevel.getFluidState(guardFeet).isEmpty()
+                                || !guardLevel.getFluidState(guardHead).isEmpty()
+                                || !guardLevel.getFluidState(guardGround).isEmpty()) continue;
                         if (guardGroundState.is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)
                                 || guardGroundState.is(net.minecraft.world.level.block.Blocks.CAMPFIRE)
                                         && guardGroundState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
@@ -399,8 +409,6 @@ public final class ReputationNetwork {
                         if (adjacentCactus) continue;
                         // A wolf can also be hurt by hazards at head height or by
                         // touching lava/fire beside its body. Check before immobilizing.
-                        var guardHead = guardFeet.above();
-                        var guardHeadState = guardLevel.getBlockState(guardHead);
                         if (guardHeadState.is(net.minecraft.world.level.block.Blocks.FIRE)
                                 || guardHeadState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
                                 || guardHeadState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
