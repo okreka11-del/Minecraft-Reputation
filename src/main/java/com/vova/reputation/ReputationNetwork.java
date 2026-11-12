@@ -360,11 +360,15 @@ public final class ReputationNetwork {
                         boolean alreadyGathered = wolf.distanceToSqr(player) <= 3.0D * 3.0D;
                         var rallyPath = alreadyGathered ? null : wolf.getNavigation().createPath(player, 0);
                         if (!alreadyGathered && (rallyPath == null || !rallyPath.canReach())) continue;
+                        // Start a viable rally route before discarding an active guard
+                        // or attack task. A reachable path may still be rejected by
+                        // navigation; in that case preserve the wolf's old orders.
+                        if (!alreadyGathered && !wolf.getNavigation().moveTo(rallyPath, 1.2D)) continue;
                         wolf.setTarget(null);
                         wolf.setLastHurtByMob(null);
-                        wolf.getNavigation().stop();
                         wolf.setOrderedToSit(false);
-                        if (alreadyGathered || wolf.getNavigation().moveTo(rallyPath, 1.2D)) changed++;
+                        if (alreadyGathered) wolf.getNavigation().stop();
+                        changed++;
                     } else if (payload.order() == 1) {
                         // Sitting disables escape navigation. Never order a wolf to
                         // stay in water, lava, fire, or mid-air where it could drown,
