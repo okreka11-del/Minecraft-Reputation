@@ -424,7 +424,23 @@ public final class ReputationNetwork {
                                     || feetState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
                                     || headState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
                                     || guardLevel.getFluidState(beside).is(net.minecraft.tags.FluidTags.LAVA)
-                                    || guardLevel.getFluidState(beside.above()).is(net.minecraft.tags.FluidTags.LAVA)) {
+                                    || guardLevel.getFluidState(beside.above()).is(net.minecraft.tags.FluidTags.LAVA)
+                                    // Non-solid plants and snow can hurt or trap a seated wolf.
+                                    || feetState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                                    || headState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                                    || feetState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
+                                    || headState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
+                                    || feetState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
+                                    || headState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
+                                    // Lit campfires are damaging even with a safe floor.
+                                    || feetState.is(net.minecraft.world.level.block.Blocks.CAMPFIRE)
+                                        && feetState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
+                                    || headState.is(net.minecraft.world.level.block.Blocks.CAMPFIRE)
+                                        && headState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
+                                    || feetState.is(net.minecraft.world.level.block.Blocks.SOUL_CAMPFIRE)
+                                        && feetState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
+                                    || headState.is(net.minecraft.world.level.block.Blocks.SOUL_CAMPFIRE)
+                                        && headState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)) {
                                 adjacentDanger = true;
                                 break;
                             }
