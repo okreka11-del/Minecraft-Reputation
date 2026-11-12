@@ -134,7 +134,15 @@ public final class ReputationArmyScreen extends Screen {
     // tooltip. Fit labels into narrow GUI-scaled windows at native pixel resolution.
     private Component commandLabel(int shortcut, String name, int buttonWidth) {
         String prefix = shortcut + " · ";
-        int textWidth = Math.max(1, buttonWidth - 12 - font.width(prefix));
+        int availableWidth = Math.max(0, buttonWidth - 12);
+        // At extreme GUI scales the numeric prefix itself can exceed the button.
+        // Show only the shortcut (or no glyph if even that cannot fit) rather than
+        // allowing the label to bleed into adjacent controls or outside the panel.
+        if (font.width(prefix) > availableWidth) {
+            String digit = Integer.toString(shortcut);
+            return Component.literal(font.width(digit) <= availableWidth ? digit : "");
+        }
+        int textWidth = availableWidth - font.width(prefix);
         // Reserve the ellipsis inside the available width so long order names do not
         // silently appear complete at large GUI scales or narrow windows.
         if (font.width(name) <= textWidth) return Component.literal(prefix + name);
