@@ -277,5 +277,22 @@ public final class ReputationArmyScreen extends Screen {
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
+    // Mouse wheel moves keyboard focus through the tactical commands without
+    // sending any order. This allows quick one-handed selection while preserving
+    // Enter/Space activation and the existing numbered shortcuts.
+    @Override public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (scrollY == 0) return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        java.util.List<Button> selectable = new java.util.ArrayList<>();
+        for (Button button : orderButtons) if (button.active) selectable.add(button);
+        if (closeButton != null && closeButton.active) selectable.add(closeButton);
+        if (selectable.isEmpty()) return true;
+        int current = selectable.indexOf(getFocused());
+        int direction = scrollY > 0 ? -1 : 1;
+        int next = current < 0 ? (direction > 0 ? 0 : selectable.size() - 1)
+            : Math.floorMod(current + direction, selectable.size());
+        setFocused(selectable.get(next));
+        return true;
+    }
+
     @Override public boolean isPauseScreen() { return false; }
 }
