@@ -196,6 +196,7 @@ public final class ReputationNetwork {
                     // Reject liquid destinations as well: empty collision alone does
                     // not mean a safe place for a ground-based squad to assemble.
                     if (!level.getWorldBorder().isWithinBounds(waypoint)
+                            || !level.getWorldBorder().isWithinBounds(ground)
                             || !level.getWorldBorder().isWithinBounds(headroom)
                             || !level.hasChunkAt(waypoint)
                             || !level.hasChunkAt(ground)
@@ -363,6 +364,8 @@ public final class ReputationNetwork {
                                 || !guardLevel.hasChunkAt(guardGround)
                                 || !guardLevel.hasChunkAt(guardFeet.above())
                                 || !guardLevel.getWorldBorder().isWithinBounds(guardFeet)
+                                || !guardLevel.getWorldBorder().isWithinBounds(guardGround)
+                                || !guardLevel.getWorldBorder().isWithinBounds(guardFeet.above())
                                 || !guardLevel.getBlockState(guardGround).isFaceSturdy(
                                     guardLevel, guardGround, net.minecraft.core.Direction.UP)) continue;
                         var guardFeetState = guardLevel.getBlockState(guardFeet);
