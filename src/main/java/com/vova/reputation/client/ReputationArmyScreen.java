@@ -287,9 +287,13 @@ public final class ReputationArmyScreen extends Screen {
         if (closeButton != null && closeButton.active) selectable.add(closeButton);
         if (selectable.isEmpty()) return true;
         int current = selectable.indexOf(getFocused());
+        // A single event may contain several wheel notches. Honour each notch
+        // rather than silently dropping fast wheel/trackpad input; cap the
+        // number of steps to keep unusually large deltas predictable.
         int direction = scrollY > 0 ? -1 : 1;
-        int next = current < 0 ? (direction > 0 ? 0 : selectable.size() - 1)
-            : Math.floorMod(current + direction, selectable.size());
+        int steps = Math.min(selectable.size(), Math.max(1, (int) Math.floor(Math.abs(scrollY))));
+        int start = current < 0 ? (direction > 0 ? -1 : 0) : current;
+        int next = Math.floorMod(start + direction * steps, selectable.size());
         setFocused(selectable.get(next));
         return true;
     }
