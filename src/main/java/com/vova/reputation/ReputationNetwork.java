@@ -239,7 +239,9 @@ public final class ReputationNetwork {
                     for (var direction : net.minecraft.core.Direction.Plane.HORIZONTAL) {
                         var feetNeighbor = waypoint.relative(direction);
                         var headNeighbor = headroom.relative(direction);
-                        if (!level.hasChunkAt(feetNeighbor) || !level.hasChunkAt(headNeighbor)) {
+                        if (!level.hasChunkAt(feetNeighbor) || !level.hasChunkAt(headNeighbor)
+                                || !level.getWorldBorder().isWithinBounds(feetNeighbor)
+                                || !level.getWorldBorder().isWithinBounds(headNeighbor)) {
                             touchesHazard = true;
                             break;
                         }
@@ -399,7 +401,9 @@ public final class ReputationNetwork {
                             // Do not force-load neighboring chunks just to evaluate a guard
                             // position at a chunk border. An unknown side is not safe.
                             if (!guardLevel.hasChunkAt(beside)
-                                    || !guardLevel.hasChunkAt(beside.above())) {
+                                    || !guardLevel.hasChunkAt(beside.above())
+                                    || !guardLevel.getWorldBorder().isWithinBounds(beside)
+                                    || !guardLevel.getWorldBorder().isWithinBounds(beside.above())) {
                                 adjacentCactus = true;
                                 break;
                             }
