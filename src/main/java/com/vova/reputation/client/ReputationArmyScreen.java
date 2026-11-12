@@ -83,8 +83,11 @@ public final class ReputationArmyScreen extends Screen {
         if (!canIssueOrders()) waypoint.setTooltip(Tooltip.create(unavailableHelp()));
         waypoint.active = canIssueOrders();
         orderButtons.add(addRenderableWidget(waypoint));
-        addRenderableWidget(Button.builder(commandLabel(7, "Закрыть", w - 16), b -> onClose())
+        Button close = addRenderableWidget(Button.builder(commandLabel(7, "Закрыть", w - 16), b -> onClose())
             .bounds(x + 8, firstButtonY + 6 * (buttonHeight + buttonGap), w - 16, buttonHeight).build());
+        // Keyboard/controller navigation should start on an actionable control.
+        // When the squad is unavailable, focus Close instead of a disabled order.
+        setInitialFocus(canIssueOrders() ? follow : close);
     }
 
     // Player state can change while this non-pausing screen is open (death, spectator
