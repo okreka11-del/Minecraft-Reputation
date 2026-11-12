@@ -299,6 +299,12 @@ public final class ReputationNetwork {
                         // permits a wolf on the opposite edge to chase 48 blocks.
                         if (wolf.distanceToSqr(attackTarget) > 24.0D * 24.0D
                                 || !wolf.hasLineOfSight(attackTarget)) continue;
+                        // Do not cancel an existing guard or follow order if this
+                        // wolf has no traversable route to the marked monster.
+                        // Check from the wolf's server-side position before mutating
+                        // its combat stance; the owner's line of sight is not enough.
+                        var attackPath = wolf.getNavigation().createPath(attackTarget, 0);
+                        if (attackPath == null || !attackPath.canReach()) continue;
                         wolf.setOrderedToSit(false);
                         wolf.setLastHurtByMob(null);
                         wolf.getNavigation().stop();
