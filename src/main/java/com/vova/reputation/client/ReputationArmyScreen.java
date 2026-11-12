@@ -200,7 +200,10 @@ public final class ReputationArmyScreen extends Screen {
         }
         // Only taller GUI heights have room for the optional range hint.
         // Omit this optional hint rather than drawing text over a clickable command.
-        if (height >= 165) {
+        // The compact 37px header (GUI heights 165-239) has no room for a
+        // third text row: its 9px glyphs would overlap the first order button.
+        // Reserve the range hint for the 48px header on taller windows.
+        if (height >= 240) {
             String range = "1–7 / Num 1–7 · Радиус 24 блока";
             g.drawString(font, font.plainSubstrByWidth(range, w - 16), x + 8, y + 35, 0xFF705438, false);
         }
