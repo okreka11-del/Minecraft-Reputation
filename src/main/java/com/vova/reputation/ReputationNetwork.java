@@ -383,6 +383,13 @@ public final class ReputationNetwork {
                         boolean adjacentCactus = false;
                         for (var direction : net.minecraft.core.Direction.Plane.HORIZONTAL) {
                             var beside = guardFeet.relative(direction);
+                            // Do not force-load neighboring chunks just to evaluate a guard
+                            // position at a chunk border. An unknown side is not safe.
+                            if (!guardLevel.hasChunkAt(beside)
+                                    || !guardLevel.hasChunkAt(beside.above())) {
+                                adjacentCactus = true;
+                                break;
+                            }
                             if (guardLevel.getBlockState(beside).is(net.minecraft.world.level.block.Blocks.CACTUS)
                                     || guardLevel.getBlockState(beside.above()).is(net.minecraft.world.level.block.Blocks.CACTUS)) {
                                 adjacentCactus = true;
