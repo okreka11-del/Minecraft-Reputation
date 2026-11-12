@@ -54,17 +54,21 @@ public final class ReputationKeys {
                 } else lastShiftTap = now;
             }
             shiftWasDown = shiftDown;
-            while (ARMY.consumeClick()) {
-                if (mc.player != null && mc.screen == null)
-                    PacketDistributor.sendToServer(new ReputationNetwork.ArmyRequest());
-            }
-            while (VILLAGE.consumeClick()) {
-                if (mc.player != null && mc.screen == null)
-                    PacketDistributor.sendToServer(new ReputationNetwork.VillageRequest());
-            }
-            while (JOURNAL.consumeClick()) {
-                if (mc.player != null && mc.screen == null)
-                    PacketDistributor.sendToServer(new ReputationNetwork.JournalRequest());
+            // Drain every queued press, but send at most one screen request per tick.
+            // A burst of queued G presses previously sent several ArmyRequests before
+            // the server could open the panel, causing duplicate responses/screens.
+            boolean armyPressed = false;
+            while (ARMY.consumeClick()) armyPressed = true;
+            boolean villagePressed = false;
+            while (VILLAGE.consumeClick()) villagePressed = true;
+            boolean journalPressed = false;
+            while (JOURNAL.consumeClick()) journalPressed = true;
+            if (mc.player != null && mc.screen == null) {
+                // One panel at a time: army takes priority over village and journal.
+                // Prevent simultaneous bound keys from racing to replace the GUI.
+                if (armyPressed) PacketDistributor.sendToServer(new ReputationNetwork.ArmyRequest());
+                else if (villagePressed) PacketDistributor.sendToServer(new ReputationNetwork.VillageRequest());
+                else if (journalPressed) PacketDistributor.sendToServer(new ReputationNetwork.JournalRequest());
             }
         }
     }
