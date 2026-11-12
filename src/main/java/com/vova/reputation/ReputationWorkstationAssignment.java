@@ -115,6 +115,8 @@ public final class ReputationWorkstationAssignment {
         return entities.stream()
             .filter(Entity::isAlive)
             .filter(entity -> entity.getPersistentData().getString("ReputationProfession").isEmpty())
+            // Preserve guard/builder/armorer assignments made by /specialist.
+            .filter(entity -> entity.getPersistentData().getString("ReputationSpecialist").isEmpty())
             .min((a, b) -> Double.compare(a.distanceToSqr(position.getX() + 0.5,
                 position.getY() + 0.5, position.getZ() + 0.5),
                 b.distanceToSqr(position.getX() + 0.5, position.getY() + 0.5, position.getZ() + 0.5)))
