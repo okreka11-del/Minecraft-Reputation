@@ -303,8 +303,12 @@ public final class ReputationNetwork {
                         // wolf has no traversable route to the marked monster.
                         // Check from the wolf's server-side position before mutating
                         // its combat stance; the owner's line of sight is not enough.
-                        var attackPath = wolf.getNavigation().createPath(attackTarget, 0);
-                        if (attackPath == null || !attackPath.canReach()) continue;
+                        // A wolf already within melee reach needs no navigation path.
+                        // Pathfinding can return null for a target standing beside it;
+                        // that must not discard an otherwise valid attack command.
+                        boolean inMeleeRange = wolf.distanceToSqr(attackTarget) <= 2.5D * 2.5D;
+                        var attackPath = inMeleeRange ? null : wolf.getNavigation().createPath(attackTarget, 0);
+                        if (!inMeleeRange && (attackPath == null || !attackPath.canReach())) continue;
                         wolf.setOrderedToSit(false);
                         wolf.setLastHurtByMob(null);
                         wolf.getNavigation().stop();
