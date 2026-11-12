@@ -329,11 +329,14 @@ public final class ReputationNetwork {
                                 waypoint.getZ() + 0.5D) <= 1.5D * 1.5D;
                         var path = alreadyAtWaypoint ? null : wolf.getNavigation().createPath(waypoint, 0);
                         if (!alreadyAtWaypoint && (path == null || !path.canReach())) continue;
+                        // Start the new route before discarding the old combat/guard
+                        // state. A path may be valid but navigation can still reject it.
+                        if (!alreadyAtWaypoint && !wolf.getNavigation().moveTo(path, 1.2D)) continue;
                         wolf.setTarget(null);
                         wolf.setLastHurtByMob(null);
-                        wolf.getNavigation().stop();
                         wolf.setOrderedToSit(false);
-                        if (alreadyAtWaypoint || wolf.getNavigation().moveTo(path, 1.2D)) changed++;
+                        if (alreadyAtWaypoint) wolf.getNavigation().stop();
+                        changed++;
                     } else if (payload.order() == 3) {
                         // Retreat must actually withdraw from combat, not just clear a target.
                         // Resume movement even if this wolf was previously guarding.
@@ -342,11 +345,14 @@ public final class ReputationNetwork {
                         boolean alreadySafe = wolf.distanceToSqr(player) <= 3.0D * 3.0D;
                         var retreatPath = alreadySafe ? null : wolf.getNavigation().createPath(player, 0);
                         if (!alreadySafe && (retreatPath == null || !retreatPath.canReach())) continue;
+                        // Navigation can reject a route even after createPath reports
+                        // reachability. Preserve the previous task on that failure.
+                        if (!alreadySafe && !wolf.getNavigation().moveTo(retreatPath, 1.35D)) continue;
                         wolf.setTarget(null);
                         wolf.setLastHurtByMob(null);
-                        wolf.getNavigation().stop();
                         wolf.setOrderedToSit(false);
-                        if (alreadySafe || wolf.getNavigation().moveTo(retreatPath, 1.35D)) changed++;
+                        if (alreadySafe) wolf.getNavigation().stop();
+                        changed++;
                     } else if (payload.order() == 2) {
                         // Rally nearby owned wolves without teleporting or changing their owner.
                         // Keep the existing stance if rally is impossible. An
