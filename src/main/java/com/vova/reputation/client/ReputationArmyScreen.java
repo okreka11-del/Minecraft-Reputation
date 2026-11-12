@@ -241,6 +241,17 @@ public final class ReputationArmyScreen extends Screen {
         } else if (keyCode >= GLFW.GLFW_KEY_KP_1 && keyCode <= GLFW.GLFW_KEY_KP_7) {
             order = keyCode - GLFW.GLFW_KEY_KP_1;
         }
+        // Home/End jump to the first/last available control without sending an
+        // order. Keep Close reachable when the player dies or has no squad.
+        if (keyCode == GLFW.GLFW_KEY_HOME || keyCode == GLFW.GLFW_KEY_END) {
+            java.util.List<Button> selectable = new java.util.ArrayList<>();
+            for (Button button : orderButtons) if (button.active) selectable.add(button);
+            if (closeButton != null && closeButton.active) selectable.add(closeButton);
+            if (!selectable.isEmpty()) {
+                setFocused(selectable.get(keyCode == GLFW.GLFW_KEY_HOME ? 0 : selectable.size() - 1));
+            }
+            return true;
+        }
         // Use the configured army keybind (including remapped keys) to close the panel.
         if (ReputationKeys.ARMY.matches(keyCode, scanCode)) {
             onClose();
