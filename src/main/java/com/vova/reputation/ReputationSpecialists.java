@@ -45,7 +45,12 @@ public final class ReputationSpecialists {
         List<? extends Entity> candidates = illager
             ? player.serverLevel().getEntitiesOfClass(Pillager.class, player.getBoundingBox().inflate(6))
             : player.serverLevel().getEntitiesOfClass(Villager.class, player.getBoundingBox().inflate(6));
-        Entity nearest = candidates.stream().min((a,b) -> Double.compare(a.distanceToSqr(player), b.distanceToSqr(player)))
+        // Do not overwrite an existing specialist or workstation profession when assigning a role.
+        Entity nearest = candidates.stream()
+            .filter(Entity::isAlive)
+            .filter(npc -> npc.getPersistentData().getString(ROLE).isEmpty())
+            .filter(npc -> npc.getPersistentData().getString("ReputationProfession").isEmpty())
+            .min((a,b) -> Double.compare(a.distanceToSqr(player), b.distanceToSqr(player)))
             .orElse(null);
         if (nearest == null) {
             player.sendSystemMessage(Component.literal("No suitable NPC within 6 blocks."));
