@@ -252,6 +252,22 @@ public final class ReputationArmyScreen extends Screen {
             }
             return true;
         }
+        // Page Up / Page Down jump three available controls at a time, wrapping
+        // through Close. This keeps long tactical menus usable on compact screens
+        // without activating a command or sending a network packet.
+        if (keyCode == GLFW.GLFW_KEY_PAGE_UP || keyCode == GLFW.GLFW_KEY_PAGE_DOWN) {
+            java.util.List<Button> selectable = new java.util.ArrayList<>();
+            for (Button button : orderButtons) if (button.active) selectable.add(button);
+            if (closeButton != null && closeButton.active) selectable.add(closeButton);
+            if (!selectable.isEmpty()) {
+                int current = selectable.indexOf(getFocused());
+                int direction = keyCode == GLFW.GLFW_KEY_PAGE_DOWN ? 1 : -1;
+                int start = current < 0 ? (direction > 0 ? -1 : 0) : current;
+                int next = Math.floorMod(start + direction * Math.min(3, selectable.size()), selectable.size());
+                setFocused(selectable.get(next));
+            }
+            return true;
+        }
         // Use the configured army keybind (including remapped keys) to close the panel.
         if (ReputationKeys.ARMY.matches(keyCode, scanCode)) {
             onClose();
