@@ -16,6 +16,7 @@ import org.lwjgl.glfw.GLFW;
 public final class ReputationArmyScreen extends Screen {
     private final int available;
     private final java.util.List<Button> orderButtons = new java.util.ArrayList<>();
+    private Button closeButton;
     private boolean lastOrdersEnabled;
     private String lastUnavailableReason = "";
     private static final Component NO_SQUAD_HELP = Component.literal("Нет доступных волков: приручите волка костями, затем подойдите к нему на расстояние приказов.");
@@ -39,6 +40,7 @@ public final class ReputationArmyScreen extends Screen {
 
     @Override protected void init() {
         orderButtons.clear();
+        closeButton = null;
         lastOrdersEnabled = canIssueOrders();
         lastUnavailableReason = unavailableHelp().getString();
         int w = Math.max(24, Math.min(238, width - 16));
@@ -83,11 +85,11 @@ public final class ReputationArmyScreen extends Screen {
         if (!canIssueOrders()) waypoint.setTooltip(Tooltip.create(unavailableHelp()));
         waypoint.active = canIssueOrders();
         orderButtons.add(addRenderableWidget(waypoint));
-        Button close = addRenderableWidget(Button.builder(commandLabel(7, "Закрыть", w - 16), b -> onClose())
+        closeButton = addRenderableWidget(Button.builder(commandLabel(7, "Закрыть", w - 16), b -> onClose())
             .bounds(x + 8, firstButtonY + 6 * (buttonHeight + buttonGap), w - 16, buttonHeight).build());
         // Keyboard/controller navigation should start on an actionable control.
         // When the squad is unavailable, focus Close instead of a disabled order.
-        setInitialFocus(canIssueOrders() ? follow : close);
+        setInitialFocus(canIssueOrders() ? follow : closeButton);
     }
 
     // Player state can change while this non-pausing screen is open (death, spectator
@@ -98,9 +100,16 @@ public final class ReputationArmyScreen extends Screen {
         // A disabled panel may change from no wolves to spectator/death without
         // ever becoming enabled. Refresh the explanation as well as the buttons.
         if (enabled == lastOrdersEnabled && reason.equals(lastUnavailableReason)) return;
+        boolean availabilityChanged = enabled != lastOrdersEnabled;
         lastOrdersEnabled = enabled;
         lastUnavailableReason = reason;
         for (Button button : orderButtons) button.active = enabled;
+        // Never leave keyboard/controller focus on a disabled order after death or
+        // a spectator switch. Restore the first command when control returns.
+        if (availabilityChanged) {
+            if (!enabled && closeButton != null) setFocused(closeButton);
+            else if (enabled && !orderButtons.isEmpty()) setFocused(orderButtons.get(0));
+        }
         if (!enabled) {
             for (Button button : orderButtons) button.setTooltip(Tooltip.create(unavailableHelp()));
         } else {
