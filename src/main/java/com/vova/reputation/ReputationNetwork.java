@@ -297,6 +297,11 @@ public final class ReputationNetwork {
                 }
                 int changed = 0;
                 for (var wolf : wolves) {
+                    // Movement and attack orders cannot override a physical leash or
+                    // a vehicle mount. Keep the wolf's current guard/combat state
+                    // instead of reporting a successful command it cannot obey.
+                    // Follow/guard remain available so owners can change stance.
+                    if (payload.order() >= 2 && (wolf.isLeashed() || wolf.isPassenger())) continue;
                     if (payload.order() == 4) {
                         // Do not dispatch a pet against a target it cannot reach from
                         // the squad's local area. The owner's 24-block check alone
