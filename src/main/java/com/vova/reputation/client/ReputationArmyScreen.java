@@ -255,6 +255,22 @@ public final class ReputationArmyScreen extends Screen {
         } else if (keyCode >= GLFW.GLFW_KEY_KP_1 && keyCode <= GLFW.GLFW_KEY_KP_7) {
             order = keyCode - GLFW.GLFW_KEY_KP_1;
         }
+        // Tab and Shift+Tab cycle through enabled commands and Close in a stable
+        // visual order. Never activate a command while navigating, and skip
+        // disabled orders when the player has no available squad.
+        if (keyCode == GLFW.GLFW_KEY_TAB) {
+            java.util.List<Button> selectable = new java.util.ArrayList<>();
+            for (Button button : orderButtons) if (button.active && button.visible) selectable.add(button);
+            if (closeButton != null && closeButton.active && closeButton.visible) selectable.add(closeButton);
+            if (!selectable.isEmpty()) {
+                int direction = (modifiers & GLFW.GLFW_MOD_SHIFT) != 0 ? -1 : 1;
+                int current = selectable.indexOf(getFocused());
+                int next = current < 0 ? (direction > 0 ? 0 : selectable.size() - 1)
+                    : Math.floorMod(current + direction, selectable.size());
+                setFocused(selectable.get(next));
+            }
+            return true;
+        }
         // Home/End jump to the first/last available control without sending an
         // order. Keep Close reachable when the player dies or has no squad.
         if (keyCode == GLFW.GLFW_KEY_HOME || keyCode == GLFW.GLFW_KEY_END) {
