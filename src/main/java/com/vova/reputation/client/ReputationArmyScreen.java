@@ -370,14 +370,17 @@ public final class ReputationArmyScreen extends Screen {
         // Opposite fractional gestures cancel one another instead of discarding
         // the earlier fraction. Otherwise a 0.6 up / 0.6 down gesture could
         // unexpectedly advance focus despite zero net scrolling.
-        pendingWheelScroll += delta;
+        // Bound each event BEFORE adding it to the accumulator. A finite but
+        // enormous trackpad delta could otherwise overflow the sum to Infinity,
+        // leaving the menu's wheel navigation permanently unresponsive.
+        double boundedDelta = Math.max(-3.0, Math.min(3.0, delta));
+        pendingWheelScroll += boundedDelta;
         if (Math.abs(pendingWheelScroll) < 1.0) return true;
-        // Extremely large or malformed trackpad bursts must not retain a huge
-        // backlog that keeps moving focus long after the gesture has ended.
-        pendingWheelScroll = Math.max(-1000.0, Math.min(1000.0, pendingWheelScroll));
         int direction = pendingWheelScroll > 0 ? -1 : 1;
         int wholeSteps = (int) Math.floor(Math.abs(pendingWheelScroll));
         pendingWheelScroll -= Math.copySign(wholeSteps, pendingWheelScroll);
+        // Limit a single gesture to three controls. Huge scroll bursts should
+        // not wrap all the way around and appear to have done nothing.
         java.util.List<Button> selectable = new java.util.ArrayList<>();
         for (Button button : orderButtons) if (button.active) selectable.add(button);
         if (closeButton != null && closeButton.active) selectable.add(closeButton);
@@ -386,7 +389,7 @@ public final class ReputationArmyScreen extends Screen {
         // A single event may contain several wheel notches. Honour each notch
         // rather than silently dropping fast wheel/trackpad input; cap the
         // number of steps to keep unusually large deltas predictable.
-        int steps = wholeSteps % selectable.size();
+        int steps = Math.min(3, wholeSteps);
         int start = current < 0 ? (direction > 0 ? -1 : 0) : current;
         int next = Math.floorMod(start + direction * steps, selectable.size());
         setFocused(selectable.get(next));
