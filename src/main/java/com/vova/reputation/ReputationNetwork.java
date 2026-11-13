@@ -173,6 +173,7 @@ public final class ReputationNetwork {
                             || candidate.level() != player.level()
                             // A previous hit is not a permanent attack marker. Require a
                             // recent strike and a visible target before issuing a squad attack.
+                            || player.getLastHurtMobTimestamp() > player.tickCount
                             || player.tickCount - player.getLastHurtMobTimestamp() > 200
                             || !player.hasLineOfSight(candidate)
                             || candidate.distanceToSqr(player) > 24.0D * 24.0D
