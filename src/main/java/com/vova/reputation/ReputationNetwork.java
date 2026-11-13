@@ -413,6 +413,10 @@ public final class ReputationNetwork {
                                         && guardGroundState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
                                 || guardGroundState.is(net.minecraft.world.level.block.Blocks.SOUL_CAMPFIRE)
                                         && guardGroundState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
+                                // Cactus can hurt a wolf standing inside its block even
+                                // without a neighboring cactus. Never freeze it there.
+                                || guardFeetState.is(net.minecraft.world.level.block.Blocks.CACTUS)
+                                || guardHeadState.is(net.minecraft.world.level.block.Blocks.CACTUS)
                                 || guardFeetState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
                                 || guardFeetState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
                                 || guardFeetState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
