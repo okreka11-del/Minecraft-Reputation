@@ -359,6 +359,21 @@ public final class ReputationArmyScreen extends Screen {
             onClose();
             return true;
         }
+        // A click on the visible world outside the tactical panel dismisses it
+        // without issuing an order. Keep clicks within the frame (including its
+        // border) for the actual buttons so compact GUI scales remain usable.
+        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+            int panelWidth = Math.max(24, Math.min(238, width - 16));
+            int panelX = (width - panelWidth) / 2;
+            int panelY = panelTop();
+            int panelBottom = Math.min(height - 2, panelY + headerHeight()
+                + 7 * commandButtonHeight() + 6 * commandButtonGap() + 8);
+            if (mouseX < panelX - 3 || mouseX >= panelX + panelWidth + 3
+                    || mouseY < panelY - 3 || mouseY >= panelBottom) {
+                onClose();
+                return true;
+            }
+        }
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
