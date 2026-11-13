@@ -271,6 +271,22 @@ public final class ReputationArmyScreen extends Screen {
             }
             return true;
         }
+        // Up/Down arrows navigate the tactical list without activating orders.
+        // This mirrors the mouse wheel and keeps the menu usable without a mouse.
+        // Disabled squad actions are skipped; Close remains keyboard-accessible.
+        if (keyCode == GLFW.GLFW_KEY_UP || keyCode == GLFW.GLFW_KEY_DOWN) {
+            java.util.List<Button> selectable = new java.util.ArrayList<>();
+            for (Button button : orderButtons) if (button.active && button.visible) selectable.add(button);
+            if (closeButton != null && closeButton.active && closeButton.visible) selectable.add(closeButton);
+            if (!selectable.isEmpty()) {
+                int direction = keyCode == GLFW.GLFW_KEY_DOWN ? 1 : -1;
+                int current = selectable.indexOf(getFocused());
+                int next = current < 0 ? (direction > 0 ? 0 : selectable.size() - 1)
+                    : Math.floorMod(current + direction, selectable.size());
+                setFocused(selectable.get(next));
+            }
+            return true;
+        }
         // Home/End jump to the first/last available control without sending an
         // order. Keep Close reachable when the player dies or has no squad.
         if (keyCode == GLFW.GLFW_KEY_HOME || keyCode == GLFW.GLFW_KEY_END) {
