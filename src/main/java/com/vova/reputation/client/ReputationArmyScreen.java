@@ -230,6 +230,20 @@ public final class ReputationArmyScreen extends Screen {
             g.drawString(font, font.plainSubstrByWidth(range, w - 16), x + 8, y + 35, 0xFF705438, false);
         }
         super.render(g, mouseX, mouseY, partialTick);
+        // Keyboard and wheel navigation must have an unmistakable selection cue.
+        // Draw a crisp one-pixel outline outside the focused button, without
+        // scaling fonts, adding blur or covering the button's readable label.
+        if (getFocused() instanceof Button focused && focused.visible && focused.active) {
+            int left = focused.getX() - 2;
+            int top = focused.getY() - 2;
+            int right = focused.getX() + focused.getWidth() + 2;
+            int bottom = focused.getY() + focused.getHeight() + 2;
+            int accent = 0xFFFFD66B;
+            g.fill(left, top, right, top + 1, accent);
+            g.fill(left, bottom - 1, right, bottom, accent);
+            g.fill(left, top + 1, left + 1, bottom - 1, accent);
+            g.fill(right - 1, top + 1, right, bottom - 1, accent);
+        }
     }
 
     // Number row and numeric keypad mirror all seven visible panel actions.
