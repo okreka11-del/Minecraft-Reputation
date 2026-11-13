@@ -163,7 +163,6 @@ public final class ReputationNetwork {
                 int lastArmyOrderTick = armyOrderData.getInt("reputationLastArmyOrderTick");
                 if (lastArmyOrderTick > 0 && player.tickCount >= lastArmyOrderTick
                         && player.tickCount - lastArmyOrderTick < 5) return;
-                armyOrderData.putInt("reputationLastArmyOrderTick", player.tickCount);
                 // Attack only the last hostile non-player target actually struck by the owner.
                 // Never allow this packet to designate another player or a peaceful villager.
                 net.minecraft.world.entity.LivingEntity attackTarget = null;
@@ -305,6 +304,10 @@ public final class ReputationNetwork {
                         "Приказ не выполнен: ваших приручённых волков нет в радиусе 24 блоков."), true);
                     return;
                 }
+                // Only valid, actionable requests consume the cooldown. An invalid
+                // target, unsafe waypoint or absent squad must not delay the next
+                // corrected order. Keep throttling before costly per-wolf pathfinding.
+                armyOrderData.putInt("reputationLastArmyOrderTick", player.tickCount);
                 int changed = 0;
                 for (var wolf : wolves) {
                     // Movement and attack orders cannot override a physical leash or
