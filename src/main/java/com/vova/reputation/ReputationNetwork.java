@@ -181,6 +181,14 @@ public final class ReputationNetwork {
                             "Нет видимой недавно отмеченной цели: ударьте монстра в радиусе 24 блоков."), true);
                         return;
                     }
+                    // Wolves normally avoid creepers because their explosions can kill
+                    // the entire pack. A manual attack order must not bypass that
+                    // safety rule and send owned pets into point-blank explosions.
+                    if (candidate instanceof net.minecraft.world.entity.monster.Creeper) {
+                        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                            "Волки не атакуют криперов по приказу: взрыв опасен для отряда."), true);
+                        return;
+                    }
                     attackTarget = candidate;
                 }
                 // Select a waypoint from the server-side player's view, not client coordinates.
