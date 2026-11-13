@@ -309,12 +309,16 @@ public final class ReputationNetwork {
                 // corrected order. Keep throttling before costly per-wolf pathfinding.
                 armyOrderData.putInt("reputationLastArmyOrderTick", player.tickCount);
                 int changed = 0;
+                int restrained = 0;
                 for (var wolf : wolves) {
                     // Movement and attack orders cannot override a physical leash or
                     // a vehicle mount. Keep the wolf's current guard/combat state
                     // instead of reporting a successful command it cannot obey.
                     // Follow/guard remain available so owners can change stance.
-                    if (payload.order() >= 2 && (wolf.isLeashed() || wolf.isPassenger())) continue;
+                    if (payload.order() >= 2 && (wolf.isLeashed() || wolf.isPassenger())) {
+                        restrained++;
+                        continue;
+                    }
                     if (payload.order() == 4) {
                         // Do not dispatch a pet against a target it cannot reach from
                         // the squad's local area. The owner's 24-block check alone
@@ -524,7 +528,10 @@ public final class ReputationNetwork {
                 // A valid target from the owner's perspective may still be hidden
                 // or out of range for every squad member. Explain that case rather
                 // than reporting an ambiguous successful "0 wolves" attack.
-                if (payload.order() == 5 && changed == 0) {
+                if (payload.order() >= 2 && changed == 0 && restrained == wolves.size()) {
+                    player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                        "Приказ не выполнен: все волки привязаны поводком или находятся в транспорте. Освободите хотя бы одного."), true);
+                } else if (payload.order() == 5 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                         "Ни один волк не может дойти до точки в радиусе 24 блоков от него."), true);
                 } else if (payload.order() == 1 && changed == 0) {
