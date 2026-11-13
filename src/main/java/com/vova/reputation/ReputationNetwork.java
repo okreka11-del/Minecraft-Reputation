@@ -434,28 +434,6 @@ public final class ReputationNetwork {
                                 || guardHeadState.is(net.minecraft.world.level.block.Blocks.FIRE)
                                 || guardFeetState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
                                 || guardHeadState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)) continue;
-                        // Cactus damages entities touching its sides, even when the
-                        // block under their feet is safe. A seated wolf cannot retreat.
-                        // Check both body-height layers at the four cardinal sides.
-                        boolean adjacentCactus = false;
-                        for (var direction : net.minecraft.core.Direction.Plane.HORIZONTAL) {
-                            var beside = guardFeet.relative(direction);
-                            // Do not force-load neighboring chunks just to evaluate a guard
-                            // position at a chunk border. An unknown side is not safe.
-                            if (!guardLevel.hasChunkAt(beside)
-                                    || !guardLevel.hasChunkAt(beside.above())
-                                    || !guardLevel.getWorldBorder().isWithinBounds(beside)
-                                    || !guardLevel.getWorldBorder().isWithinBounds(beside.above())) {
-                                adjacentCactus = true;
-                                break;
-                            }
-                            if (guardLevel.getBlockState(beside).is(net.minecraft.world.level.block.Blocks.CACTUS)
-                                    || guardLevel.getBlockState(beside.above()).is(net.minecraft.world.level.block.Blocks.CACTUS)) {
-                                adjacentCactus = true;
-                                break;
-                            }
-                        }
-                        if (adjacentCactus) continue;
                         // A wolf can also be hurt by hazards at head height or by
                         // touching lava/fire or a hot magma block beside its body.
                         // Apply the same adjacent magma safety rule as waypoint orders.
@@ -477,7 +455,11 @@ public final class ReputationNetwork {
                             }
                             var feetState = guardLevel.getBlockState(beside);
                             var headState = guardLevel.getBlockState(beside.above());
-                            if (feetState.is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)
+                            // One pass checks both cactus contact and all other side hazards.
+                            // Avoid repeating four neighbor lookups per guard command.
+                            if (feetState.is(net.minecraft.world.level.block.Blocks.CACTUS)
+                                    || headState.is(net.minecraft.world.level.block.Blocks.CACTUS)
+                                    || feetState.is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)
                                     || headState.is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)
                                     || feetState.is(net.minecraft.world.level.block.Blocks.FIRE)
                                     || headState.is(net.minecraft.world.level.block.Blocks.FIRE)
