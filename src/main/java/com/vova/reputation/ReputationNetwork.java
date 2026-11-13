@@ -467,6 +467,14 @@ public final class ReputationNetwork {
                         boolean adjacentDanger = false;
                         for (var direction : net.minecraft.core.Direction.Plane.HORIZONTAL) {
                             var beside = guardFeet.relative(direction);
+                            // Do not load neighboring chunks merely to evaluate a guard
+                            // position. If either adjacent cell is unavailable, the wolf
+                            // must not be ordered to sit beside an unverified hazard.
+                            if (!guardLevel.hasChunkAt(beside)
+                                    || !guardLevel.hasChunkAt(beside.above())) {
+                                adjacentDanger = true;
+                                break;
+                            }
                             var feetState = guardLevel.getBlockState(beside);
                             var headState = guardLevel.getBlockState(beside.above());
                             if (feetState.is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)
