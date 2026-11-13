@@ -226,7 +226,7 @@ public final class ReputationArmyScreen extends Screen {
         // third text row: its 9px glyphs would overlap the first order button.
         // Reserve the range hint for the 48px header on taller windows.
         if (height >= 240) {
-            String range = "1–7 / Num 1–7 · Радиус 24 блока";
+            String range = "1–7 · Tab/←↑↓→ · Радиус 24";
             g.drawString(font, font.plainSubstrByWidth(range, w - 16), x + 8, y + 35, 0xFF705438, false);
         }
         super.render(g, mouseX, mouseY, partialTick);
@@ -278,15 +278,17 @@ public final class ReputationArmyScreen extends Screen {
             }
             return true;
         }
-        // Up/Down arrows navigate the tactical list without activating orders.
+        // Arrow keys navigate the tactical list without activating orders.
+        // Left/Right work too, supporting keyboard layouts and controller-style input.
         // This mirrors the mouse wheel and keeps the menu usable without a mouse.
         // Disabled squad actions are skipped; Close remains keyboard-accessible.
-        if (keyCode == GLFW.GLFW_KEY_UP || keyCode == GLFW.GLFW_KEY_DOWN) {
+        if (keyCode == GLFW.GLFW_KEY_UP || keyCode == GLFW.GLFW_KEY_DOWN
+            || keyCode == GLFW.GLFW_KEY_LEFT || keyCode == GLFW.GLFW_KEY_RIGHT) {
             java.util.List<Button> selectable = new java.util.ArrayList<>();
             for (Button button : orderButtons) if (button.active && button.visible) selectable.add(button);
             if (closeButton != null && closeButton.active && closeButton.visible) selectable.add(closeButton);
             if (!selectable.isEmpty()) {
-                int direction = keyCode == GLFW.GLFW_KEY_DOWN ? 1 : -1;
+                int direction = (keyCode == GLFW.GLFW_KEY_DOWN || keyCode == GLFW.GLFW_KEY_RIGHT) ? 1 : -1;
                 int current = selectable.indexOf(getFocused());
                 int next = current < 0 ? (direction > 0 ? 0 : selectable.size() - 1)
                     : Math.floorMod(current + direction, selectable.size());
