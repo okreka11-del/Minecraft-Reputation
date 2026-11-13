@@ -77,7 +77,7 @@ public final class ReputationArmyScreen extends Screen {
         orderButtons.add(addRenderableWidget(disengage));
         Button attack = Button.builder(commandLabel(5, "Атаковать отмеченного монстра", w - 16), b -> issue(4))
             .bounds(x + 8, firstButtonY + 4 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
-        attack.setTooltip(Tooltip.create(Component.literal("Атаковать отмеченного монстра — ударьте монстра не более 10 секунд назад. Вы и волки должны видеть цель в радиусе 24 блоков.")));
+        attack.setTooltip(Tooltip.create(Component.literal("Атаковать отмеченного монстра — ударьте монстра не более 10 секунд назад. Вы и волки должны видеть цель в радиусе 24 блоков. Криперы исключены: взрыв опасен для отряда.")));
         if (!canIssueOrders()) attack.setTooltip(Tooltip.create(unavailableHelp()));
         attack.active = canIssueOrders();
         orderButtons.add(addRenderableWidget(attack));
@@ -121,7 +121,7 @@ public final class ReputationArmyScreen extends Screen {
                 "Охранять позицию — волки остаются охранять текущую позицию.",
                 "Собрать рядом — позвать принадлежащих вам волков к себе.",
                 "Отступить ко мне — волки прекращают бой, встают и возвращаются к вам. Близкие волки уже в безопасности.",
-                "Атаковать отмеченного монстра — ударьте монстра не более 10 секунд назад. Вы и волки должны видеть цель в радиусе 24 блоков.",
+                "Атаковать отмеченного монстра — ударьте монстра не более 10 секунд назад. Вы и волки должны видеть цель в радиусе 24 блоков. Криперы исключены: взрыв опасен для отряда.",
                 "К точке взгляда — наведите взгляд на блок не дальше 24 блоков. Волки попытаются добежать до этой точки."
             };
             for (int i = 0; i < orderButtons.size(); i++) {
