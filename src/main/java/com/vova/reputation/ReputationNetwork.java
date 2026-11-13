@@ -263,6 +263,8 @@ public final class ReputationNetwork {
                                 // damage them even when their collision is empty.
                                 // Berry bushes and lit campfires can also hurt wolves
                                 // when they brush against the neighboring block.
+                                || feetState.is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)
+                                || headState.is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)
                                 || feetState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
                                 || headState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
                                 || feetState.is(net.minecraft.world.level.block.Blocks.CAMPFIRE)
