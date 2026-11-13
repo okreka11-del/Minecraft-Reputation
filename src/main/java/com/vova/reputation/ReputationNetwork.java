@@ -452,7 +452,8 @@ public final class ReputationNetwork {
                         }
                         if (adjacentCactus) continue;
                         // A wolf can also be hurt by hazards at head height or by
-                        // touching lava/fire beside its body. Check before immobilizing.
+                        // touching lava/fire or a hot magma block beside its body.
+                        // Apply the same adjacent magma safety rule as waypoint orders.
                         if (guardHeadState.is(net.minecraft.world.level.block.Blocks.FIRE)
                                 || guardHeadState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
                                 || guardHeadState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
@@ -463,7 +464,9 @@ public final class ReputationNetwork {
                             var beside = guardFeet.relative(direction);
                             var feetState = guardLevel.getBlockState(beside);
                             var headState = guardLevel.getBlockState(beside.above());
-                            if (feetState.is(net.minecraft.world.level.block.Blocks.FIRE)
+                            if (feetState.is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)
+                                    || headState.is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)
+                                    || feetState.is(net.minecraft.world.level.block.Blocks.FIRE)
                                     || headState.is(net.minecraft.world.level.block.Blocks.FIRE)
                                     || feetState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
                                     || headState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
