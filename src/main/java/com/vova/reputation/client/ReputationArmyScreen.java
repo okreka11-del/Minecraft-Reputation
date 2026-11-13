@@ -367,10 +367,16 @@ public final class ReputationArmyScreen extends Screen {
         if (delta == 0 || !Double.isFinite(delta)) return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
         // Trackpads send fractional deltas. Accumulate them so a tiny gesture
         // does not skip an entire command, while preserving fast wheel input.
-        if (pendingWheelScroll != 0 && Math.signum(pendingWheelScroll) != Math.signum(delta)) pendingWheelScroll = 0;
+        // Opposite fractional gestures cancel one another instead of discarding
+        // the earlier fraction. Otherwise a 0.6 up / 0.6 down gesture could
+        // unexpectedly advance focus despite zero net scrolling.
         pendingWheelScroll += delta;
         if (Math.abs(pendingWheelScroll) < 1.0) return true;
-        int wholeSteps = (int) Math.min(1000, Math.floor(Math.abs(pendingWheelScroll)));
+        // Extremely large or malformed trackpad bursts must not retain a huge
+        // backlog that keeps moving focus long after the gesture has ended.
+        pendingWheelScroll = Math.max(-1000.0, Math.min(1000.0, pendingWheelScroll));
+        int direction = pendingWheelScroll > 0 ? -1 : 1;
+        int wholeSteps = (int) Math.floor(Math.abs(pendingWheelScroll));
         pendingWheelScroll -= Math.copySign(wholeSteps, pendingWheelScroll);
         java.util.List<Button> selectable = new java.util.ArrayList<>();
         for (Button button : orderButtons) if (button.active) selectable.add(button);
@@ -380,7 +386,6 @@ public final class ReputationArmyScreen extends Screen {
         // A single event may contain several wheel notches. Honour each notch
         // rather than silently dropping fast wheel/trackpad input; cap the
         // number of steps to keep unusually large deltas predictable.
-        int direction = delta > 0 ? -1 : 1;
         int steps = wholeSteps % selectable.size();
         int start = current < 0 ? (direction > 0 ? -1 : 0) : current;
         int next = Math.floorMod(start + direction * steps, selectable.size());
