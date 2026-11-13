@@ -249,6 +249,13 @@ public final class ReputationArmyScreen extends Screen {
     // Number row and numeric keypad mirror all seven visible panel actions.
     // Disabled commands must never send packets when no owned squad is nearby.
     @Override public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        // The configurable army key takes precedence over numeric shortcuts.
+        // Otherwise remapping G to 1-7 would accidentally issue an order instead
+        // of closing the panel (and a remapped navigation key would move focus).
+        if (ReputationKeys.ARMY.matches(keyCode, scanCode)) {
+            onClose();
+            return true;
+        }
         int order = -1;
         if (keyCode >= GLFW.GLFW_KEY_1 && keyCode <= GLFW.GLFW_KEY_7) {
             order = keyCode - GLFW.GLFW_KEY_1;
@@ -312,11 +319,6 @@ public final class ReputationArmyScreen extends Screen {
                 int next = Math.floorMod(start + direction * Math.min(3, selectable.size()), selectable.size());
                 setFocused(selectable.get(next));
             }
-            return true;
-        }
-        // Use the configured army keybind (including remapped keys) to close the panel.
-        if (ReputationKeys.ARMY.matches(keyCode, scanCode)) {
-            onClose();
             return true;
         }
         if (order >= 0) {
