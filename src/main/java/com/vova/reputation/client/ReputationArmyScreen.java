@@ -266,6 +266,7 @@ public final class ReputationArmyScreen extends Screen {
         // visual order. Never activate a command while navigating, and skip
         // disabled orders when the player has no available squad.
         if (keyCode == GLFW.GLFW_KEY_TAB) {
+            pendingWheelScroll = 0; // A later wheel gesture must start fresh after keyboard navigation.
             java.util.List<Button> selectable = new java.util.ArrayList<>();
             for (Button button : orderButtons) if (button.active && button.visible) selectable.add(button);
             if (closeButton != null && closeButton.active && closeButton.visible) selectable.add(closeButton);
@@ -284,6 +285,7 @@ public final class ReputationArmyScreen extends Screen {
         // Disabled squad actions are skipped; Close remains keyboard-accessible.
         if (keyCode == GLFW.GLFW_KEY_UP || keyCode == GLFW.GLFW_KEY_DOWN
             || keyCode == GLFW.GLFW_KEY_LEFT || keyCode == GLFW.GLFW_KEY_RIGHT) {
+            pendingWheelScroll = 0;
             java.util.List<Button> selectable = new java.util.ArrayList<>();
             for (Button button : orderButtons) if (button.active && button.visible) selectable.add(button);
             if (closeButton != null && closeButton.active && closeButton.visible) selectable.add(closeButton);
@@ -299,6 +301,7 @@ public final class ReputationArmyScreen extends Screen {
         // Home/End jump to the first/last available control without sending an
         // order. Keep Close reachable when the player dies or has no squad.
         if (keyCode == GLFW.GLFW_KEY_HOME || keyCode == GLFW.GLFW_KEY_END) {
+            pendingWheelScroll = 0;
             java.util.List<Button> selectable = new java.util.ArrayList<>();
             for (Button button : orderButtons) if (button.active) selectable.add(button);
             if (closeButton != null && closeButton.active) selectable.add(closeButton);
@@ -311,6 +314,7 @@ public final class ReputationArmyScreen extends Screen {
         // through Close. This keeps long tactical menus usable on compact screens
         // without activating a command or sending a network packet.
         if (keyCode == GLFW.GLFW_KEY_PAGE_UP || keyCode == GLFW.GLFW_KEY_PAGE_DOWN) {
+            pendingWheelScroll = 0;
             java.util.List<Button> selectable = new java.util.ArrayList<>();
             for (Button button : orderButtons) if (button.active) selectable.add(button);
             if (closeButton != null && closeButton.active) selectable.add(closeButton);
@@ -349,6 +353,8 @@ public final class ReputationArmyScreen extends Screen {
     // blur-free panel and needs to return to normal camera control quickly.
     // Only left-click may activate an order button.
     @Override public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        // Do not carry a partial trackpad gesture into a mouse-selected command.
+        pendingWheelScroll = 0;
         if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
             onClose();
             return true;
