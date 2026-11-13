@@ -24,4 +24,12 @@ class ReputationVillagerInteractionTest {
         assertTrue(ReputationRules.villagerInteractionRefused(0, -100));
         assertFalse(ReputationRules.villagerInteractionRefused(0, -39));
     }
+    @Test
+    void interactionCooldownRespectsBoundaryAndClockRollback() {
+        assertTrue(ReputationRules.interactionCooldownElapsed(100, null));
+        assertFalse(ReputationRules.interactionCooldownElapsed(1299, 100L));
+        assertTrue(ReputationRules.interactionCooldownElapsed(1300, 100L));
+        assertTrue(ReputationRules.interactionCooldownElapsed(100, 200L));
+        assertTrue(ReputationRules.interactionCooldownElapsed(100, -1L));
+    }
 }
