@@ -446,10 +446,12 @@ public final class ReputationNetwork {
                         for (var direction : net.minecraft.core.Direction.Plane.HORIZONTAL) {
                             var beside = guardFeet.relative(direction);
                             // Do not load neighboring chunks merely to evaluate a guard
-                            // position. If either adjacent cell is unavailable, the wolf
-                            // must not be ordered to sit beside an unverified hazard.
+                            // position. If either adjacent cell is unavailable or outside
+                            // the world border, do not immobilize a wolf on that edge.
                             if (!guardLevel.hasChunkAt(beside)
-                                    || !guardLevel.hasChunkAt(beside.above())) {
+                                    || !guardLevel.hasChunkAt(beside.above())
+                                    || !guardLevel.getWorldBorder().isWithinBounds(beside)
+                                    || !guardLevel.getWorldBorder().isWithinBounds(beside.above())) {
                                 adjacentDanger = true;
                                 break;
                             }
