@@ -155,6 +155,15 @@ public final class ReputationNetwork {
                 }
                 // Only explicit known orders, only living tame wolves owned by this player.
                 if (payload.order() < 0 || payload.order() > 5) return;
+                // Limit expensive pathfinding and squad scans from repeated or forged
+                // packets. This is per player, server authoritative and uses entity
+                // ticks (not client timestamps). Allow the first order immediately;
+                // a new entity tick counter after respawn must not inherit a lockout.
+                var armyOrderData = player.getPersistentData();
+                int lastArmyOrderTick = armyOrderData.getInt("reputationLastArmyOrderTick");
+                if (lastArmyOrderTick > 0 && player.tickCount >= lastArmyOrderTick
+                        && player.tickCount - lastArmyOrderTick < 5) return;
+                armyOrderData.putInt("reputationLastArmyOrderTick", player.tickCount);
                 // Attack only the last hostile non-player target actually struck by the owner.
                 // Never allow this packet to designate another player or a peaceful villager.
                 net.minecraft.world.entity.LivingEntity attackTarget = null;
