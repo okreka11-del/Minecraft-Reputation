@@ -420,10 +420,15 @@ public final class ReputationNetwork {
                                 || guardFeetState.is(net.minecraft.world.level.block.Blocks.CACTUS)
                                 || guardHeadState.is(net.minecraft.world.level.block.Blocks.CACTUS)
                                 || guardFeetState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                                || guardHeadState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
                                 || guardFeetState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
+                                || guardHeadState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
                                 || guardFeetState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
+                                || guardHeadState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
                                 || guardFeetState.is(net.minecraft.world.level.block.Blocks.FIRE)
-                                || guardFeetState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)) continue;
+                                || guardHeadState.is(net.minecraft.world.level.block.Blocks.FIRE)
+                                || guardFeetState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
+                                || guardHeadState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)) continue;
                         // Cactus damages entities touching its sides, even when the
                         // block under their feet is safe. A seated wolf cannot retreat.
                         // Check both body-height layers at the four cardinal sides.
