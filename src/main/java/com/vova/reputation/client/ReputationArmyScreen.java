@@ -226,7 +226,7 @@ public final class ReputationArmyScreen extends Screen {
         // third text row: its 9px glyphs would overlap the first order button.
         // Reserve the range hint for the 48px header on taller windows.
         if (height >= 240) {
-            String range = "1–7 · Tab/←↑↓→ · Радиус 24";
+            String range = "1–7 · R обновить · Радиус 24";
             g.drawString(font, font.plainSubstrByWidth(range, w - 16), x + 8, y + 35, 0xFF705438, false);
         }
         super.render(g, mouseX, mouseY, partialTick);
@@ -254,6 +254,14 @@ public final class ReputationArmyScreen extends Screen {
         // of closing the panel (and a remapped navigation key would move focus).
         if (ReputationKeys.ARMY.matches(keyCode, scanCode)) {
             onClose();
+            return true;
+        }
+        // Re-scan the server-owned squad without closing the tactical menu.
+        // Wolves may arrive, leave the 24-block radius, or dismount while G is open.
+        // The authoritative ArmyOverview response rebuilds the menu with a fresh count.
+        if (keyCode == GLFW.GLFW_KEY_R && modifiers == 0) {
+            pendingWheelScroll = 0;
+            PacketDistributor.sendToServer(new ReputationNetwork.ArmyRequest());
             return true;
         }
         int order = -1;
