@@ -142,8 +142,16 @@ public final class ReputationNetwork {
                         .filter(wolf -> !wolf.isPassenger()).count()));
             }));
         registrar.playToClient(ArmyOverview.TYPE, ArmyOverview.STREAM_CODEC,
-            (payload, context) -> context.enqueueWork(() ->
-                Minecraft.getInstance().setScreen(new ReputationArmyScreen(payload.count()))));
+            (payload, context) -> context.enqueueWork(() -> {
+                // Refresh in place: replacing the screen loses keyboard focus and
+                // resets its navigation state every time the player presses R.
+                Minecraft client = Minecraft.getInstance();
+                if (client.screen instanceof ReputationArmyScreen armyScreen) {
+                    armyScreen.updateSquadCount(payload.count());
+                } else {
+                    client.setScreen(new ReputationArmyScreen(payload.count()));
+                }
+            }));
         registrar.playToServer(ArmyOrder.TYPE, ArmyOrder.STREAM_CODEC,
             (payload, context) -> context.enqueueWork(() -> {
                 if (!(context.player() instanceof ServerPlayer player)) return;
