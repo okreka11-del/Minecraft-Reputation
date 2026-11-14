@@ -18,6 +18,8 @@ public final class ReputationArmyScreen extends Screen {
     private final java.util.List<Button> orderButtons = new java.util.ArrayList<>();
     private Button closeButton;
     private double pendingWheelScroll;
+    // Prevent held R / key repeat from flooding the server with squad scans.
+    private int lastRefreshTick = Integer.MIN_VALUE;
     private boolean lastOrdersEnabled;
     private String lastUnavailableReason = "";
     private static final Component NO_SQUAD_HELP = Component.literal("Нет доступных волков: приручите волка костями, затем подойдите к нему на расстояние приказов.");
@@ -260,8 +262,16 @@ public final class ReputationArmyScreen extends Screen {
         // Wolves may arrive, leave the 24-block radius, or dismount while G is open.
         // The authoritative ArmyOverview response rebuilds the menu with a fresh count.
         if (keyCode == GLFW.GLFW_KEY_R && modifiers == 0) {
-            pendingWheelScroll = 0;
-            PacketDistributor.sendToServer(new ReputationNetwork.ArmyRequest());
+            if (minecraft != null && minecraft.player != null) {
+                int now = minecraft.player.tickCount;
+                // Ten game ticks (half a second) is responsive for deliberate refreshes
+                // while bounding network traffic when a key is held down.
+                if (lastRefreshTick == Integer.MIN_VALUE || now - lastRefreshTick >= 10 || now < lastRefreshTick) {
+                    lastRefreshTick = now;
+                    pendingWheelScroll = 0;
+                    PacketDistributor.sendToServer(new ReputationNetwork.ArmyRequest());
+                }
+            }
             return true;
         }
         int order = -1;
