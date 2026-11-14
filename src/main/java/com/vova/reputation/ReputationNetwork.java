@@ -583,7 +583,10 @@ public final class ReputationNetwork {
                 // A valid target from the owner's perspective may still be hidden
                 // or out of range for every squad member. Explain that case rather
                 // than reporting an ambiguous successful "0 wolves" attack.
-                if (payload.order() >= 2 && changed == 0 && restrained == wolves.size()) {
+                // Mounted wolves cannot obey even Follow or Guard. Explain this instead
+                // of reporting a misleading success count of zero for orders 0/1.
+                // Leashed wolves remain eligible for Follow and Guard.
+                if (changed == 0 && restrained == wolves.size()) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                         "Приказ не выполнен: все волки привязаны поводком или находятся в транспорте. Освободите хотя бы одного."), true);
                 } else if (payload.order() == 5 && changed == 0) {
