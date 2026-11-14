@@ -246,6 +246,9 @@ public final class ReputationNetwork {
                             || level.getBlockState(headroom).is(net.minecraft.world.level.block.Blocks.CACTUS)
                             || level.getBlockState(waypoint).is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
                             || level.getBlockState(headroom).is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
+                            // Cobwebs have little collision but trap wolves on arrival.
+                            || level.getBlockState(waypoint).is(net.minecraft.world.level.block.Blocks.COBWEB)
+                            || level.getBlockState(headroom).is(net.minecraft.world.level.block.Blocks.COBWEB)
                             || !level.getBlockState(ground).isFaceSturdy(level, ground, net.minecraft.core.Direction.UP)) {
                         player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                             "Небезопасная точка: выберите свободное место на твёрдой поверхности."), true);
