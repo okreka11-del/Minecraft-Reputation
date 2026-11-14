@@ -455,6 +455,10 @@ public final class ReputationNetwork {
                                 || guardHeadState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
                                 || guardFeetState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
                                 || guardHeadState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
+                                // A seated wolf cannot navigate out of cobwebs. Do not
+                                // turn a temporary entanglement into a permanent guard post.
+                                || guardFeetState.is(net.minecraft.world.level.block.Blocks.COBWEB)
+                                || guardHeadState.is(net.minecraft.world.level.block.Blocks.COBWEB)
                                 || guardFeetState.is(net.minecraft.world.level.block.Blocks.FIRE)
                                 || guardHeadState.is(net.minecraft.world.level.block.Blocks.FIRE)
                                 || guardFeetState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
