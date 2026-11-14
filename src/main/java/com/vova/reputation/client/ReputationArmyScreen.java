@@ -19,7 +19,9 @@ public final class ReputationArmyScreen extends Screen {
     private Button closeButton;
     private double pendingWheelScroll;
     // Prevent held R / key repeat from flooding the server with squad scans.
-    private int lastRefreshTick = Integer.MIN_VALUE;
+    // The server response recreates this screen; keep the cooldown across instances.
+    // Otherwise holding R rebuilds the screen and resets its per-instance throttle.
+    private static int lastRefreshTick = Integer.MIN_VALUE;
     private boolean lastOrdersEnabled;
     private String lastUnavailableReason = "";
     private static final Component NO_SQUAD_HELP = Component.literal("Нет доступных волков: приручите волка костями, затем подойдите к нему на расстояние приказов.");
