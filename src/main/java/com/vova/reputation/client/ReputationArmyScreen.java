@@ -23,6 +23,9 @@ public final class ReputationArmyScreen extends Screen {
     // Otherwise holding R rebuilds the screen and resets its per-instance throttle.
     private static int lastRefreshTick = Integer.MIN_VALUE;
     private int lastAutomaticRefreshTick = Integer.MIN_VALUE;
+    // The squad overview belongs to the dimension where it was opened. Do not
+    // display or refresh an old squad after a portal transfer or world change.
+    private net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> openedDimension;
     private boolean lastOrdersEnabled;
     private String lastUnavailableReason = "";
     private static final Component NO_SQUAD_HELP = Component.literal("Нет доступных волков: приручите волка костями, затем подойдите к нему на расстояние приказов.");
@@ -51,6 +54,8 @@ public final class ReputationArmyScreen extends Screen {
     }
 
     @Override protected void init() {
+        openedDimension = minecraft != null && minecraft.player != null
+            ? minecraft.player.level().dimension() : null;
         orderButtons.clear();
         pendingWheelScroll = 0;
         // Begin the periodic refresh window on opening, not at world tick zero.
@@ -206,6 +211,13 @@ public final class ReputationArmyScreen extends Screen {
     // Scan at most once every two seconds; the server still validates and throttles.
     @Override public void tick() {
         super.tick();
+        // Portal travel can leave this client-side Screen alive briefly while
+        // the server switches levels. Close instead of showing stale orders.
+        if (minecraft == null || minecraft.player == null || openedDimension == null
+            || minecraft.player.level().dimension() != openedDimension) {
+            onClose();
+            return;
+        }
         if (minecraft == null || minecraft.player == null
             || !minecraft.player.isAlive() || minecraft.player.isSpectator()) return;
         int now = minecraft.player.tickCount;
