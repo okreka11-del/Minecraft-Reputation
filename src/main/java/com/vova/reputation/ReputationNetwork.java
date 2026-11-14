@@ -138,7 +138,8 @@ public final class ReputationNetwork {
         registrar.playToServer(ArmyRequest.TYPE, ArmyRequest.STREAM_CODEC,
             (payload, context) -> context.enqueueWork(() -> {
                 if (context.player() instanceof ServerPlayer player)
-                    PacketDistributor.sendToPlayer(player, new ArmyOverview(ownedWolves(player).size()));
+                    PacketDistributor.sendToPlayer(player, new ArmyOverview((int) ownedWolves(player).stream()
+                        .filter(wolf -> !wolf.isPassenger()).count()));
             }));
         registrar.playToClient(ArmyOverview.TYPE, ArmyOverview.STREAM_CODEC,
             (payload, context) -> context.enqueueWork(() ->
