@@ -197,6 +197,14 @@ public final class ReputationNetwork {
                             "Волки не атакуют Хранителя по приказу: он смертельно опасен для отряда."), true);
                         return;
                     }
+                    // Wither explosions and its withering projectiles devastate tame
+                    // wolves. Do not let a forged or ordinary squad order send pets
+                    // into this boss encounter.
+                    if (candidate instanceof net.minecraft.world.entity.boss.wither.WitherBoss) {
+                        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                            "Волки не атакуют Иссушителя по приказу: взрывы и иссушение опасны для отряда."), true);
+                        return;
+                    }
                     attackTarget = candidate;
                 }
                 // Select a waypoint from the server-side player's view, not client coordinates.
