@@ -294,6 +294,13 @@ public final class ReputationArmyScreen extends Screen {
         // Wolves may arrive, leave the 24-block radius, or dismount while G is open.
         // The authoritative ArmyOverview response rebuilds the menu with a fresh count.
         if (keyCode == GLFW.GLFW_KEY_R && modifiers == 0) {
+            // The server refuses scans from dead players and spectators. Avoid
+            // needless packets and show the same explanation as disabled orders.
+            if (minecraft != null && minecraft.player != null
+                && (!minecraft.player.isAlive() || minecraft.player.isSpectator())) {
+                minecraft.player.displayClientMessage(INACTIVE_PLAYER_HELP, true);
+                return true;
+            }
             if (minecraft != null && minecraft.player != null) {
                 int now = minecraft.player.tickCount;
                 // Ten game ticks (half a second) is responsive for deliberate refreshes
