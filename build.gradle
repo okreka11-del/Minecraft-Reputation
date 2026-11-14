@@ -6,6 +6,11 @@ version = mod_version
 group = 'com.vova.reputation'
 base { archivesName = 'minecraft-reputation' }
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
-dependencies { implementation "net.neoforged:neoforge:${neo_version}" }
+dependencies {
+    implementation "net.neoforged:neoforge:${neo_version}"
+    testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+tasks.named("test", Test) { useJUnitPlatform() }
 runs { configureEach { modSource project.sourceSets.main }; client { }; server { } }
 tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }

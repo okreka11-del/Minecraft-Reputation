@@ -16,6 +16,9 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 /** Three server-driven specialist roles, stored in entity persistent NBT. */
 public final class ReputationSpecialists {
@@ -42,7 +45,12 @@ public final class ReputationSpecialists {
         List<? extends Entity> candidates = illager
             ? player.serverLevel().getEntitiesOfClass(Pillager.class, player.getBoundingBox().inflate(6))
             : player.serverLevel().getEntitiesOfClass(Villager.class, player.getBoundingBox().inflate(6));
-        Entity nearest = candidates.stream().min((a,b) -> Double.compare(a.distanceToSqr(player), b.distanceToSqr(player)))
+        // Do not overwrite an existing specialist or workstation profession when assigning a role.
+        Entity nearest = candidates.stream()
+            .filter(Entity::isAlive)
+            .filter(npc -> npc.getPersistentData().getString(ROLE).isEmpty())
+            .filter(npc -> npc.getPersistentData().getString("ReputationProfession").isEmpty())
+            .min((a,b) -> Double.compare(a.distanceToSqr(player), b.distanceToSqr(player)))
             .orElse(null);
         if (nearest == null) {
             player.sendSystemMessage(Component.literal("No suitable NPC within 6 blocks."));
@@ -62,13 +70,17 @@ public final class ReputationSpecialists {
     private static void tick(LevelTickEvent.Post event) {
         if (!(event.getLevel() instanceof ServerLevel level) || level.getGameTime() % 100 != 0) return;
         // Bounded processing around active players; never scan every loaded entity globally.
+        // A specialist visible to multiple players must work only once per server tick.
+        Set<UUID> processed = new HashSet<>();
         for (ServerPlayer player : level.players()) {
             for (Villager villager : level.getEntitiesOfClass(Villager.class, player.getBoundingBox().inflate(32))) {
+                if (!processed.add(villager.getUUID())) continue;
                 String role = villager.getPersistentData().getString(ROLE);
                 if (role.equals("guard")) guard(level, villager);
                 else if (role.equals("builder")) builder(level, villager);
             }
             for (Pillager pillager : level.getEntitiesOfClass(Pillager.class, player.getBoundingBox().inflate(32))) {
+                if (!processed.add(pillager.getUUID())) continue;
                 if (pillager.getPersistentData().getString(ROLE).equals("armorer")) armorer(level, pillager);
             }
         }

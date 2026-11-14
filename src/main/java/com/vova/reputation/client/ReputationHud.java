@@ -13,12 +13,13 @@ import net.neoforged.neoforge.client.event.ScreenEvent;
 @EventBusSubscriber(modid = ReputationMod.ID, value = Dist.CLIENT)
 public final class ReputationHud {
     private ReputationHud() {}
-    private static int syncedScore = 100;
+    private static int syncedScore = 0;
     private static final int[] THRESHOLDS = {-100, -80, -60, -20, 0, 100, 120, 140, 160, 180, 200};
     private static final String[] TITLES = {
-        "Повелитель Тьмы", "Злодей", "Враг", "Недруг", "Нейтральный",
-        "Знакомый", "Союзник", "Надёжный союзник", "Хороший союзник",
-        "Лучший союзник", "Герой Света"
+        "reputation.rank.dark_lord", "reputation.rank.villain", "reputation.rank.enemy",
+        "reputation.rank.unfriendly", "reputation.rank.neutral", "reputation.rank.acquaintance",
+        "reputation.rank.ally", "reputation.rank.reliable_ally", "reputation.rank.good_ally",
+        "reputation.rank.best_ally", "reputation.rank.hero_of_light"
     };
     private static final String[] SYMBOLS = {"✦", "☠", "⚔", "!", "•", "◇", "◆", "❖", "★", "✶", "☀"};
 
@@ -83,17 +84,28 @@ public final class ReputationHud {
     }
 
     private static void drawHud(GuiGraphics gui, Minecraft mc) {
-        int x = 12, y = 20, w = 176, h = 12;
+        // Fit the track to the actual GUI width without scaling the font or crest.
+        // The bar renderer needs at least 15 pixels for its end caps and ticks.
+        int screenWidth = mc.getWindow().getGuiScaledWidth();
+        int x = Math.min(12, Math.max(0, screenWidth - 16));
+        int y = 20, w = Math.max(16, Math.min(176, screenWidth - x - 4)), h = 12;
         int score = syncedScore;
-        String label = "Репутация: ";
+        String label = net.minecraft.network.chat.Component.translatable("reputation.hud.label").getString() + ": ";
         String number = (score > 0 ? "+" : "") + score;
-        // Use Minecraft's own pixel font and scale it up without smoothing.
-        gui.pose().pushPose();
-        gui.pose().translate(x + 13, y - 19, 0);
-        gui.pose().scale(1.22f, 1.22f, 1.0f);
-        gui.drawString(mc.font, label, 0, 0, 0xFFFFFFFF, true);
-        gui.drawString(mc.font, number, mc.font.width(label) + 3, 0, 0xFFFFD44C, true);
-        gui.pose().popPose();
+        // Render at native GUI pixel size. Fractional pose scaling (previously 1.30x)
+        // resamples the vanilla bitmap font and blurs glyph edges at GUI scales.
+        // Integer draw coordinates keep the HUD aligned to the GUI pixel grid.
+        int textX = x + 13;
+        int textY = y - 19;
+        // Reserve the score width before truncating translated labels on narrow GUIs.
+        int maxLabelWidth = Math.max(0, mc.getWindow().getGuiScaledWidth() - textX - mc.font.width(number) - 7);
+        if (mc.font.width(label) > maxLabelWidth) {
+            label = mc.font.plainSubstrByWidth(label, maxLabelWidth);
+        }
+        // A second offset shadow pass makes small pixel glyphs appear doubled.
+        // Keep both HUD text runs on one crisp GUI-pixel pass.
+        gui.drawString(mc.font, label, textX, textY, 0xFFFFFFFF, false);
+        gui.drawString(mc.font, number, textX + mc.font.width(label) + 3, textY, 0xFFFFD44C, false);
         roundedBar(gui, x, y, w, h);
         drawCrest(gui, x - 15, y - 7);
         int marker = x + 7 + Math.round((score + 100) * (w - 14) / 300.0f);
@@ -102,14 +114,27 @@ public final class ReputationHud {
         gui.fill(marker - 1, y - 3, marker + 2, y + h + 3, 0xFFFFFFA5);
         gui.fill(marker - 5, y - 6, marker + 6, y - 4, 0xFFFFD957);
         gui.fill(marker - 5, y + h + 4, marker + 6, y + h + 6, 0xFFFFD957);
-        String title = TITLES[rankIndex(score)];
+        String title = net.minecraft.network.chat.Component.translatable(TITLES[rankIndex(score)]).getString();
+        // Never scale the bitmap font to squeeze long localized rank names.
+        // Keep the badge inside the GUI and truncate at integer pixel widths.
+        int screenW = mc.getWindow().getGuiScaledWidth();
+        int badgeLeft = Math.min(x, Math.max(0, screenW - 1));
+        int maxBadgeW = Math.max(1, screenW - badgeLeft);
+        int maxTitleW = Math.max(0, maxBadgeW - 20);
+        if (mc.font.width(title) > maxTitleW) {
+            String suffix = mc.font.width("...") <= maxTitleW ? "..." : "";
+            title = mc.font.plainSubstrByWidth(title,
+                Math.max(0, maxTitleW - mc.font.width(suffix))) + suffix;
+        }
         int textWidth = mc.font.width(title);
-        int labelW = Math.max(100, textWidth + 20);
-        int labelX = x + (w - labelW) / 2;
+        int labelW = Math.min(maxBadgeW, Math.max(100, textWidth + 20));
+        int labelX = Math.max(0, Math.min(x + (w - labelW) / 2, screenW - labelW));
         gui.fill(labelX + 3, y + 17, labelX + labelW - 3, y + 34, 0xFFB98B35);
         gui.fill(labelX, y + 20, labelX + labelW, y + 31, 0xFFB98B35);
         gui.fill(labelX + 4, y + 19, labelX + labelW - 4, y + 32, 0xFF171015);
-        gui.drawString(mc.font, title, labelX + (labelW - textWidth) / 2, y + 21, 0xFFFFD966, true);
+        // Render the bitmap glyphs once: the former 1px duplicate plus built-in
+        // font shadow produced a soft-looking double outline on the rank badge.
+        gui.drawString(mc.font, title, labelX + (labelW - textWidth) / 2, y + 21, 0xFFFFD966, false);
     }
 
     @SubscribeEvent
@@ -129,45 +154,54 @@ public final class ReputationHud {
         double my = mc.mouseHandler.ypos() * sh / mc.getWindow().getScreenHeight();
         if (mx < 8 || mx > 185 || my < 0 || my > 56) return;
         GuiGraphics gui = event.getGuiGraphics();
-        int padding = 9;
-        int cellW = 92;
-        int count = THRESHOLDS.length;
-        int columns = Math.max(1, Math.min(count, (sw - 16 - padding * 2) / cellW));
-        int rows = (count + columns - 1) / columns;
-        int panelW = Math.min(sw - 8, columns * cellW + padding * 2);
-        int panelH = rows * 52 + 31;
+        // Keep every glyph at native GUI pixel size: never shrink the entire legend.
+        // A compact two-column list fits ordinary GUI scales without resampling.
+        int columns = sw >= 240 ? 2 : 1;
+        int rows = (THRESHOLDS.length + columns - 1) / columns;
+        int cellW = Math.max(1, Math.min(154, (sw - 20) / columns));
+        int rowH = 19;
+        int visibleRows = Math.max(1, Math.min(rows, (sh - 32) / rowH));
+        int panelW = Math.max(1, Math.min(sw - 8, columns * cellW + 12));
+        int panelH = visibleRows * rowH + 23;
         int px = Math.max(4, Math.min(10, sw - panelW - 4));
-        int py = Math.min(Math.max(54, (int) my + 10), Math.max(4, sh - panelH - 4));
-        gui.pose().pushPose();
-        // Scale the legend to remain fully visible even at small GUI resolutions.
-        float scale = Math.min(1.0f, (sh - 8.0f) / Math.max(1, panelH));
-        if (scale < 1.0f) {
-            gui.pose().scale(scale, scale, 1.0f);
-            px = (int) (px / scale);
-            py = 4;
-        }
+        int py = Math.max(4, Math.min(54, sh - panelH - 4));
+        // For very short windows, show the ranks surrounding the current rank.
+        int current = rankIndex(syncedScore);
+        int firstRow = Math.max(0, Math.min(rows - visibleRows, current / columns - visibleRows / 2));
         gui.fill(px, py, px + panelW, py + panelH, 0xF419131B);
         gui.fill(px, py, px + panelW, py + 2, 0xFFB88A39);
-        gui.drawString(mc.font, "Звания репутации  •  -100 ... +200", px + 8, py + 8, 0xFFFFD46A, true);
-        int current = rankIndex(syncedScore);
-        for (int i = 0; i < count; i++) {
-            int cx = px + padding + (i % columns) * cellW;
-            int cy = py + 26 + (i / columns) * 52;
-            boolean active = i == current;
-            gui.fill(cx, cy, cx + cellW - 3, cy + 47, active ? 0xFF54401D : 0xFF28222A);
-            gui.fill(cx + 3, cy + 3, cx + cellW - 6, cy + 6, colorAt(THRESHOLDS[i]));
-            String value = (THRESHOLDS[i] > 0 ? "+" : "") + THRESHOLDS[i];
-            gui.drawCenteredString(mc.font, value, cx + (cellW - 3) / 2, cy + 9, active ? 0xFFFFD74C : 0xFFE8D5D6);
-            gui.drawCenteredString(mc.font, SYMBOLS[i], cx + (cellW - 3) / 2, cy + 20, colorAt(THRESHOLDS[i]));
-            String title = TITLES[i];
-            if (mc.font.width(title) > cellW - 7 && title.contains(" ")) {
-                int split = title.lastIndexOf(' ');
-                gui.drawCenteredString(mc.font, title.substring(0, split), cx + (cellW - 3) / 2, cy + 30, 0xFFFFFFFF);
-                gui.drawCenteredString(mc.font, title.substring(split + 1), cx + (cellW - 3) / 2, cy + 39, 0xFFFFFFFF);
-            } else {
-                gui.drawCenteredString(mc.font, title, cx + (cellW - 3) / 2, cy + 34, 0xFFFFFFFF);
+        // Clip translated headings by native bitmap glyph width, never by scaling.
+        String heading = net.minecraft.network.chat.Component.translatable("reputation.hud.ranks").getString();
+        int headingWidth = Math.max(0, panelW - 12);
+        if (mc.font.width(heading) > headingWidth) {
+            String suffix = mc.font.width("...") <= headingWidth ? "..." : "";
+            heading = mc.font.plainSubstrByWidth(heading,
+                Math.max(0, headingWidth - mc.font.width(suffix))) + suffix;
+        }
+        gui.drawString(mc.font, heading, px + 6, py + 7, 0xFFFFD46A, false);
+        for (int row = 0; row < visibleRows; row++) {
+            for (int col = 0; col < columns; col++) {
+                int i = (firstRow + row) * columns + col;
+                if (i >= THRESHOLDS.length) continue;
+                int cx = px + 6 + col * cellW;
+                int cy = py + 21 + row * rowH;
+                gui.fill(cx, cy, cx + cellW - 3, cy + rowH - 2,
+                    i == current ? 0xFF54401D : 0xFF28222A);
+                gui.fill(cx + 2, cy + 3, cx + 4, cy + rowH - 5, colorAt(THRESHOLDS[i]));
+                String value = (THRESHOLDS[i] > 0 ? "+" : "") + THRESHOLDS[i];
+                String title = net.minecraft.network.chat.Component.translatable(TITLES[i]).getString();
+                // Reserve the score and spacing first; never let an ellipsis
+                // overflow a narrow rank cell or rescale the bitmap font.
+                int available = Math.max(0, cellW - 19 - mc.font.width(value));
+                if (mc.font.width(title) > available) {
+                    String suffix = mc.font.width("...") <= available ? "..." : "";
+                    title = mc.font.plainSubstrByWidth(title,
+                        Math.max(0, available - mc.font.width(suffix))) + suffix;
+                }
+                gui.drawString(mc.font, title, cx + 8, cy + 5, 0xFFFFFFFF, false);
+                gui.drawString(mc.font, value, cx + cellW - 6 - mc.font.width(value), cy + 5,
+                    i == current ? 0xFFFFD74C : 0xFFE8D5D6, false);
             }
         }
-        gui.pose().popPose();
     }
 }

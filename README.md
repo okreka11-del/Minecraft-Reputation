@@ -1,56 +1,36 @@
-# Minecraft Reputation — 0.3.0-alpha
+# Minecraft Reputation — integration development (Minecraft 1.21.1 / NeoForge)
 
-Minecraft Java 1.21.1, NeoForge, Java 21.
+**Status: work in progress, not a verified release.** Requires Java 21. All work belongs in the integration branch `feature/large-village-overhaul` and [PR #1](https://github.com/okreka11-del/Minecraft-Reputation/pull/1). See [ROADMAP.md](ROADMAP.md) for the five milestones and [AUDIT.md](AUDIT.md) for verified source findings and outstanding risks.
 
-## Reputation
-- Individual score starts at 100, range -100 to 200, persists through death.
-- Killing hostile mobs +1 (five-second reward cooldown), animals -2, villagers -20, players -30.
-- Six ranks and commands: `/reputation get`, `help`, `set`, `add`, `suspicion`.
+## Implemented in source (gameplay testing pending)
 
-## World reactions
-- Villagers flee notorious players; reputation 0 or below blocks villager trading.
-- Cows, pigs and sheep flee notorious players, and animal interaction/feeding is blocked at reputation 0 or below, even when holding food.
-- At -50 or below, animals produce CLOUD vapor-like particles and briefly slow nearby players.
-- At -50 or below, monsters and iron golems deal 3x incoming damage to the player.
-- Iron golems target nearby notorious players.
-- At 151 or above, hostile mobs clear their target if it is the renowned player; pillagers also try to target other monsters. Vanilla AI may reassign targets.
-- At 151 or above, villagers show happy particles and animals show hearts.
-- Village block breaking is canceled for score 0 or below. The temporary village detector uses nearby villagers (24-block radius), not actual village boundaries.
-- For score 1..150, breaking blocks near villagers costs 1 reputation per block. At 151+ there is no penalty.
-- A client HUD draws a fixed upper-left bar rather than the previous periodic actionbar text.
+- Player reputation starts at **0 (Neutral)** for new players; allowed range **−100..200**, with eleven rank thresholds. Existing saved player reputation must be preserved.
+- Reputation is persisted per player and synchronized to the client. A HUD and seven-section journal (J) expose reputation and related systems; readability across GUI scales remains unverified.
+- Monster-kill reputation rewards are capped at **10 per Minecraft day**, with a separate daily cap of **10 gifts**. Quest progress is not intended to stop when the kill reward cap is reached. Multiplayer and day-rollover regression tests are still required.
+- Separate faction standings cover villagers, pillagers, animals, monsters, golems and the dragon. NPC reactions and AI are implemented in part, but vanilla targeting/pathfinding may conflict.
+- Settlement registration, capture/liberation and specialist guard/builder/armorer behaviors are prototypes, not complete world generation or occupation gameplay. Hero houses have owner-UUID recovery support with migration limitations.
+- Workstations and registration exist for twenty professions, but distinct schedules, trade loops, quests, AI and textures are not complete for every role.
 
-## Known limitations / tests
-**This code has not yet been verified to compile or run in GitHub Actions.**
-- Multiplayer client synchronization of the HUD reputation score is not implemented/verified; the client may display its default value.
-- Existing vanilla AI may override mob targeting and navigation.
-- Pillagers' vanilla hostility may override the alliance logic; damage from pillagers is canceled for players at 151+.
-- Animal breeding by existing in-love animals or other means is not comprehensively prevented; feeding interaction is blocked.
-- Vapor is implemented with CLOUD particles, not a physical projectile.
-- Village protection is proximity-based, not ownership-aware.
+## Critical known limitations
 
-## Suggested test
-1. Install the newly built JAR in Minecraft 1.21.1 NeoForge (remove older JARs).
-2. Set reputation to -100 and test villager trading, feeding cows/sheep/pigs, golem aggression, monster damage and block breaking near villagers.
-3. Set reputation to 200 and test pillager hostility, animal hearts, villager happiness and breaking village blocks.
-4. Check upper-left HUD in singleplayer and multiplayer, and whether it updates after `/reputation set`.
-5. Report any build errors or unexpected AI behavior with screenshots/logs.
+- **Village block-breaking penalties currently rely on villagers within 24 blocks rather than proven structure ownership.** This can incorrectly punish normal mining or player construction; do not treat it as safe protection logic. See AUDIT.md P0.
+- The requested server-authoritative **G-key army command panel** and complete army persistence/permissions are not implemented.
+- Full independent village/outpost world generation, economy, captives, rebuilding and multiplayer permissions remain incomplete.
+- Automated tests are currently absent (`test NO-SOURCE`, `testJunit NO-SOURCE` reported in the audit). Passing Gradle CI does **not** establish that the mod works in a Minecraft client or dedicated server.
+- Older player houses without identifiable owner UUID/footprint may not be migrated automatically; migration must never claim unrelated player builds.
 
+## Build and verification
 
-## Settlement prototype (November 2026)
+Check [GitHub Actions](https://github.com/okreka11-del/Minecraft-Reputation/actions) for the **current branch-head commit**. A successful workflow confirms its build steps only, not game behavior. Do not label development artifacts as a final JAR.
 
-This branch includes a **server-side prototype**, not a finished village overhaul.
+Before release, test on Minecraft Java 1.21.1 with the matching NeoForge version: client and dedicated server startup; HUD/J at multiple GUI scales; save/reload and old-world migration; multiple players with different reputation; daily caps and quests; NPC hostility; settlement construction and ownership safety. Capture crash logs and reproducible steps for failures.
 
-* An operator standing near villagers registers a settlement with `/settlement register` (requires permission level 2). Registered settlement centres, faction ownership and build stages persist through `SavedData` in the dimension.
-* `/settlement status` displays the closest registered settlement within 96 blocks.
-* At reputation **−80 or lower**, `/settlement capture` starts occupation when at least three pillagers are nearby. At reputation **+151 or higher**, `/settlement liberate` starts liberation once nearby pillagers are defeated. **These are early test conditions, not a finished raid/victory detector.**
-* Every Minecraft day, the settlement attempts one non-destructive stage of small fence/lookout decorations (up to three stages). Existing blocks are **never replaced**. This is deliberately **not yet** a full fortress conversion, automatic world generation or building restoration.
-* Operator commands `/specialist guard`, `/specialist builder`, `/specialist armorer` assign persistent roles to the nearest villager (first two) or pillager (last) within six blocks. Guards rally nearby iron golems when pillagers attack; builders repair injured golems once per day; pillager armorers periodically grant nearby pillagers brief Resistance I. These are **functional behaviors**, but do not yet include unique models, workstations, housing, schedules, profession registration, or trading.
-* The prototype avoids scanning all entities in the world: specialist work only runs around active players. Decoration placement checks loaded chunks, solid ground and empty space.
+## Delivery plan
 
-### Verification status
+1. HUD and reputation book.
+2. Light and Dark faction behavior.
+3. Armies, orders and G panel.
+4. Villagers, pillagers and interactions.
+5. Settlements, world generation and final integration.
 
-Code changes are committed to GitHub. A full NeoForge Gradle build and Minecraft runtime test **have not been verified** in the current environment. The GitHub Actions workflow attempts a Java 21 Gradle build on pushes; check its latest result before treating a downloadable artifact as a working JAR. No independent Minecraft client/server smoke test has been completed.
-
-### Planned next stage
-
-Register real professions and job-site blocks with textures and loot tables; integrate generated structures into village world generation; make occupation depend on actual raid victory and village state; persist builder tasks; add protected player-owned building regions, NPC pathfinding and proper trading screens; test multiplayer and dimension loading.
+**One integration branch, one eventual release JAR, no claims of in-game verification without actual gameplay tests.**

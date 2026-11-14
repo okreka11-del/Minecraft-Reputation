@@ -65,7 +65,16 @@ public final class ReputationDragon {
         else if (option == 1) player.sendSystemMessage(Component.translatable("reputation.dragon.how"));
         else {
             BlockPos pos = player.blockPosition().offset(3, 0, 0);
-            player.serverLevel().setBlockAndUpdate(pos, Blocks.END_PORTAL.defaultBlockState());
+            var level = player.serverLevel();
+            // A dialogue command must never overwrite existing terrain or player builds.
+            if (!level.hasChunkAt(pos)
+                    || !level.getBlockState(pos).isAir()
+                    || !level.getBlockState(pos.above()).isAir()
+                    || !level.getBlockState(pos.below()).isSolidRender(level, pos.below())) {
+                player.sendSystemMessage(Component.literal("Portal needs an empty space with solid ground three blocks east."));
+                return 0;
+            }
+            level.setBlockAndUpdate(pos, Blocks.END_PORTAL.defaultBlockState());
             player.sendSystemMessage(Component.translatable("reputation.dragon.portal"));
         }
         return 1;
