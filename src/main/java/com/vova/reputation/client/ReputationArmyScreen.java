@@ -22,6 +22,7 @@ public final class ReputationArmyScreen extends Screen {
     // The server response recreates this screen; keep the cooldown across instances.
     // Otherwise holding R rebuilds the screen and resets its per-instance throttle.
     private static int lastRefreshTick = Integer.MIN_VALUE;
+    private int lastAutomaticRefreshTick = Integer.MIN_VALUE;
     private boolean lastOrdersEnabled;
     private String lastUnavailableReason = "";
     private static final Component NO_SQUAD_HELP = Component.literal("Нет доступных волков: приручите волка костями, затем подойдите к нему на расстояние приказов.");
@@ -52,6 +53,9 @@ public final class ReputationArmyScreen extends Screen {
     @Override protected void init() {
         orderButtons.clear();
         pendingWheelScroll = 0;
+        // Begin the periodic refresh window on opening, not at world tick zero.
+        lastAutomaticRefreshTick = minecraft != null && minecraft.player != null
+            ? minecraft.player.tickCount : Integer.MIN_VALUE;
         closeButton = null;
         lastOrdersEnabled = canIssueOrders();
         lastUnavailableReason = unavailableHelp().getString();
@@ -190,6 +194,26 @@ public final class ReputationArmyScreen extends Screen {
         onClose();
     }
 
+    // Keep the tactical overview current while the player is looking at it.
+    // Wolves can walk into range, leave it or dismount without another key press.
+    // Scan at most once every two seconds; the server still validates and throttles.
+    @Override public void tick() {
+        super.tick();
+        if (minecraft == null || minecraft.player == null
+            || !minecraft.player.isAlive() || minecraft.player.isSpectator()) return;
+        int now = minecraft.player.tickCount;
+        if (lastAutomaticRefreshTick == Integer.MIN_VALUE || now < lastAutomaticRefreshTick) {
+            lastAutomaticRefreshTick = now;
+            return;
+        }
+        if (now - lastAutomaticRefreshTick < 40) return;
+        lastAutomaticRefreshTick = now;
+        if (lastRefreshTick != Integer.MIN_VALUE && now >= lastRefreshTick
+            && now - lastRefreshTick < 10) return;
+        lastRefreshTick = now;
+        PacketDistributor.sendToServer(new ReputationNetwork.ArmyRequest());
+    }
+
     // Vanilla Screen.renderBackground applies the menu blur to the world. This
     // tactical overlay intentionally leaves the scene readable so players can
     // see threats while choosing an order. The panel itself is drawn in render().
@@ -236,7 +260,7 @@ public final class ReputationArmyScreen extends Screen {
         // third text row: its 9px glyphs would overlap the first order button.
         // Reserve the range hint for the 48px header on taller windows.
         if (height >= 240) {
-            String range = "1–7 · R обновить · Радиус 24";
+            String range = "1–7 · Автообновление · R · 24 блока";
             g.drawString(font, font.plainSubstrByWidth(range, w - 16), x + 8, y + 35, 0xFF705438, false);
         }
         super.render(g, mouseX, mouseY, partialTick);
