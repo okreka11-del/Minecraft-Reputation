@@ -325,11 +325,11 @@ public final class ReputationNetwork {
                 int changed = 0;
                 int restrained = 0;
                 for (var wolf : wolves) {
-                    // Movement and attack orders cannot override a physical leash or
-                    // a vehicle mount. Keep the wolf's current guard/combat state
-                    // instead of reporting a successful command it cannot obey.
-                    // Follow/guard remain available so owners can change stance.
-                    if (payload.order() >= 2 && (wolf.isLeashed() || wolf.isPassenger())) {
+                    // A mounted wolf cannot act on any squad order until dismounted:
+                    // even Follow/Guard would misleadingly report success while it
+                    // remains trapped in a vehicle. Leashed wolves may still switch
+                    // Follow/Guard stance, but cannot obey movement/attack orders.
+                    if (wolf.isPassenger() || (payload.order() >= 2 && wolf.isLeashed())) {
                         restrained++;
                         continue;
                     }
