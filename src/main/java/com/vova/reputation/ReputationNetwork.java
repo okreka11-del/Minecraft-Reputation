@@ -153,11 +153,21 @@ public final class ReputationNetwork {
                 int now = player.tickCount;
                 int last = data.getInt("reputationLastArmyRefreshTick");
                 if (data.getBoolean("reputationHasArmyRefreshTick")
-                        && now >= last && now - last < 10) return;
+                        && now >= last && now - last < 10) {
+                    // Still answer a fresh G-open request. Dropping the response made
+                    // the panel appear broken when players closed and reopened it
+                    // within the scan cooldown. Reuse the last authoritative count
+                    // without repeating the nearby-entity search.
+                    PacketDistributor.sendToPlayer(player, new ArmyOverview(
+                        Math.max(0, data.getInt("reputationCachedArmyCount"))));
+                    return;
+                }
+                int count = (int) ownedWolves(player).stream()
+                    .filter(wolf -> !wolf.isPassenger()).count();
+                data.putInt("reputationCachedArmyCount", count);
                 data.putBoolean("reputationHasArmyRefreshTick", true);
                 data.putInt("reputationLastArmyRefreshTick", now);
-                PacketDistributor.sendToPlayer(player, new ArmyOverview((int) ownedWolves(player).stream()
-                    .filter(wolf -> !wolf.isPassenger()).count()));
+                PacketDistributor.sendToPlayer(player, new ArmyOverview(count));
             }));
         registrar.playToClient(ArmyOverview.TYPE, ArmyOverview.STREAM_CODEC,
             (payload, context) -> context.enqueueWork(() -> {
