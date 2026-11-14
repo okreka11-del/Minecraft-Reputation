@@ -190,6 +190,13 @@ public final class ReputationNetwork {
                             "Волки не атакуют криперов по приказу: взрыв опасен для отряда."), true);
                         return;
                     }
+                    // A Warden can kill an entire wolf squad almost instantly, even
+                    // through armor. Preserve vanilla wolf avoidance of this threat.
+                    if (candidate instanceof net.minecraft.world.entity.monster.warden.Warden) {
+                        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                            "Волки не атакуют Хранителя по приказу: он смертельно опасен для отряда."), true);
+                        return;
+                    }
                     attackTarget = candidate;
                 }
                 // Select a waypoint from the server-side player's view, not client coordinates.
