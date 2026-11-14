@@ -298,7 +298,10 @@ public final class ReputationNetwork {
                                 || feetState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
                                 || headState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
                                 || feetState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
-                                || headState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)) {
+                                || headState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
+                                // Adjacent webs can trap wolves brushing against the edge.
+                                || feetState.is(net.minecraft.world.level.block.Blocks.COBWEB)
+                                || headState.is(net.minecraft.world.level.block.Blocks.COBWEB)) {
                             touchesHazard = true;
                             break;
                         }
@@ -508,6 +511,9 @@ public final class ReputationNetwork {
                                     || headState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
                                     || feetState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
                                     || headState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
+                                    // A seated guard cannot navigate out of neighboring webs.
+                                    || feetState.is(net.minecraft.world.level.block.Blocks.COBWEB)
+                                    || headState.is(net.minecraft.world.level.block.Blocks.COBWEB)
                                     // Lit campfires are damaging even with a safe floor.
                                     || feetState.is(net.minecraft.world.level.block.Blocks.CAMPFIRE)
                                         && feetState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
