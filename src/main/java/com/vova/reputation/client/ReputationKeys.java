@@ -19,6 +19,14 @@ public final class ReputationKeys {
     private static boolean shiftWasDown;
     private static long lastShiftTap;
     private static long lastFart;
+    // A delayed overview must not reopen the army menu after another GUI appears.
+    private static boolean armyOpenPending;
+
+    public static boolean consumeArmyOpenRequest() {
+        boolean pending = armyOpenPending;
+        armyOpenPending = false;
+        return pending;
+    }
     public static final KeyMapping JOURNAL = new KeyMapping(
         "key.reputation.journal", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_J,
         "key.categories.reputation");
@@ -54,6 +62,8 @@ public final class ReputationKeys {
                 } else lastShiftTap = now;
             }
             shiftWasDown = shiftDown;
+            // Opening another GUI cancels any outstanding G request.
+            if (mc.screen != null || mc.player == null) armyOpenPending = false;
             // Drain every queued press, but send at most one screen request per tick.
             // A burst of queued G presses previously sent several ArmyRequests before
             // the server could open the panel, causing duplicate responses/screens.
@@ -66,7 +76,10 @@ public final class ReputationKeys {
             if (mc.player != null && mc.screen == null) {
                 // One panel at a time: army takes priority over village and journal.
                 // Prevent simultaneous bound keys from racing to replace the GUI.
-                if (armyPressed) PacketDistributor.sendToServer(new ReputationNetwork.ArmyRequest());
+                if (armyPressed && mc.player.isAlive() && !mc.player.isSpectator()) {
+                    armyOpenPending = true;
+                    PacketDistributor.sendToServer(new ReputationNetwork.ArmyRequest());
+                }
                 else if (villagePressed) PacketDistributor.sendToServer(new ReputationNetwork.VillageRequest());
                 else if (journalPressed) PacketDistributor.sendToServer(new ReputationNetwork.JournalRequest());
             }
