@@ -137,9 +137,19 @@ public final class ReputationNetwork {
         var registrar = event.registrar("1");
         registrar.playToServer(ArmyRequest.TYPE, ArmyRequest.STREAM_CODEC,
             (payload, context) -> context.enqueueWork(() -> {
-                if (context.player() instanceof ServerPlayer player)
-                    PacketDistributor.sendToPlayer(player, new ArmyOverview((int) ownedWolves(player).stream()
-                        .filter(wolf -> !wolf.isPassenger()).count()));
+                if (!(context.player() instanceof ServerPlayer player)) return;
+                // Enforce the refresh interval on the server as well: modified clients
+                // must not be able to flood nearby-entity scans with ArmyRequest packets.
+                // Use the player's live tick counter, resetting naturally after respawn.
+                var data = player.getPersistentData();
+                int now = player.tickCount;
+                int last = data.getInt("reputationLastArmyRefreshTick");
+                if (data.getBoolean("reputationHasArmyRefreshTick")
+                        && now >= last && now - last < 10) return;
+                data.putBoolean("reputationHasArmyRefreshTick", true);
+                data.putInt("reputationLastArmyRefreshTick", now);
+                PacketDistributor.sendToPlayer(player, new ArmyOverview((int) ownedWolves(player).stream()
+                    .filter(wolf -> !wolf.isPassenger()).count()));
             }));
         registrar.playToClient(ArmyOverview.TYPE, ArmyOverview.STREAM_CODEC,
             (payload, context) -> context.enqueueWork(() -> {
