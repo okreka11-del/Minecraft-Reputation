@@ -73,6 +73,10 @@ public final class ReputationWorkstationAssignment {
         // workstation is already assigned, and can reassign another nearby NPC.
         boolean occupied = level.getEntitiesOfClass(Entity.class, area).stream()
             .anyMatch(entity -> entity.isAlive()
+                && (illagerJob ? entity instanceof Pillager : entity instanceof Villager)
+                && entity.getPersistentData().contains("ReputationWorkX")
+                && entity.getPersistentData().contains("ReputationWorkY")
+                && entity.getPersistentData().contains("ReputationWorkZ")
                 && entity.getPersistentData().getString("ReputationProfession").equals(job)
                 && entity.getPersistentData().getInt("ReputationWorkX") == workstation.getX()
                 && entity.getPersistentData().getInt("ReputationWorkY") == workstation.getY()
