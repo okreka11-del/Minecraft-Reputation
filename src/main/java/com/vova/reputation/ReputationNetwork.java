@@ -138,6 +138,13 @@ public final class ReputationNetwork {
         registrar.playToServer(ArmyRequest.TYPE, ArmyRequest.STREAM_CODEC,
             (payload, context) -> context.enqueueWork(() -> {
                 if (!(context.player() instanceof ServerPlayer player)) return;
+                // Dead players and spectators cannot command a squad. Do not scan
+                // nearby entities for their forged or stale overview requests.
+                // Send zero so an already-open panel immediately disables orders.
+                if (!player.isAlive() || player.isSpectator()) {
+                    PacketDistributor.sendToPlayer(player, new ArmyOverview(0));
+                    return;
+                }
                 // Enforce the refresh interval on the server as well: modified clients
                 // must not be able to flood nearby-entity scans with ArmyRequest packets.
                 // Use the player's live tick counter, resetting naturally after respawn.
