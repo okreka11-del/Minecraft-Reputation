@@ -83,7 +83,7 @@ public final class ReputationArmyScreen extends Screen {
         orderButtons.add(addRenderableWidget(attack));
         Button waypoint = Button.builder(commandLabel(6, "К точке взгляда", w - 16), b -> issue(5))
             .bounds(x + 8, firstButtonY + 5 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
-        waypoint.setTooltip(Tooltip.create(Component.literal("К точке взгляда — наведите взгляд на блок не дальше 24 блоков. Волки попытаются добежать до этой точки.")));
+        waypoint.setTooltip(Tooltip.create(Component.literal("К точке взгляда — наведите прицел на блок в радиусе 24 блоков ДО открытия панели G. После выбора приказа волки пойдут туда, если путь безопасен.")));
         if (!canIssueOrders()) waypoint.setTooltip(Tooltip.create(unavailableHelp()));
         waypoint.active = canIssueOrders();
         orderButtons.add(addRenderableWidget(waypoint));
@@ -122,7 +122,7 @@ public final class ReputationArmyScreen extends Screen {
                 "Собрать рядом — позвать принадлежащих вам волков к себе.",
                 "Отступить ко мне — волки прекращают бой, встают и возвращаются к вам. Близкие волки уже в безопасности.",
                 "Атаковать отмеченного монстра — ударьте монстра не более 10 секунд назад. Вы и волки должны видеть цель в радиусе 24 блоков. Криперы исключены: взрыв опасен для отряда.",
-                "К точке взгляда — наведите взгляд на блок не дальше 24 блоков. Волки попытаются добежать до этой точки."
+                "К точке взгляда — наведите прицел на блок в радиусе 24 блоков ДО открытия панели G. После выбора приказа волки пойдут туда, если путь безопасен."
             };
             for (int i = 0; i < orderButtons.size(); i++) {
                 orderButtons.get(i).setTooltip(Tooltip.create(Component.literal(hints[i])));
