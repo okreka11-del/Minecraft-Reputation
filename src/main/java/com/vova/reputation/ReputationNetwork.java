@@ -290,6 +290,15 @@ public final class ReputationNetwork {
                             || !level.getBlockState(headroom).getCollisionShape(level, headroom).isEmpty()
                             || !level.getFluidState(waypoint).isEmpty()
                             || !level.getFluidState(headroom).isEmpty()
+                            // Portal interiors have no ordinary collision, but a wolf
+                            // sent there can be transported into another dimension.
+                            // Keep waypoint orders within the owner's current world.
+                            || level.getBlockState(waypoint).is(net.minecraft.world.level.block.Blocks.NETHER_PORTAL)
+                            || level.getBlockState(headroom).is(net.minecraft.world.level.block.Blocks.NETHER_PORTAL)
+                            || level.getBlockState(waypoint).is(net.minecraft.world.level.block.Blocks.END_PORTAL)
+                            || level.getBlockState(headroom).is(net.minecraft.world.level.block.Blocks.END_PORTAL)
+                            || level.getBlockState(waypoint).is(net.minecraft.world.level.block.Blocks.END_GATEWAY)
+                            || level.getBlockState(headroom).is(net.minecraft.world.level.block.Blocks.END_GATEWAY)
                             // Even with a solid top face, hot blocks can injure a wolf.
                             // Check the supporting block as well as the destination.
                             || !level.getFluidState(ground).isEmpty()
