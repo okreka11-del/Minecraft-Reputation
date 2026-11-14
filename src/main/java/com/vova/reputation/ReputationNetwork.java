@@ -385,13 +385,21 @@ public final class ReputationNetwork {
                 armyOrderData.putInt("reputationLastArmyOrderTick", player.tickCount);
                 int changed = 0;
                 int restrained = 0;
+                int mounted = 0;
+                int leashed = 0;
                 for (var wolf : wolves) {
                     // A mounted wolf cannot act on any squad order until dismounted:
                     // even Follow/Guard would misleadingly report success while it
                     // remains trapped in a vehicle. Leashed wolves may still switch
                     // Follow/Guard stance, but cannot obey movement/attack orders.
-                    if (wolf.isPassenger() || (payload.order() >= 2 && wolf.isLeashed())) {
+                    if (wolf.isPassenger()) {
                         restrained++;
+                        mounted++;
+                        continue;
+                    }
+                    if (payload.order() >= 2 && wolf.isLeashed()) {
+                        restrained++;
+                        leashed++;
                         continue;
                     }
                     if (payload.order() == 4) {
@@ -615,7 +623,11 @@ public final class ReputationNetwork {
                 // Leashed wolves remain eligible for Follow and Guard.
                 if (changed == 0 && restrained == wolves.size()) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                        "Приказ не выполнен: все волки привязаны поводком или находятся в транспорте. Освободите хотя бы одного."), true);
+                        mounted == wolves.size()
+                            ? "Приказ не выполнен: все волки находятся в транспорте. Высадите хотя бы одного."
+                            : leashed == wolves.size()
+                                ? "Приказ не выполнен: все волки на поводках. Отвяжите хотя бы одного для этого приказа."
+                                : "Приказ не выполнен: волки в транспорте или на поводках. Освободите хотя бы одного."), true);
                 } else if (payload.order() == 5 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                         "Ни один волк не может дойти до точки в радиусе 24 блоков от него."), true);
@@ -633,7 +645,7 @@ public final class ReputationNetwork {
                         "Приказ не выполнен: ни один ваш волк не видит цель в радиусе 24 блоков."), true);
                 } else {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                        (payload.order() == 0 ? "Следовать: " : payload.order() == 1 ? "Охранять: " : payload.order() == 2 ? "Сбор отряда: " : payload.order() == 3 ? "Отступают к вам: " : payload.order() == 4 ? "Атакуют цель: " : "Идут к точке: ") + changed + " из " + wolves.size() + " волков" + (changed < wolves.size() ? " (не выполнили: " + (wolves.size() - changed) + (restrained > 0 ? ", из них " + restrained + " привязаны или в транспорте" : "") + "; проверьте расстояние, путь и безопасность)" : "")), true);
+                        (payload.order() == 0 ? "Следовать: " : payload.order() == 1 ? "Охранять: " : payload.order() == 2 ? "Сбор отряда: " : payload.order() == 3 ? "Отступают к вам: " : payload.order() == 4 ? "Атакуют цель: " : "Идут к точке: ") + changed + " из " + wolves.size() + " волков" + (changed < wolves.size() ? " (не выполнили: " + (wolves.size() - changed) + (restrained > 0 ? ", из них " + mounted + " в транспорте" + (leashed > 0 ? " и " + leashed + " на поводках" : "") : "") + "; проверьте расстояние, путь и безопасность)" : "")), true);
                 }
             }));
         registrar.playToServer(FartRequest.TYPE, FartRequest.STREAM_CODEC,
