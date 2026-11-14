@@ -143,6 +143,13 @@ public final class ReputationNetwork {
                 // nearby entities for their forged or stale overview requests.
                 // Send zero so an already-open panel immediately disables orders.
                 if (!player.isAlive() || player.isSpectator()) {
+                    // Invalidate the cached squad snapshot as well as the visible
+                    // count. Otherwise a quick return from spectator mode can
+                    // reuse a stale positive count during the scan cooldown and
+                    // temporarily enable orders for wolves no longer nearby.
+                    var inactiveData = player.getPersistentData();
+                    inactiveData.putInt("reputationCachedArmyCount", 0);
+                    inactiveData.putBoolean("reputationHasArmyRefreshTick", false);
                     PacketDistributor.sendToPlayer(player, new ArmyOverview(0));
                     return;
                 }
