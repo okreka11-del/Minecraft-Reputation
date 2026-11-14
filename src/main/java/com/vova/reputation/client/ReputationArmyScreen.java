@@ -14,7 +14,7 @@ import org.lwjgl.glfw.GLFW;
  * This deliberately does not claim to implement villager/illager recruitment.
  */
 public final class ReputationArmyScreen extends Screen {
-    private final int available;
+    private int available;
     private final java.util.List<Button> orderButtons = new java.util.ArrayList<>();
     private Button closeButton;
     private double pendingWheelScroll;
@@ -41,6 +41,12 @@ public final class ReputationArmyScreen extends Screen {
     public ReputationArmyScreen(int available) {
         super(Component.literal("Отряд — приказы"));
         this.available = available;
+    }
+
+    /** Update the authoritative count without recreating the menu or losing focus. */
+    public void updateSquadCount(int count) {
+        available = Math.max(0, count);
+        refreshOrderAvailability();
     }
 
     @Override protected void init() {
