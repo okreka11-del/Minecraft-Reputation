@@ -5,6 +5,7 @@ import com.vova.reputation.client.ReputationBookScreen;
 import com.vova.reputation.client.ReputationDialogueScreen;
 import com.vova.reputation.client.ReputationVillageScreen;
 import com.vova.reputation.client.ReputationArmyScreen;
+import com.vova.reputation.client.ReputationKeys;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -164,9 +165,18 @@ public final class ReputationNetwork {
                 // resets its navigation state every time the player presses R.
                 Minecraft client = Minecraft.getInstance();
                 if (client.screen instanceof ReputationArmyScreen armyScreen) {
+                    // The initial request is no longer pending once the menu is visible.
+                    ReputationKeys.consumeArmyOpenRequest();
                     armyScreen.updateSquadCount(payload.count());
-                } else {
+                } else if (client.screen == null && ReputationKeys.consumeArmyOpenRequest()
+                        && client.player != null && client.player.isAlive()
+                        && !client.player.isSpectator()) {
+                    // Only the initial G press may open the menu. Late automatic/manual
+                    // refresh replies must never reopen a panel the player has closed.
                     client.setScreen(new ReputationArmyScreen(payload.count()));
+                } else {
+                    // A different GUI took focus or the player became inactive.
+                    ReputationKeys.consumeArmyOpenRequest();
                 }
             }));
         registrar.playToServer(ArmyOrder.TYPE, ArmyOrder.STREAM_CODEC,
