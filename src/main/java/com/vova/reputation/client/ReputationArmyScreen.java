@@ -123,8 +123,15 @@ public final class ReputationArmyScreen extends Screen {
         // Never leave keyboard/controller focus on a disabled order after death or
         // a spectator switch. Restore the first command when control returns.
         if (availabilityChanged) {
-            if (!enabled && closeButton != null) setFocused(closeButton);
-            else if (enabled && !orderButtons.isEmpty()) setFocused(orderButtons.get(0));
+            // An automatic squad refresh must not steal keyboard focus from Close
+            // when wolves walk back into range. Only move focus if the currently
+            // selected control has become disabled (or no control is selected).
+            if (!enabled && closeButton != null) {
+                setFocused(closeButton);
+            } else if (enabled && !orderButtons.isEmpty()
+                    && (!(getFocused() instanceof Button focused) || !focused.active)) {
+                setFocused(orderButtons.get(0));
+            }
         }
         if (!enabled) {
             for (Button button : orderButtons) button.setTooltip(Tooltip.create(unavailableHelp()));
