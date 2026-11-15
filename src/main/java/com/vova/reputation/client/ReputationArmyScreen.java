@@ -53,9 +53,16 @@ public final class ReputationArmyScreen extends Screen {
             && minecraft.player.tickCount <= manualRefreshDeadlineTick;
     }
 
+    private boolean isOriginalDimension() {
+        // Input can arrive between a dimension transfer and the next screen tick.
+        // Reject stale orders immediately instead of relying on tick() to close us.
+        return minecraft != null && minecraft.player != null && openedDimension != null
+            && minecraft.player.level().dimension() == openedDimension;
+    }
+
     private boolean canIssueOrders() {
-        return !isManualRefreshPending() && !manualRefreshTimedOut
-            && !isSquadSnapshotStale() && available > 0 && minecraft != null && minecraft.player != null
+        return isOriginalDimension() && !isManualRefreshPending() && !manualRefreshTimedOut
+            && !isSquadSnapshotStale() && available > 0
             && minecraft.player.isAlive() && !minecraft.player.isSpectator();
     }
 
@@ -364,7 +371,12 @@ public final class ReputationArmyScreen extends Screen {
     // One shared refresh path keeps keyboard and mouse input subject to the
     // same client cooldown and server-authoritative response handling.
     private void requestManualRefresh() {
-        if (minecraft == null || minecraft.player == null) return;
+        // A refresh packet from the old dimension could produce a misleading
+        // squad snapshot after portal travel; wait for the new panel instead.
+        if (!isOriginalDimension()) {
+            onClose();
+            return;
+        }
         if (!minecraft.player.isAlive() || minecraft.player.isSpectator()) {
             minecraft.player.displayClientMessage(INACTIVE_PLAYER_HELP, true);
             return;
