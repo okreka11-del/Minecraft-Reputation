@@ -411,11 +411,14 @@ public final class ReputationArmyScreen extends Screen {
         // Only unmodified number keys are squad orders. Ctrl/Alt/Shift plus a
         // digit may be reserved by accessibility tools, key remaps or overlays;
         // never turn those combinations into an unintended attack/retreat.
-        // Num Lock is a lock state, not a GLFW modifier, so keypad shortcuts
-        // remain available with Num Lock enabled.
-        if (modifiers == 0 && keyCode >= GLFW.GLFW_KEY_1 && keyCode <= GLFW.GLFW_KEY_7) {
+        // GLFW may include Caps Lock / Num Lock state in modifiers when lock-key
+        // reporting is enabled. Those are not held shortcut modifiers: allow
+        // numeric orders while either lock is on, including keypad orders.
+        int shortcutModifiers = modifiers & (GLFW.GLFW_MOD_SHIFT | GLFW.GLFW_MOD_CONTROL
+            | GLFW.GLFW_MOD_ALT | GLFW.GLFW_MOD_SUPER);
+        if (shortcutModifiers == 0 && keyCode >= GLFW.GLFW_KEY_1 && keyCode <= GLFW.GLFW_KEY_7) {
             order = keyCode - GLFW.GLFW_KEY_1;
-        } else if (modifiers == 0 && keyCode >= GLFW.GLFW_KEY_KP_1 && keyCode <= GLFW.GLFW_KEY_KP_7) {
+        } else if (shortcutModifiers == 0 && keyCode >= GLFW.GLFW_KEY_KP_1 && keyCode <= GLFW.GLFW_KEY_KP_7) {
             order = keyCode - GLFW.GLFW_KEY_KP_1;
         }
         // Tab and Shift+Tab cycle through enabled commands and Close in a stable
