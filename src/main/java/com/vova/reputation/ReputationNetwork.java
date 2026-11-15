@@ -564,6 +564,14 @@ public final class ReputationNetwork {
                                 || !guardLevel.getFluidState(guardFeet).isEmpty()
                                 || !guardLevel.getFluidState(guardHead).isEmpty()
                                 || !guardLevel.getFluidState(guardGround).isEmpty()) continue;
+                        // A wolf ordered to sit cannot move off a hot supporting block.
+                        // Magma and lit campfires have sturdy tops but deal contact
+                        // damage; unlit campfires remain valid guard positions.
+                        if (guardGroundState.is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)
+                                || guardGroundState.is(net.minecraft.world.level.block.Blocks.CAMPFIRE)
+                                    && guardGroundState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
+                                || guardGroundState.is(net.minecraft.world.level.block.Blocks.SOUL_CAMPFIRE)
+                                    && guardGroundState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)) continue;
                         // A seated guard cannot escape non-solid damaging or trapping
                         // blocks. Collision and fluid checks above do not catch these.
                         // Leave the wolf's existing order intact when its feet or head
