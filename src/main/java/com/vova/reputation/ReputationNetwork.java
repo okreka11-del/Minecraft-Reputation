@@ -159,7 +159,12 @@ public final class ReputationNetwork {
                 var data = player.getPersistentData();
                 int now = player.tickCount;
                 int last = data.getInt("reputationLastArmyRefreshTick");
-                if (data.getBoolean("reputationHasArmyRefreshTick")
+                // A player can cross a portal and reopen G before the ten-tick
+                // scan cooldown expires. Never reuse an Overworld squad count in
+                // the Nether (or vice versa): the cached result is dimension-local.
+                String dimension = player.level().dimension().location().toString();
+                boolean sameDimension = dimension.equals(data.getString("reputationCachedArmyDimension"));
+                if (data.getBoolean("reputationHasArmyRefreshTick") && sameDimension
                         && now >= last && now - last < 10) {
                     // Still answer a fresh G-open request. Dropping the response made
                     // the panel appear broken when players closed and reopened it
@@ -172,6 +177,7 @@ public final class ReputationNetwork {
                 int count = (int) ownedWolves(player).stream()
                     .filter(wolf -> !wolf.isPassenger()).count();
                 data.putInt("reputationCachedArmyCount", count);
+                data.putString("reputationCachedArmyDimension", dimension);
                 data.putBoolean("reputationHasArmyRefreshTick", true);
                 data.putInt("reputationLastArmyRefreshTick", now);
                 PacketDistributor.sendToPlayer(player, new ArmyOverview(count));
