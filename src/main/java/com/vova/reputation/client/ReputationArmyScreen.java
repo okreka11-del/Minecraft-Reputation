@@ -23,6 +23,9 @@ public final class ReputationArmyScreen extends Screen {
     // Otherwise holding R rebuilds the screen and resets its per-instance throttle.
     private static int lastRefreshTick = Integer.MIN_VALUE;
     private int lastAutomaticRefreshTick = Integer.MIN_VALUE;
+    // A manual refresh keeps the last confirmed count visible but marks it as
+    // pending until the server replies (or the short status timeout expires).
+    private int manualRefreshDeadlineTick = Integer.MIN_VALUE;
     // The squad overview belongs to the dimension where it was opened. Do not
     // display or refresh an old squad after a portal transfer or world change.
     private net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> openedDimension;
@@ -50,6 +53,7 @@ public final class ReputationArmyScreen extends Screen {
     /** Update the authoritative count without recreating the menu or losing focus. */
     public void updateSquadCount(int count) {
         available = Math.max(0, count);
+        manualRefreshDeadlineTick = Integer.MIN_VALUE;
         refreshOrderAvailability();
     }
 
@@ -61,6 +65,7 @@ public final class ReputationArmyScreen extends Screen {
         // Begin the periodic refresh window on opening, not at world tick zero.
         lastAutomaticRefreshTick = minecraft != null && minecraft.player != null
             ? minecraft.player.tickCount : Integer.MIN_VALUE;
+        manualRefreshDeadlineTick = Integer.MIN_VALUE;
         closeButton = null;
         lastOrdersEnabled = canIssueOrders();
         lastUnavailableReason = unavailableHelp().getString();
@@ -268,7 +273,11 @@ public final class ReputationArmyScreen extends Screen {
                 : title.getString();
         String heading = font.plainSubstrByWidth(headingText, Math.max(1, w - 16));
         g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + (height < 105 ? 1 : 8), 0xFF45301B, false);
+        boolean refreshing = minecraft != null && minecraft.player != null
+            && manualRefreshDeadlineTick != Integer.MIN_VALUE
+            && minecraft.player.tickCount <= manualRefreshDeadlineTick;
         String count = playerInactive ? "Приказы временно недоступны"
+            : refreshing ? "Обновление отряда… · было: " + available
             : available == 0 ? "Приручите волка и подойдите ближе" : "Ваши волки рядом: " + available;
         if (height >= 165) {
             g.drawString(font, font.plainSubstrByWidth(count, w - 16), x + 8, y + 25, 0xFF45301B, false);
@@ -326,6 +335,7 @@ public final class ReputationArmyScreen extends Screen {
                 // while bounding network traffic when a key is held down.
                 if (lastRefreshTick == Integer.MIN_VALUE || now - lastRefreshTick >= 10 || now < lastRefreshTick) {
                     lastRefreshTick = now;
+                    manualRefreshDeadlineTick = now + 40;
                     pendingWheelScroll = 0;
                     PacketDistributor.sendToServer(new ReputationNetwork.ArmyRequest());
                 }
