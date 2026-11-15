@@ -82,17 +82,22 @@ public final class ReputationArmyScreen extends Screen {
         refreshOrderAvailability();
     }
 
+    private boolean initialized;
+
     @Override protected void init() {
-        openedDimension = minecraft != null && minecraft.player != null
-            ? minecraft.player.level().dimension() : null;
+        // Screen.init also runs on window resize / GUI-scale changes. Preserve
+        // pending server verification and stale-response timing across relayouts:
+        // otherwise resizing could falsely unlock orders using an old count.
+        if (!initialized) {
+            openedDimension = minecraft != null && minecraft.player != null
+                ? minecraft.player.level().dimension() : null;
+            lastAutomaticRefreshTick = minecraft != null && minecraft.player != null
+                ? minecraft.player.tickCount : Integer.MIN_VALUE;
+            lastSquadResponseTick = lastAutomaticRefreshTick;
+            initialized = true;
+        }
         orderButtons.clear();
         pendingWheelScroll = 0;
-        // Begin the periodic refresh window on opening, not at world tick zero.
-        lastAutomaticRefreshTick = minecraft != null && minecraft.player != null
-            ? minecraft.player.tickCount : Integer.MIN_VALUE;
-        manualRefreshDeadlineTick = Integer.MIN_VALUE;
-        manualRefreshTimedOut = false;
-        lastSquadResponseTick = lastAutomaticRefreshTick;
         closeButton = null;
         lastOrdersEnabled = canIssueOrders();
         lastUnavailableReason = unavailableHelp().getString();
