@@ -382,7 +382,10 @@ public final class ReputationArmyScreen extends Screen {
     private void requestManualRefresh() {
         // A refresh packet from the old dimension could produce a misleading
         // squad snapshot after portal travel; wait for the new panel instead.
-        if (!isOriginalDimension()) {
+        // A respawn may reset the player clock before the next screen tick.
+        // Do not request a new snapshot through an old tactical screen: close
+        // it and let the player reopen G in the new life instead.
+        if (!isOriginalDimension() || !isPlayerClockValid()) {
             onClose();
             return;
         }
