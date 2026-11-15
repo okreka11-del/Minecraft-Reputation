@@ -348,7 +348,15 @@ public final class ReputationNetwork {
                         // or cactus can damage them even if their destination is air.
                         var feetState = level.getBlockState(feetNeighbor);
                         var headState = level.getBlockState(headNeighbor);
-                        if (feetState.is(net.minecraft.world.level.block.Blocks.CACTUS)
+                        // Portals beside a waypoint can transport a wolf when it brushes the edge.
+                        // Keep the entire standing footprint clear, not just the target block.
+                        if (feetState.is(net.minecraft.world.level.block.Blocks.NETHER_PORTAL)
+                                || headState.is(net.minecraft.world.level.block.Blocks.NETHER_PORTAL)
+                                || feetState.is(net.minecraft.world.level.block.Blocks.END_PORTAL)
+                                || headState.is(net.minecraft.world.level.block.Blocks.END_PORTAL)
+                                || feetState.is(net.minecraft.world.level.block.Blocks.END_GATEWAY)
+                                || headState.is(net.minecraft.world.level.block.Blocks.END_GATEWAY)
+                                || feetState.is(net.minecraft.world.level.block.Blocks.CACTUS)
                                 || headState.is(net.minecraft.world.level.block.Blocks.CACTUS)
                                 || feetState.is(net.minecraft.world.level.block.Blocks.FIRE)
                                 || headState.is(net.minecraft.world.level.block.Blocks.FIRE)
