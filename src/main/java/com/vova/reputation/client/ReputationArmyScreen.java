@@ -60,8 +60,16 @@ public final class ReputationArmyScreen extends Screen {
             && minecraft.player.level().dimension() == openedDimension;
     }
 
+    // A respawn or client world replacement can reset the player tick counter
+    // while an old tactical screen is still open. Never trust its old snapshot.
+    private boolean isPlayerClockValid() {
+        return minecraft != null && minecraft.player != null
+            && (lastSquadResponseTick == Integer.MIN_VALUE
+                || minecraft.player.tickCount >= lastSquadResponseTick);
+    }
+
     private boolean canIssueOrders() {
-        return isOriginalDimension() && !isManualRefreshPending() && !manualRefreshTimedOut
+        return isPlayerClockValid() && isOriginalDimension() && !isManualRefreshPending() && !manualRefreshTimedOut
             && !isSquadSnapshotStale() && available > 0
             && minecraft.player.isAlive() && !minecraft.player.isSpectator();
     }
@@ -257,7 +265,8 @@ public final class ReputationArmyScreen extends Screen {
         super.tick();
         // Portal travel can leave this client-side Screen alive briefly while
         // the server switches levels. Close instead of showing stale orders.
-        if (minecraft == null || minecraft.player == null || openedDimension == null
+        if (!isPlayerClockValid() || minecraft == null || minecraft.player == null
+            || openedDimension == null
             || minecraft.player.level().dimension() != openedDimension) {
             onClose();
             return;
