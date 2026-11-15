@@ -222,6 +222,15 @@ public final class ReputationNetwork {
                 int lastArmyOrderTick = armyOrderData.getInt("reputationLastArmyOrderTick");
                 if (lastArmyOrderTick > 0 && player.tickCount >= lastArmyOrderTick
                         && player.tickCount - lastArmyOrderTick < 5) return;
+                // Failed orders must remain quickly retryable, but a modified client
+                // must not spam expensive navigation checks every server tick.
+                // Keep a separate short attempt throttle: successful orders retain
+                // their five-tick cooldown, while failed orders can be corrected
+                // after just two ticks instead of waiting for the full cooldown.
+                int lastArmyAttemptTick = armyOrderData.getInt("reputationLastArmyAttemptTick");
+                if (lastArmyAttemptTick > 0 && player.tickCount >= lastArmyAttemptTick
+                        && player.tickCount - lastArmyAttemptTick < 2) return;
+                armyOrderData.putInt("reputationLastArmyAttemptTick", player.tickCount);
                 // Attack only the last hostile non-player target actually struck by the owner.
                 // Never allow this packet to designate another player or a peaceful villager.
                 net.minecraft.world.entity.LivingEntity attackTarget = null;
