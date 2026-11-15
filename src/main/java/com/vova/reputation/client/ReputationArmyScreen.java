@@ -267,6 +267,10 @@ public final class ReputationArmyScreen extends Screen {
         if (minecraft.player == null || !minecraft.player.isAlive()
                 || minecraft.player.isSpectator()) return;
         int now = minecraft.player.tickCount;
+        // A manual verification is already waiting for the server. Do not issue
+        // a competing automatic scan that could overwrite its pending result.
+        // Automatic polling resumes normally after the reply or timeout.
+        if (isManualRefreshPending()) return;
         if (lastAutomaticRefreshTick == Integer.MIN_VALUE || now < lastAutomaticRefreshTick) {
             lastAutomaticRefreshTick = now;
             return;
@@ -372,6 +376,8 @@ public final class ReputationArmyScreen extends Screen {
         manualRefreshDeadlineTick = now + 40;
         manualRefreshTimedOut = false;
         pendingWheelScroll = 0;
+        // Disable order buttons immediately, even before the next render frame.
+        refreshOrderAvailability();
         PacketDistributor.sendToServer(new ReputationNetwork.ArmyRequest());
     }
 
