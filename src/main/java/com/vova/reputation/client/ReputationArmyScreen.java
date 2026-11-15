@@ -283,14 +283,14 @@ public final class ReputationArmyScreen extends Screen {
             ? (minecraft.player.isSpectator() ? "Режим наблюдателя" : "Игрок погиб")
             : height < 165
                 ? (refreshing ? "Обновление отряда…"
-                    : manualRefreshTimedOut ? "Нет ответа · R повторить"
+                    : manualRefreshTimedOut ? "Нет ответа · R / колесо повторить"
                     : available == 0 ? "Нет отряда" : "Отряд: " + available)
                 : title.getString();
         String heading = font.plainSubstrByWidth(headingText, Math.max(1, w - 16));
         g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + (height < 105 ? 1 : 8), 0xFF45301B, false);
         String count = playerInactive ? "Приказы временно недоступны"
             : refreshing ? "Обновление отряда… · было: " + available
-            : manualRefreshTimedOut ? "Нет ответа сервера · R повторить"
+            : manualRefreshTimedOut ? "Нет ответа сервера · R / колесо повторить"
             : available == 0 ? "Приручите волка и подойдите ближе" : "Ваши волки рядом: " + available;
         if (height >= 165) {
             g.drawString(font, font.plainSubstrByWidth(count, w - 16), x + 8, y + 25, 0xFF45301B, false);
@@ -323,6 +323,24 @@ public final class ReputationArmyScreen extends Screen {
 
     // Number row and numeric keypad mirror all seven visible panel actions.
     // Disabled commands must never send packets when no owned squad is nearby.
+    // One shared refresh path keeps keyboard and mouse input subject to the
+    // same client cooldown and server-authoritative response handling.
+    private void requestManualRefresh() {
+        if (minecraft == null || minecraft.player == null) return;
+        if (!minecraft.player.isAlive() || minecraft.player.isSpectator()) {
+            minecraft.player.displayClientMessage(INACTIVE_PLAYER_HELP, true);
+            return;
+        }
+        int now = minecraft.player.tickCount;
+        if (lastRefreshTick != Integer.MIN_VALUE && now >= lastRefreshTick
+                && now - lastRefreshTick < 10) return;
+        lastRefreshTick = now;
+        manualRefreshDeadlineTick = now + 40;
+        manualRefreshTimedOut = false;
+        pendingWheelScroll = 0;
+        PacketDistributor.sendToServer(new ReputationNetwork.ArmyRequest());
+    }
+
     @Override public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         // The configurable army key takes precedence over numeric shortcuts.
         // Otherwise remapping G to 1-7 would accidentally issue an order instead
@@ -331,29 +349,10 @@ public final class ReputationArmyScreen extends Screen {
             onClose();
             return true;
         }
-        // Re-scan the server-owned squad without closing the tactical menu.
-        // Wolves may arrive, leave the 24-block radius, or dismount while G is open.
-        // The authoritative ArmyOverview response rebuilds the menu with a fresh count.
+        // Refresh with R without closing the panel. The middle mouse button
+        // offers the same action for players navigating the menu by mouse.
         if (keyCode == GLFW.GLFW_KEY_R && modifiers == 0) {
-            // The server refuses scans from dead players and spectators. Avoid
-            // needless packets and show the same explanation as disabled orders.
-            if (minecraft != null && minecraft.player != null
-                && (!minecraft.player.isAlive() || minecraft.player.isSpectator())) {
-                minecraft.player.displayClientMessage(INACTIVE_PLAYER_HELP, true);
-                return true;
-            }
-            if (minecraft != null && minecraft.player != null) {
-                int now = minecraft.player.tickCount;
-                // Ten game ticks (half a second) is responsive for deliberate refreshes
-                // while bounding network traffic when a key is held down.
-                if (lastRefreshTick == Integer.MIN_VALUE || now - lastRefreshTick >= 10 || now < lastRefreshTick) {
-                    lastRefreshTick = now;
-                    manualRefreshDeadlineTick = now + 40;
-                    manualRefreshTimedOut = false;
-                    pendingWheelScroll = 0;
-                    PacketDistributor.sendToServer(new ReputationNetwork.ArmyRequest());
-                }
-            }
+            requestManualRefresh();
             return true;
         }
         int order = -1;
@@ -455,6 +454,10 @@ public final class ReputationArmyScreen extends Screen {
     @Override public boolean mouseClicked(double mouseX, double mouseY, int button) {
         // Do not carry a partial trackpad gesture into a mouse-selected command.
         pendingWheelScroll = 0;
+        if (button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE) {
+            requestManualRefresh();
+            return true;
+        }
         if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
             onClose();
             return true;
