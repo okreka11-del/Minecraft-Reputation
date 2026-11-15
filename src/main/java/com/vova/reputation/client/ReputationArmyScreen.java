@@ -26,6 +26,8 @@ public final class ReputationArmyScreen extends Screen {
     // A manual refresh keeps the last confirmed count visible but marks it as
     // pending until the server replies (or the short status timeout expires).
     private int manualRefreshDeadlineTick = Integer.MIN_VALUE;
+    // A timed-out manual refresh must not silently present the old squad count as fresh.
+    private boolean manualRefreshTimedOut;
     // The squad overview belongs to the dimension where it was opened. Do not
     // display or refresh an old squad after a portal transfer or world change.
     private net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> openedDimension;
@@ -54,6 +56,7 @@ public final class ReputationArmyScreen extends Screen {
     public void updateSquadCount(int count) {
         available = Math.max(0, count);
         manualRefreshDeadlineTick = Integer.MIN_VALUE;
+        manualRefreshTimedOut = false;
         refreshOrderAvailability();
     }
 
@@ -66,6 +69,7 @@ public final class ReputationArmyScreen extends Screen {
         lastAutomaticRefreshTick = minecraft != null && minecraft.player != null
             ? minecraft.player.tickCount : Integer.MIN_VALUE;
         manualRefreshDeadlineTick = Integer.MIN_VALUE;
+        manualRefreshTimedOut = false;
         closeButton = null;
         lastOrdersEnabled = canIssueOrders();
         lastUnavailableReason = unavailableHelp().getString();
@@ -276,8 +280,13 @@ public final class ReputationArmyScreen extends Screen {
         boolean refreshing = minecraft != null && minecraft.player != null
             && manualRefreshDeadlineTick != Integer.MIN_VALUE
             && minecraft.player.tickCount <= manualRefreshDeadlineTick;
+        if (!refreshing && manualRefreshDeadlineTick != Integer.MIN_VALUE) {
+            manualRefreshDeadlineTick = Integer.MIN_VALUE;
+            manualRefreshTimedOut = true;
+        }
         String count = playerInactive ? "Приказы временно недоступны"
             : refreshing ? "Обновление отряда… · было: " + available
+            : manualRefreshTimedOut ? "Нет ответа сервера · R повторить"
             : available == 0 ? "Приручите волка и подойдите ближе" : "Ваши волки рядом: " + available;
         if (height >= 165) {
             g.drawString(font, font.plainSubstrByWidth(count, w - 16), x + 8, y + 25, 0xFF45301B, false);
@@ -336,6 +345,7 @@ public final class ReputationArmyScreen extends Screen {
                 if (lastRefreshTick == Integer.MIN_VALUE || now - lastRefreshTick >= 10 || now < lastRefreshTick) {
                     lastRefreshTick = now;
                     manualRefreshDeadlineTick = now + 40;
+                    manualRefreshTimedOut = false;
                     pendingWheelScroll = 0;
                     PacketDistributor.sendToServer(new ReputationNetwork.ArmyRequest());
                 }
