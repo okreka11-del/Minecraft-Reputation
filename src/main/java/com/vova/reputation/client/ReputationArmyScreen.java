@@ -270,13 +270,8 @@ public final class ReputationArmyScreen extends Screen {
         // Spectators and dead players may still have a nonzero cached squad count.
         boolean playerInactive = minecraft != null && minecraft.player != null
             && (!minecraft.player.isAlive() || minecraft.player.isSpectator());
-        String headingText = playerInactive
-            ? (minecraft.player.isSpectator() ? "Режим наблюдателя" : "Игрок погиб")
-            : height < 165
-                ? (available == 0 ? "Нет отряда" : "Отряд: " + available)
-                : title.getString();
-        String heading = font.plainSubstrByWidth(headingText, Math.max(1, w - 16));
-        g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + (height < 105 ? 1 : 8), 0xFF45301B, false);
+        // Compact layouts omit the secondary status row, so surface pending and
+        // failed server refreshes in the heading instead of hiding the feedback.
         boolean refreshing = minecraft != null && minecraft.player != null
             && manualRefreshDeadlineTick != Integer.MIN_VALUE
             && minecraft.player.tickCount <= manualRefreshDeadlineTick;
@@ -284,6 +279,15 @@ public final class ReputationArmyScreen extends Screen {
             manualRefreshDeadlineTick = Integer.MIN_VALUE;
             manualRefreshTimedOut = true;
         }
+        String headingText = playerInactive
+            ? (minecraft.player.isSpectator() ? "Режим наблюдателя" : "Игрок погиб")
+            : height < 165
+                ? (refreshing ? "Обновление отряда…"
+                    : manualRefreshTimedOut ? "Нет ответа · R повторить"
+                    : available == 0 ? "Нет отряда" : "Отряд: " + available)
+                : title.getString();
+        String heading = font.plainSubstrByWidth(headingText, Math.max(1, w - 16));
+        g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + (height < 105 ? 1 : 8), 0xFF45301B, false);
         String count = playerInactive ? "Приказы временно недоступны"
             : refreshing ? "Обновление отряда… · было: " + available
             : manualRefreshTimedOut ? "Нет ответа сервера · R повторить"
