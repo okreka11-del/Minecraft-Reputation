@@ -5,6 +5,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.monster.Pillager;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.level.Level;
@@ -49,6 +50,8 @@ public final class ReputationWorkstationAssignment {
     }
 
     private static void onWorkstationUse(PlayerInteractEvent.RightClickBlock event) {
+        // A right click may fire once for each hand; assign only on the main-hand pass.
+        if (event.getHand() != InteractionHand.MAIN_HAND) return;
         Level level = event.getLevel();
         if (level.isClientSide() || !(event.getEntity() instanceof ServerPlayer player)) return;
         // Spectators cannot claim NPC professions; require normal interaction reach.
