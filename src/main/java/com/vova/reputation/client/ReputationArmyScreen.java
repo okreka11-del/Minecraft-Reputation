@@ -255,8 +255,17 @@ public final class ReputationArmyScreen extends Screen {
             onClose();
             return;
         }
-        if (minecraft == null || minecraft.player == null
-            || !minecraft.player.isAlive() || minecraft.player.isSpectator()) return;
+        // Expire manual verification during the game tick, not during rendering.
+        // Input events can arrive before the next frame; commands must already
+        // be disabled when a pending server confirmation has timed out.
+        if (minecraft.player != null && manualRefreshDeadlineTick != Integer.MIN_VALUE
+                && minecraft.player.tickCount > manualRefreshDeadlineTick) {
+            manualRefreshDeadlineTick = Integer.MIN_VALUE;
+            manualRefreshTimedOut = true;
+            refreshOrderAvailability();
+        }
+        if (minecraft.player == null || !minecraft.player.isAlive()
+                || minecraft.player.isSpectator()) return;
         int now = minecraft.player.tickCount;
         if (lastAutomaticRefreshTick == Integer.MIN_VALUE || now < lastAutomaticRefreshTick) {
             lastAutomaticRefreshTick = now;
@@ -301,10 +310,6 @@ public final class ReputationArmyScreen extends Screen {
         // Compact layouts omit the secondary status row, so surface pending and
         // failed server refreshes in the heading instead of hiding the feedback.
         boolean refreshing = isManualRefreshPending();
-        if (!refreshing && manualRefreshDeadlineTick != Integer.MIN_VALUE) {
-            manualRefreshDeadlineTick = Integer.MIN_VALUE;
-            manualRefreshTimedOut = true;
-        }
         boolean staleSquad = !playerInactive && isSquadSnapshotStale();
         String headingText = playerInactive
             ? (minecraft.player.isSpectator() ? "Режим наблюдателя" : "Игрок погиб")
