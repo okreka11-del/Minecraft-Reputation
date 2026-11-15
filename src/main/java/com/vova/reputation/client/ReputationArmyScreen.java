@@ -37,17 +37,24 @@ public final class ReputationArmyScreen extends Screen {
     private boolean lastOrdersEnabled;
     private String lastUnavailableReason = "";
     private static final Component NO_SQUAD_HELP = Component.literal("Нет доступных волков: приручите волка костями, затем подойдите к нему на расстояние приказов.");
+    private static final Component STALE_SQUAD_HELP = Component.literal("Состав отряда не подтверждён сервером. Нажмите R или колесо мыши и дождитесь обновления перед приказом.");
     private static final Component INACTIVE_PLAYER_HELP = Component.literal("Нельзя отдавать приказы отряду в режиме наблюдателя или после гибели.");
 
+    private boolean isSquadSnapshotStale() {
+        if (minecraft == null || minecraft.player == null || lastSquadResponseTick == Integer.MIN_VALUE) return false;
+        int now = minecraft.player.tickCount;
+        return now >= lastSquadResponseTick && now - lastSquadResponseTick > 120;
+    }
+
     private boolean canIssueOrders() {
-        return available > 0 && minecraft != null && minecraft.player != null
+        return !isSquadSnapshotStale() && available > 0 && minecraft != null && minecraft.player != null
             && minecraft.player.isAlive() && !minecraft.player.isSpectator();
     }
 
     private Component unavailableHelp() {
         return minecraft != null && minecraft.player != null
             && (!minecraft.player.isAlive() || minecraft.player.isSpectator())
-            ? INACTIVE_PLAYER_HELP : NO_SQUAD_HELP;
+            ? INACTIVE_PLAYER_HELP : isSquadSnapshotStale() ? STALE_SQUAD_HELP : NO_SQUAD_HELP;
     }
 
     public ReputationArmyScreen(int available) {
@@ -286,10 +293,7 @@ public final class ReputationArmyScreen extends Screen {
             manualRefreshDeadlineTick = Integer.MIN_VALUE;
             manualRefreshTimedOut = true;
         }
-        boolean staleSquad = !playerInactive && minecraft != null && minecraft.player != null
-            && lastSquadResponseTick != Integer.MIN_VALUE
-            && minecraft.player.tickCount >= lastSquadResponseTick
-            && minecraft.player.tickCount - lastSquadResponseTick > 120;
+        boolean staleSquad = !playerInactive && isSquadSnapshotStale();
         String headingText = playerInactive
             ? (minecraft.player.isSpectator() ? "Режим наблюдателя" : "Игрок погиб")
             : height < 165
