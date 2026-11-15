@@ -380,9 +380,14 @@ public final class ReputationArmyScreen extends Screen {
             return true;
         }
         int order = -1;
-        if (keyCode >= GLFW.GLFW_KEY_1 && keyCode <= GLFW.GLFW_KEY_7) {
+        // Only unmodified number keys are squad orders. Ctrl/Alt/Shift plus a
+        // digit may be reserved by accessibility tools, key remaps or overlays;
+        // never turn those combinations into an unintended attack/retreat.
+        // Num Lock is a lock state, not a GLFW modifier, so keypad shortcuts
+        // remain available with Num Lock enabled.
+        if (modifiers == 0 && keyCode >= GLFW.GLFW_KEY_1 && keyCode <= GLFW.GLFW_KEY_7) {
             order = keyCode - GLFW.GLFW_KEY_1;
-        } else if (keyCode >= GLFW.GLFW_KEY_KP_1 && keyCode <= GLFW.GLFW_KEY_KP_7) {
+        } else if (modifiers == 0 && keyCode >= GLFW.GLFW_KEY_KP_1 && keyCode <= GLFW.GLFW_KEY_KP_7) {
             order = keyCode - GLFW.GLFW_KEY_KP_1;
         }
         // Tab and Shift+Tab cycle through enabled commands and Close in a stable
