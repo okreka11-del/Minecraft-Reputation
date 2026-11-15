@@ -356,6 +356,17 @@ public final class ReputationNetwork {
                         var headState = level.getBlockState(headNeighbor);
                         // Portals beside a waypoint can transport a wolf when it brushes the edge.
                         // Keep the entire standing footprint clear, not just the target block.
+                        // Adjacent powder snow, cobwebs and berry bushes can trap or injure
+                        // a wolf brushing the waypoint edge, even when both target blocks are air.
+                        if (feetState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
+                                || headState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
+                                || feetState.is(net.minecraft.world.level.block.Blocks.COBWEB)
+                                || headState.is(net.minecraft.world.level.block.Blocks.COBWEB)
+                                || feetState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                                || headState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)) {
+                            touchesHazard = true;
+                            break;
+                        }
                         if (feetState.is(net.minecraft.world.level.block.Blocks.NETHER_PORTAL)
                                 || headState.is(net.minecraft.world.level.block.Blocks.NETHER_PORTAL)
                                 || feetState.is(net.minecraft.world.level.block.Blocks.END_PORTAL)
