@@ -564,6 +564,22 @@ public final class ReputationNetwork {
                                 || !guardLevel.getFluidState(guardFeet).isEmpty()
                                 || !guardLevel.getFluidState(guardHead).isEmpty()
                                 || !guardLevel.getFluidState(guardGround).isEmpty()) continue;
+                        // A seated guard cannot escape non-solid damaging or trapping
+                        // blocks. Collision and fluid checks above do not catch these.
+                        // Leave the wolf's existing order intact when its feet or head
+                        // occupy thorns, fire, powder snow or cobwebs.
+                        if (guardFeetState.is(net.minecraft.world.level.block.Blocks.FIRE)
+                                || guardHeadState.is(net.minecraft.world.level.block.Blocks.FIRE)
+                                || guardFeetState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
+                                || guardHeadState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
+                                || guardFeetState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
+                                || guardHeadState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
+                                || guardFeetState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                                || guardHeadState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                                || guardFeetState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
+                                || guardHeadState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
+                                || guardFeetState.is(net.minecraft.world.level.block.Blocks.COBWEB)
+                                || guardHeadState.is(net.minecraft.world.level.block.Blocks.COBWEB)) continue;
                         // Guard is a persistent sit order: unlike a moving wolf, a
                         // seated pet cannot step away if a portal is beside it.
                         // Reject portal blocks at its feet, head and immediate sides
