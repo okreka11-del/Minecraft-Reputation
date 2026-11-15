@@ -423,7 +423,6 @@ public final class ReputationNetwork {
                 // Only valid, actionable requests consume the cooldown. An invalid
                 // target, unsafe waypoint or absent squad must not delay the next
                 // corrected order. Keep throttling before costly per-wolf pathfinding.
-                armyOrderData.putInt("reputationLastArmyOrderTick", player.tickCount);
                 int changed = 0;
                 int restrained = 0;
                 int mounted = 0;
@@ -689,6 +688,9 @@ public final class ReputationNetwork {
                         changed++;
                     }
                 }
+                // Failed orders must not lock out an immediate corrected command.
+                // Only a squad that actually changed state consumes the rate limit.
+                if (changed > 0) armyOrderData.putInt("reputationLastArmyOrderTick", player.tickCount);
                 // A valid target from the owner's perspective may still be hidden
                 // or out of range for every squad member. Explain that case rather
                 // than reporting an ambiguous successful "0 wolves" attack.
