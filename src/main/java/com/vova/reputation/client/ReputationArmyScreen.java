@@ -403,7 +403,11 @@ public final class ReputationArmyScreen extends Screen {
         }
         // Refresh with R without closing the panel. The middle mouse button
         // offers the same action for players navigating the menu by mouse.
-        if (keyCode == GLFW.GLFW_KEY_R && modifiers == 0) {
+        // Lock-key state must not disable the manual squad refresh shortcut.
+        // Only held Shift/Ctrl/Alt/Super should reserve R for another binding.
+        int heldModifiers = modifiers & (GLFW.GLFW_MOD_SHIFT | GLFW.GLFW_MOD_CONTROL
+            | GLFW.GLFW_MOD_ALT | GLFW.GLFW_MOD_SUPER);
+        if (keyCode == GLFW.GLFW_KEY_R && heldModifiers == 0) {
             requestManualRefresh();
             return true;
         }
@@ -414,8 +418,7 @@ public final class ReputationArmyScreen extends Screen {
         // GLFW may include Caps Lock / Num Lock state in modifiers when lock-key
         // reporting is enabled. Those are not held shortcut modifiers: allow
         // numeric orders while either lock is on, including keypad orders.
-        int shortcutModifiers = modifiers & (GLFW.GLFW_MOD_SHIFT | GLFW.GLFW_MOD_CONTROL
-            | GLFW.GLFW_MOD_ALT | GLFW.GLFW_MOD_SUPER);
+        int shortcutModifiers = heldModifiers;
         if (shortcutModifiers == 0 && keyCode >= GLFW.GLFW_KEY_1 && keyCode <= GLFW.GLFW_KEY_7) {
             order = keyCode - GLFW.GLFW_KEY_1;
         } else if (shortcutModifiers == 0 && keyCode >= GLFW.GLFW_KEY_KP_1 && keyCode <= GLFW.GLFW_KEY_KP_7) {
