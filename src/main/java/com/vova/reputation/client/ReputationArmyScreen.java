@@ -38,6 +38,7 @@ public final class ReputationArmyScreen extends Screen {
     private String lastUnavailableReason = "";
     private static final Component NO_SQUAD_HELP = Component.literal("Нет доступных волков: приручите волка костями, затем подойдите к нему на расстояние приказов.");
     private static final Component STALE_SQUAD_HELP = Component.literal("Состав отряда не подтверждён сервером. Нажмите R или колесо мыши и дождитесь обновления перед приказом.");
+    private static final Component PENDING_SQUAD_HELP = Component.literal("Обновляем состав отряда. Дождитесь ответа сервера перед отправкой приказа.");
     private static final Component INACTIVE_PLAYER_HELP = Component.literal("Нельзя отдавать приказы отряду в режиме наблюдателя или после гибели.");
 
     private boolean isSquadSnapshotStale() {
@@ -46,15 +47,23 @@ public final class ReputationArmyScreen extends Screen {
         return now >= lastSquadResponseTick && now - lastSquadResponseTick > 120;
     }
 
+    private boolean isManualRefreshPending() {
+        return minecraft != null && minecraft.player != null
+            && manualRefreshDeadlineTick != Integer.MIN_VALUE
+            && minecraft.player.tickCount <= manualRefreshDeadlineTick;
+    }
+
     private boolean canIssueOrders() {
-        return !isSquadSnapshotStale() && available > 0 && minecraft != null && minecraft.player != null
+        return !isManualRefreshPending() && !manualRefreshTimedOut
+            && !isSquadSnapshotStale() && available > 0 && minecraft != null && minecraft.player != null
             && minecraft.player.isAlive() && !minecraft.player.isSpectator();
     }
 
     private Component unavailableHelp() {
         return minecraft != null && minecraft.player != null
             && (!minecraft.player.isAlive() || minecraft.player.isSpectator())
-            ? INACTIVE_PLAYER_HELP : isSquadSnapshotStale() ? STALE_SQUAD_HELP : NO_SQUAD_HELP;
+            ? INACTIVE_PLAYER_HELP : isManualRefreshPending() ? PENDING_SQUAD_HELP
+            : manualRefreshTimedOut || isSquadSnapshotStale() ? STALE_SQUAD_HELP : NO_SQUAD_HELP;
     }
 
     public ReputationArmyScreen(int available) {
@@ -286,9 +295,7 @@ public final class ReputationArmyScreen extends Screen {
             && (!minecraft.player.isAlive() || minecraft.player.isSpectator());
         // Compact layouts omit the secondary status row, so surface pending and
         // failed server refreshes in the heading instead of hiding the feedback.
-        boolean refreshing = minecraft != null && minecraft.player != null
-            && manualRefreshDeadlineTick != Integer.MIN_VALUE
-            && minecraft.player.tickCount <= manualRefreshDeadlineTick;
+        boolean refreshing = isManualRefreshPending();
         if (!refreshing && manualRefreshDeadlineTick != Integer.MIN_VALUE) {
             manualRefreshDeadlineTick = Integer.MIN_VALUE;
             manualRefreshTimedOut = true;
