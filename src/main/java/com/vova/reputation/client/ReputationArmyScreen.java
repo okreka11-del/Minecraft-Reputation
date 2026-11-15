@@ -23,6 +23,9 @@ public final class ReputationArmyScreen extends Screen {
     // Otherwise holding R rebuilds the screen and resets its per-instance throttle.
     private static int lastRefreshTick = Integer.MIN_VALUE;
     private int lastAutomaticRefreshTick = Integer.MIN_VALUE;
+    // Distinguish a confirmed server snapshot from a stale count when periodic
+    // requests receive no replies (for example during connection lag).
+    private int lastSquadResponseTick = Integer.MIN_VALUE;
     // A manual refresh keeps the last confirmed count visible but marks it as
     // pending until the server replies (or the short status timeout expires).
     private int manualRefreshDeadlineTick = Integer.MIN_VALUE;
@@ -55,6 +58,9 @@ public final class ReputationArmyScreen extends Screen {
     /** Update the authoritative count without recreating the menu or losing focus. */
     public void updateSquadCount(int count) {
         available = Math.max(0, count);
+        if (minecraft != null && minecraft.player != null) {
+            lastSquadResponseTick = minecraft.player.tickCount;
+        }
         manualRefreshDeadlineTick = Integer.MIN_VALUE;
         manualRefreshTimedOut = false;
         refreshOrderAvailability();
@@ -70,6 +76,7 @@ public final class ReputationArmyScreen extends Screen {
             ? minecraft.player.tickCount : Integer.MIN_VALUE;
         manualRefreshDeadlineTick = Integer.MIN_VALUE;
         manualRefreshTimedOut = false;
+        lastSquadResponseTick = lastAutomaticRefreshTick;
         closeButton = null;
         lastOrdersEnabled = canIssueOrders();
         lastUnavailableReason = unavailableHelp().getString();
@@ -279,11 +286,16 @@ public final class ReputationArmyScreen extends Screen {
             manualRefreshDeadlineTick = Integer.MIN_VALUE;
             manualRefreshTimedOut = true;
         }
+        boolean staleSquad = !playerInactive && minecraft != null && minecraft.player != null
+            && lastSquadResponseTick != Integer.MIN_VALUE
+            && minecraft.player.tickCount >= lastSquadResponseTick
+            && minecraft.player.tickCount - lastSquadResponseTick > 120;
         String headingText = playerInactive
             ? (minecraft.player.isSpectator() ? "Режим наблюдателя" : "Игрок погиб")
             : height < 165
                 ? (refreshing ? "Обновление отряда…"
                     : manualRefreshTimedOut ? "Нет ответа · R / колесо повторить"
+                    : staleSquad ? "Нет связи с отрядом · R"
                     : available == 0 ? "Нет отряда" : "Отряд: " + available)
                 : title.getString();
         String heading = font.plainSubstrByWidth(headingText, Math.max(1, w - 16));
@@ -291,6 +303,7 @@ public final class ReputationArmyScreen extends Screen {
         String count = playerInactive ? "Приказы временно недоступны"
             : refreshing ? "Обновление отряда… · было: " + available
             : manualRefreshTimedOut ? "Нет ответа сервера · R / колесо повторить"
+            : staleSquad ? "Состав устарел · R обновить"
             : available == 0 ? "Приручите волка и подойдите ближе" : "Ваши волки рядом: " + available;
         if (height >= 165) {
             g.drawString(font, font.plainSubstrByWidth(count, w - 16), x + 8, y + 25, 0xFF45301B, false);
