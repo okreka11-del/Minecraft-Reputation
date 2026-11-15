@@ -545,6 +545,39 @@ public final class ReputationNetwork {
                                 || !guardLevel.getFluidState(guardFeet).isEmpty()
                                 || !guardLevel.getFluidState(guardHead).isEmpty()
                                 || !guardLevel.getFluidState(guardGround).isEmpty()) continue;
+                        // Guard is a persistent sit order: unlike a moving wolf, a
+                        // seated pet cannot step away if a portal is beside it.
+                        // Reject portal blocks at its feet, head and immediate sides
+                        // before changing its current stance.
+                        boolean guardTouchesPortal = false;
+                        for (var guardDirection : net.minecraft.core.Direction.Plane.HORIZONTAL) {
+                            var sideFeet = guardFeet.relative(guardDirection);
+                            var sideHead = guardHead.relative(guardDirection);
+                            if (!guardLevel.hasChunkAt(sideFeet) || !guardLevel.hasChunkAt(sideHead)
+                                    || !guardLevel.getWorldBorder().isWithinBounds(sideFeet)
+                                    || !guardLevel.getWorldBorder().isWithinBounds(sideHead)) {
+                                guardTouchesPortal = true;
+                                break;
+                            }
+                            var sideFeetState = guardLevel.getBlockState(sideFeet);
+                            var sideHeadState = guardLevel.getBlockState(sideHead);
+                            if (sideFeetState.is(net.minecraft.world.level.block.Blocks.NETHER_PORTAL)
+                                    || sideHeadState.is(net.minecraft.world.level.block.Blocks.NETHER_PORTAL)
+                                    || sideFeetState.is(net.minecraft.world.level.block.Blocks.END_PORTAL)
+                                    || sideHeadState.is(net.minecraft.world.level.block.Blocks.END_PORTAL)
+                                    || sideFeetState.is(net.minecraft.world.level.block.Blocks.END_GATEWAY)
+                                    || sideHeadState.is(net.minecraft.world.level.block.Blocks.END_GATEWAY)) {
+                                guardTouchesPortal = true;
+                                break;
+                            }
+                        }
+                        if (guardTouchesPortal
+                                || guardFeetState.is(net.minecraft.world.level.block.Blocks.NETHER_PORTAL)
+                                || guardHeadState.is(net.minecraft.world.level.block.Blocks.NETHER_PORTAL)
+                                || guardFeetState.is(net.minecraft.world.level.block.Blocks.END_PORTAL)
+                                || guardHeadState.is(net.minecraft.world.level.block.Blocks.END_PORTAL)
+                                || guardFeetState.is(net.minecraft.world.level.block.Blocks.END_GATEWAY)
+                                || guardHeadState.is(net.minecraft.world.level.block.Blocks.END_GATEWAY)) continue;
                         if (guardGroundState.is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)
                                 || guardGroundState.is(net.minecraft.world.level.block.Blocks.CAMPFIRE)
                                         && guardGroundState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
