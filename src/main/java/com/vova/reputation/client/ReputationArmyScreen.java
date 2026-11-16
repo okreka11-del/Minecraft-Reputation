@@ -50,6 +50,12 @@ public final class ReputationArmyScreen extends Screen {
         return now >= lastSquadResponseTick && now - lastSquadResponseTick > 120;
     }
 
+    private boolean hasManualRefreshExpired() {
+        return minecraft != null && minecraft.player != null
+            && manualRefreshDeadlineTick != Integer.MIN_VALUE
+            && minecraft.player.tickCount > manualRefreshDeadlineTick;
+    }
+
     private boolean isManualRefreshPending() {
         return minecraft != null && minecraft.player != null
             && manualRefreshDeadlineTick != Integer.MIN_VALUE
@@ -85,7 +91,7 @@ public final class ReputationArmyScreen extends Screen {
         return minecraft != null && minecraft.player != null
             && (!minecraft.player.isAlive() || minecraft.player.isSpectator())
             ? INACTIVE_PLAYER_HELP : isManualRefreshPending() ? PENDING_SQUAD_HELP
-            : manualRefreshTimedOut || isSquadSnapshotStale() ? STALE_SQUAD_HELP : NO_SQUAD_HELP;
+            : manualRefreshTimedOut || hasManualRefreshExpired() || isSquadSnapshotStale() ? STALE_SQUAD_HELP : NO_SQUAD_HELP;
     }
 
     public ReputationArmyScreen(int available) {
@@ -106,6 +112,12 @@ public final class ReputationArmyScreen extends Screen {
         // squad snapshot. Keep the timeout visible and orders disabled until
         // the player explicitly retries with R, middle-click or the heading.
         // Without this guard, a delayed packet could silently clear the error.
+        if (hasManualRefreshExpired()) {
+            manualRefreshDeadlineTick = Integer.MIN_VALUE;
+            manualRefreshTimedOut = true;
+            refreshOrderAvailability();
+            return;
+        }
         if (manualRefreshTimedOut && manualRefreshDeadlineTick == Integer.MIN_VALUE) return;
         available = Math.max(0, count);
         if (minecraft != null && minecraft.player != null) {
@@ -303,8 +315,7 @@ public final class ReputationArmyScreen extends Screen {
         // Expire manual verification during the game tick, not during rendering.
         // Input events can arrive before the next frame; commands must already
         // be disabled when a pending server confirmation has timed out.
-        if (minecraft.player != null && manualRefreshDeadlineTick != Integer.MIN_VALUE
-                && minecraft.player.tickCount > manualRefreshDeadlineTick) {
+        if (hasManualRefreshExpired()) {
             manualRefreshDeadlineTick = Integer.MIN_VALUE;
             manualRefreshTimedOut = true;
             refreshOrderAvailability();
@@ -379,12 +390,13 @@ public final class ReputationArmyScreen extends Screen {
         // Compact layouts omit the secondary status row, so surface pending and
         // failed server refreshes in the heading instead of hiding the feedback.
         boolean refreshing = isManualRefreshPending();
-        boolean staleSquad = !playerInactive && isSquadSnapshotStale();
+        boolean staleSquad = !playerInactive && (isSquadSnapshotStale() || hasManualRefreshExpired());
+        boolean refreshFailed = manualRefreshTimedOut || hasManualRefreshExpired();
         String headingText = playerInactive
             ? (minecraft.player.isSpectator() ? "Режим наблюдателя" : "Игрок погиб")
             : height < 165
                 ? (refreshing ? "Обновление отряда…"
-                    : manualRefreshTimedOut ? "Нет ответа · R / колесо повторить"
+                    : refreshFailed ? "Нет ответа · R / колесо повторить"
                     : staleSquad ? "Нет связи с отрядом · R"
                     : available == 0 ? "Нет отряда" : "Отряд: " + available)
                 : title.getString();
@@ -392,13 +404,13 @@ public final class ReputationArmyScreen extends Screen {
         g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + (height < 105 ? 1 : 8), 0xFF45301B, false);
         String count = playerInactive ? "Приказы временно недоступны"
             : refreshing ? "Обновление отряда… · было: " + available
-            : manualRefreshTimedOut ? "Нет ответа сервера · R / колесо повторить"
+            : refreshFailed ? "Нет ответа сервера · R / колесо повторить"
             : staleSquad ? "Состав устарел · R обновить"
             : available == 0 ? "Приручите волка и подойдите ближе" : "Ваши волки рядом: " + available;
         if (height >= 165) {
             // Show server verification status without blur, overlays or extra render passes.
             // Red = unavailable/stale, amber = pending, green = confirmed squad.
-            int statusColor = playerInactive || manualRefreshTimedOut || staleSquad
+            int statusColor = playerInactive || refreshFailed || staleSquad
                 ? 0xFF9E3030 : refreshing ? 0xFF956019
                 : available > 0 ? 0xFF28613C : 0xFF705438;
             g.drawString(font, font.plainSubstrByWidth(count, w - 16), x + 8, y + 25, statusColor, false);
