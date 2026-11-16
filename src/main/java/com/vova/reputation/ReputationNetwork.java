@@ -604,6 +604,24 @@ public final class ReputationNetwork {
                             }
                             var sideFeetState = guardLevel.getBlockState(sideFeet);
                             var sideHeadState = guardLevel.getBlockState(sideHead);
+                            // Sitting wolves cannot sidestep adjacent damaging blocks. A cactus,
+                            // open flame or lava touching their standing footprint is
+                            // unsafe even when the feet/head blocks themselves are air.
+                            if (sideFeetState.is(net.minecraft.world.level.block.Blocks.CACTUS)
+                                    || sideHeadState.is(net.minecraft.world.level.block.Blocks.CACTUS)
+                                    || sideFeetState.is(net.minecraft.world.level.block.Blocks.FIRE)
+                                    || sideHeadState.is(net.minecraft.world.level.block.Blocks.FIRE)
+                                    || sideFeetState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
+                                    || sideHeadState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
+                                    || sideFeetState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                                    || sideHeadState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                                    || sideFeetState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
+                                    || sideHeadState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
+                                    || guardLevel.getFluidState(sideFeet).is(net.minecraft.tags.FluidTags.LAVA)
+                                    || guardLevel.getFluidState(sideHead).is(net.minecraft.tags.FluidTags.LAVA)) {
+                                guardTouchesPortal = true;
+                                break;
+                            }
                             if (sideFeetState.is(net.minecraft.world.level.block.Blocks.NETHER_PORTAL)
                                     || sideHeadState.is(net.minecraft.world.level.block.Blocks.NETHER_PORTAL)
                                     || sideFeetState.is(net.minecraft.world.level.block.Blocks.END_PORTAL)
