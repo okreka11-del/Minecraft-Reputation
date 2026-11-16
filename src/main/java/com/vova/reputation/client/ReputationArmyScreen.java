@@ -332,6 +332,16 @@ public final class ReputationArmyScreen extends Screen {
         // Pixel-sharp inset frame and faction-neutral gold accent.
         g.fill(x + 2, y + 2, x + w - 2, y + 4, 0xFFD4A64E);
         g.fill(x + 3, panelBottom - 7, x + w - 3, panelBottom - 5, 0xFF8B6334);
+        // The heading is a real refresh target: expose its hit area visually on
+        // hover, including compact GUI layouts where the text hint is hidden.
+        // Use integer pixel fills so GUI scaling stays crisp and inexpensive.
+        boolean headerHovered = mouseX >= x && mouseX < x + w
+            && mouseY >= y && mouseY < y + headerHeight();
+        if (headerHovered) {
+            g.fill(x + 4, y + 5, x + w - 4, y + 6, 0xFF8B6334);
+            g.fill(x + 4, y + headerHeight() - 3, x + w - 4,
+                y + headerHeight() - 2, 0xFF8B6334);
+        }
         // Windows below 165 GUI pixels cannot fit the secondary squad-count line: show the
         // actionable squad state in the heading instead of silently hiding it.
         // Show why commands are disabled directly in the panel, not only in tooltips.
