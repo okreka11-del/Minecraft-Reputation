@@ -401,7 +401,15 @@ public final class ReputationArmyScreen extends Screen {
                     : available == 0 ? "Нет отряда" : "Отряд: " + available)
                 : title.getString();
         String heading = font.plainSubstrByWidth(headingText, Math.max(1, w - 16));
-        g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + (height < 105 ? 1 : 8), 0xFF45301B, false);
+        // Compact GUI scales hide the secondary status row. Keep critical
+        // server/time-out feedback visible in the heading itself, using the
+        // same accessible status palette as the full-size panel.
+        int headingColor = height < 165
+            ? (playerInactive || refreshFailed || staleSquad ? 0xFF9E3030
+                : refreshing ? 0xFF956019
+                : available > 0 ? 0xFF28613C : 0xFF45301B)
+            : 0xFF45301B;
+        g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + (height < 105 ? 1 : 8), headingColor, false);
         String count = playerInactive ? "Приказы временно недоступны"
             : refreshing ? "Обновление отряда… · было: " + available
             : refreshFailed ? "Нет ответа сервера · R / колесо повторить"
