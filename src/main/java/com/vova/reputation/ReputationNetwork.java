@@ -447,9 +447,23 @@ public final class ReputationNetwork {
                         || level.getBlockState(ownerFeet).is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
                         || level.getBlockState(ownerHead).is(net.minecraft.world.level.block.Blocks.FIRE)
                         || level.getBlockState(ownerHead).is(net.minecraft.world.level.block.Blocks.SOUL_FIRE);
-                    if (burningDestination) {
+                    // A safe-looking owner's position can still trap or hurt wolves:
+                    // powder snow sinks ground mobs, cobwebs immobilize them, and
+                    // berry bushes / wither roses damage them without solid collision.
+                    // Reject both feet and head hazards before changing any order.
+                    var feetState = level.getBlockState(ownerFeet);
+                    var headState = level.getBlockState(ownerHead);
+                    boolean trappingDestination = feetState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
+                        || headState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
+                        || feetState.is(net.minecraft.world.level.block.Blocks.COBWEB)
+                        || headState.is(net.minecraft.world.level.block.Blocks.COBWEB)
+                        || feetState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                        || headState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                        || feetState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
+                        || headState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE);
+                    if (burningDestination || trappingDestination) {
                         player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                            "Сначала отойдите от огня, лавы, магмы или горящего костра: точка сбора опасна для волков."), true);
+                            "Точка сбора опасна для волков: отойдите от огня, лавы, магмы, костра, колючих растений, паутины или рыхлого снега."), true);
                         return;
                     }
                 }
