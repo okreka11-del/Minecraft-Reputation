@@ -291,9 +291,7 @@ public final class ReputationArmyScreen extends Screen {
         super.tick();
         // Portal travel can leave this client-side Screen alive briefly while
         // the server switches levels. Close instead of showing stale orders.
-        if (!isPlayerClockValid() || minecraft == null || minecraft.player == null
-            || openedDimension == null
-            || minecraft.player.level().dimension() != openedDimension) {
+        if (!isPlayerClockValid() || !isOriginalDimension()) {
             onClose();
             return;
         }
