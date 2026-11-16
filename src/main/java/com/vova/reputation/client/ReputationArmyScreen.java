@@ -69,7 +69,11 @@ public final class ReputationArmyScreen extends Screen {
     }
 
     private boolean canIssueOrders() {
-        return isPlayerClockValid() && isOriginalDimension() && !isManualRefreshPending() && !manualRefreshTimedOut
+        return isPlayerClockValid() && isOriginalDimension()
+            // Keep commands locked until the server actually replies, even if
+            // the deadline passed between two client ticks. The tick handler
+            // will turn that pending request into a visible timeout warning.
+            && manualRefreshDeadlineTick == Integer.MIN_VALUE && !manualRefreshTimedOut
             && !isSquadSnapshotStale() && available > 0
             && minecraft.player.isAlive() && !minecraft.player.isSpectator();
     }
