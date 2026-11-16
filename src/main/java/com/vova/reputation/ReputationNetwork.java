@@ -423,6 +423,27 @@ public final class ReputationNetwork {
                         return;
                     }
                 }
+                // Rally and retreat navigate toward the owner's live position.
+                // If the owner is standing in fire or lava, sending tame wolves
+                // directly to that destination can kill the squad. Keep their
+                // existing orders and let the owner move to safety first.
+                if (payload.order() == 2 || payload.order() == 3) {
+                    var ownerFeet = player.blockPosition();
+                    var ownerHead = ownerFeet.above();
+                    var level = player.serverLevel();
+                    boolean burningDestination = player.isInLava()
+                        || level.getFluidState(ownerFeet).is(net.minecraft.tags.FluidTags.LAVA)
+                        || level.getFluidState(ownerHead).is(net.minecraft.tags.FluidTags.LAVA)
+                        || level.getBlockState(ownerFeet).is(net.minecraft.world.level.block.Blocks.FIRE)
+                        || level.getBlockState(ownerFeet).is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
+                        || level.getBlockState(ownerHead).is(net.minecraft.world.level.block.Blocks.FIRE)
+                        || level.getBlockState(ownerHead).is(net.minecraft.world.level.block.Blocks.SOUL_FIRE);
+                    if (burningDestination) {
+                        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                            "Сначала выйдите из огня или лавы: отряд не пойдёт в опасную точку сбора."), true);
+                        return;
+                    }
+                }
                 var wolves = ownedWolves(player);
                 if (wolves.isEmpty()) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
