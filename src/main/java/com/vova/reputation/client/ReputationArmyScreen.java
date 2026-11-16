@@ -92,6 +92,13 @@ public final class ReputationArmyScreen extends Screen {
 
     /** Update the authoritative count without recreating the menu or losing focus. */
     public void updateSquadCount(int count) {
+        // A delayed server reply can arrive after a portal transfer or respawn,
+        // before the next screen tick has closed this old menu. Never let that
+        // reply overwrite the old timestamp and re-enable stale commands.
+        if (!isOriginalDimension() || !isPlayerClockValid()) {
+            onClose();
+            return;
+        }
         available = Math.max(0, count);
         if (minecraft != null && minecraft.player != null) {
             lastSquadResponseTick = minecraft.player.tickCount;
