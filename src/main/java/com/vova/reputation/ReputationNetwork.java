@@ -461,9 +461,25 @@ public final class ReputationNetwork {
                         || headState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
                         || feetState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
                         || headState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE);
-                    if (burningDestination || trappingDestination) {
+                    // The owner may be flying, falling or standing on a ledge.
+                    // Wolves should not be ordered to gather at an unsupported
+                    // position or a cramped one-block passage, even when it has
+                    // no fire or trapping plants. Check without loading chunks.
+                    var ownerGroundPos = ownerFeet.below();
+                    boolean unsupportedDestination =
+                        !level.getWorldBorder().isWithinBounds(ownerFeet)
+                        || !level.getWorldBorder().isWithinBounds(ownerHead)
+                        || !level.getWorldBorder().isWithinBounds(ownerGroundPos)
+                        || !level.hasChunkAt(ownerFeet)
+                        || !level.hasChunkAt(ownerHead)
+                        || !level.hasChunkAt(ownerGroundPos)
+                        || !level.getBlockState(ownerGroundPos).isFaceSturdy(
+                            level, ownerGroundPos, net.minecraft.core.Direction.UP)
+                        || !feetState.getCollisionShape(level, ownerFeet).isEmpty()
+                        || !headState.getCollisionShape(level, ownerHead).isEmpty();
+                    if (burningDestination || trappingDestination || unsupportedDestination) {
                         player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                            "Точка сбора опасна для волков: отойдите от огня, лавы, магмы, костра, колючих растений, паутины или рыхлого снега."), true);
+                            "Точка сбора опасна: встаньте на твёрдую поверхность с двумя свободными блоками высоты, вдали от огня и ловушек."), true);
                         return;
                     }
                 }
