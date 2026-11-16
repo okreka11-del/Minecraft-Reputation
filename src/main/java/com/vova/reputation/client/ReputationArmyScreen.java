@@ -366,7 +366,7 @@ public final class ReputationArmyScreen extends Screen {
         // third text row: its 9px glyphs would overlap the first order button.
         // Reserve the range hint for the 48px header on taller windows.
         if (height >= 240) {
-            String range = "1–7 · Автообновление · R · 24 блока";
+            String range = "1–7 · R / заголовок: обновить · 24 блока";
             g.drawString(font, font.plainSubstrByWidth(range, w - 16), x + 8, y + 35, 0xFF705438, false);
         }
         super.render(g, mouseX, mouseY, partialTick);
@@ -567,6 +567,14 @@ public final class ReputationArmyScreen extends Screen {
             if (mouseX < panelX - 3 || mouseX >= panelX + panelWidth + 3
                     || mouseY < panelY - 3 || mouseY >= panelBottom) {
                 onClose();
+                return true;
+            }
+            // The squad heading doubles as a refresh target. Players using a
+            // mouse or touch-style controls can verify their squad without R
+            // or a middle mouse button. Keep the hit area above all orders.
+            if (mouseX >= panelX && mouseX < panelX + panelWidth
+                    && mouseY >= panelY && mouseY < panelY + headerHeight()) {
+                requestManualRefresh();
                 return true;
             }
         }
