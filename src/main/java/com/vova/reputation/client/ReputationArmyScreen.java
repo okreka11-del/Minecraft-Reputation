@@ -396,7 +396,12 @@ public final class ReputationArmyScreen extends Screen {
             : staleSquad ? "Состав устарел · R обновить"
             : available == 0 ? "Приручите волка и подойдите ближе" : "Ваши волки рядом: " + available;
         if (height >= 165) {
-            g.drawString(font, font.plainSubstrByWidth(count, w - 16), x + 8, y + 25, 0xFF45301B, false);
+            // Show server verification status without blur, overlays or extra render passes.
+            // Red = unavailable/stale, amber = pending, green = confirmed squad.
+            int statusColor = playerInactive || manualRefreshTimedOut || staleSquad
+                ? 0xFF9E3030 : refreshing ? 0xFF956019
+                : available > 0 ? 0xFF28613C : 0xFF705438;
+            g.drawString(font, font.plainSubstrByWidth(count, w - 16), x + 8, y + 25, statusColor, false);
         }
         // Only taller GUI heights have room for the optional range hint.
         // Omit this optional hint rather than drawing text over a clickable command.
