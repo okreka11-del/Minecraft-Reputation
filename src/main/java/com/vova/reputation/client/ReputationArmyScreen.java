@@ -102,6 +102,11 @@ public final class ReputationArmyScreen extends Screen {
             onClose();
             return;
         }
+        // A reply to an expired manual verification is not proof of a fresh
+        // squad snapshot. Keep the timeout visible and orders disabled until
+        // the player explicitly retries with R, middle-click or the heading.
+        // Without this guard, a delayed packet could silently clear the error.
+        if (manualRefreshTimedOut && manualRefreshDeadlineTick == Integer.MIN_VALUE) return;
         available = Math.max(0, count);
         if (minecraft != null && minecraft.player != null) {
             lastSquadResponseTick = minecraft.player.tickCount;
