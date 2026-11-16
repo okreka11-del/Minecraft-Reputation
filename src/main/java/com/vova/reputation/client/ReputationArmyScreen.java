@@ -397,6 +397,13 @@ public final class ReputationArmyScreen extends Screen {
             minecraft.player.displayClientMessage(INACTIVE_PLAYER_HELP, true);
             return;
         }
+        // Keep one authoritative manual scan in flight. Repeated R presses or
+        // middle-clicks must not queue competing responses that can overwrite
+        // the result of a later scan. A timed-out request remains retryable.
+        if (isManualRefreshPending()) {
+            minecraft.player.displayClientMessage(PENDING_SQUAD_HELP, true);
+            return;
+        }
         int now = minecraft.player.tickCount;
         if (lastRefreshTick != Integer.MIN_VALUE && now >= lastRefreshTick
                 && now - lastRefreshTick < 10) return;
