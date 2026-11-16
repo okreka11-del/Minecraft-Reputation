@@ -122,6 +122,11 @@ public final class ReputationArmyScreen extends Screen {
             lastSquadResponseTick = lastAutomaticRefreshTick;
             initialized = true;
         }
+        // Preserve keyboard/controller selection across GUI-scale and window resizes.
+        // Recreating widgets otherwise jumps focus back to the first command,
+        // potentially selecting a different order just before Enter is pressed.
+        int previousFocus = orderButtons.indexOf(getFocused());
+        boolean closeWasFocused = getFocused() == closeButton;
         orderButtons.clear();
         pendingWheelScroll = 0;
         closeButton = null;
@@ -173,7 +178,14 @@ public final class ReputationArmyScreen extends Screen {
             .bounds(x + 8, firstButtonY + 6 * (buttonHeight + buttonGap), w - 16, buttonHeight).build());
         // Keyboard/controller navigation should start on an actionable control.
         // When the squad is unavailable, focus Close instead of a disabled order.
-        setInitialFocus(canIssueOrders() ? follow : closeButton);
+        if (closeWasFocused && closeButton != null) {
+            setInitialFocus(closeButton);
+        } else if (previousFocus >= 0 && previousFocus < orderButtons.size()
+                && orderButtons.get(previousFocus).active) {
+            setInitialFocus(orderButtons.get(previousFocus));
+        } else {
+            setInitialFocus(canIssueOrders() ? follow : closeButton);
+        }
     }
 
     // Player state can change while this non-pausing screen is open (death, spectator
