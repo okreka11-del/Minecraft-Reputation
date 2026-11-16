@@ -431,7 +431,16 @@ public final class ReputationNetwork {
                     var ownerFeet = player.blockPosition();
                     var ownerHead = ownerFeet.above();
                     var level = player.serverLevel();
-                    boolean burningDestination = player.isInLava()
+                    var ownerGround = level.getBlockState(ownerFeet.below());
+                    // Wolves taking rally/retreat orders stand on the owner's ground.
+                    // Magma and lit campfires damage paws even if the owner's feet
+                    // are in air; preserve existing orders instead of routing there.
+                    boolean dangerousGround = ownerGround.is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)
+                        || ownerGround.is(net.minecraft.world.level.block.Blocks.CAMPFIRE)
+                            && ownerGround.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
+                        || ownerGround.is(net.minecraft.world.level.block.Blocks.SOUL_CAMPFIRE)
+                            && ownerGround.getValue(net.minecraft.world.level.block.CampfireBlock.LIT);
+                    boolean burningDestination = dangerousGround || player.isInLava()
                         || level.getFluidState(ownerFeet).is(net.minecraft.tags.FluidTags.LAVA)
                         || level.getFluidState(ownerHead).is(net.minecraft.tags.FluidTags.LAVA)
                         || level.getBlockState(ownerFeet).is(net.minecraft.world.level.block.Blocks.FIRE)
@@ -440,7 +449,7 @@ public final class ReputationNetwork {
                         || level.getBlockState(ownerHead).is(net.minecraft.world.level.block.Blocks.SOUL_FIRE);
                     if (burningDestination) {
                         player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                            "Сначала выйдите из огня или лавы: отряд не пойдёт в опасную точку сбора."), true);
+                            "Сначала отойдите от огня, лавы, магмы или горящего костра: точка сбора опасна для волков."), true);
                         return;
                     }
                 }
