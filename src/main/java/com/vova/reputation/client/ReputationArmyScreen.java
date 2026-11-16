@@ -34,6 +34,9 @@ public final class ReputationArmyScreen extends Screen {
     // The squad overview belongs to the dimension where it was opened. Do not
     // display or refresh an old squad after a portal transfer or world change.
     private net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> openedDimension;
+    // A respawn can replace LocalPlayer without changing the dimension or
+    // resetting tickCount. Bind this screen to the exact player instance.
+    private net.minecraft.client.player.LocalPlayer openedPlayer;
     private boolean lastOrdersEnabled;
     private String lastUnavailableReason = "";
     private static final Component NO_SQUAD_HELP = Component.literal("Нет доступных волков: приручите волка костями, затем подойдите к нему на расстояние приказов.");
@@ -56,8 +59,8 @@ public final class ReputationArmyScreen extends Screen {
     private boolean isOriginalDimension() {
         // Input can arrive between a dimension transfer and the next screen tick.
         // Reject stale orders immediately instead of relying on tick() to close us.
-        return minecraft != null && minecraft.player != null && openedDimension != null
-            && minecraft.player.level().dimension() == openedDimension;
+        return minecraft != null && minecraft.player != null && minecraft.player == openedPlayer
+            && openedDimension != null && minecraft.player.level().dimension() == openedDimension;
     }
 
     // A respawn or client world replacement can reset the player tick counter
@@ -115,8 +118,8 @@ public final class ReputationArmyScreen extends Screen {
         // pending server verification and stale-response timing across relayouts:
         // otherwise resizing could falsely unlock orders using an old count.
         if (!initialized) {
-            openedDimension = minecraft != null && minecraft.player != null
-                ? minecraft.player.level().dimension() : null;
+            openedPlayer = minecraft != null ? minecraft.player : null;
+            openedDimension = openedPlayer != null ? openedPlayer.level().dimension() : null;
             lastAutomaticRefreshTick = minecraft != null && minecraft.player != null
                 ? minecraft.player.tickCount : Integer.MIN_VALUE;
             lastSquadResponseTick = lastAutomaticRefreshTick;
