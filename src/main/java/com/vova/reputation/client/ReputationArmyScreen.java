@@ -298,6 +298,11 @@ public final class ReputationArmyScreen extends Screen {
         // a competing automatic scan that could overwrite its pending result.
         // Automatic polling resumes normally after the reply or timeout.
         if (isManualRefreshPending()) return;
+        // Once an explicit verification times out, do not let background polling
+        // silently clear the warning with an unrelated late reply. The player
+        // must request a fresh scan with R, middle-click or the panel heading.
+        // This also avoids wasting packets while the connection is unresponsive.
+        if (manualRefreshTimedOut) return;
         if (lastAutomaticRefreshTick == Integer.MIN_VALUE || now < lastAutomaticRefreshTick) {
             lastAutomaticRefreshTick = now;
             return;
