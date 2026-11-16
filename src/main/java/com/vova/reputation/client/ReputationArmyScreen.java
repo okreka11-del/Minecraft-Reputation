@@ -303,6 +303,11 @@ public final class ReputationArmyScreen extends Screen {
         // must request a fresh scan with R, middle-click or the panel heading.
         // This also avoids wasting packets while the connection is unresponsive.
         if (manualRefreshTimedOut) return;
+        // Stop unattended polling after the last server-confirmed squad count
+        // becomes stale. A disconnected or overloaded server must not receive
+        // repeated scans forever while this overlay remains open. Keep the
+        // existing manual refresh action available for explicit recovery.
+        if (isSquadSnapshotStale()) return;
         if (lastAutomaticRefreshTick == Integer.MIN_VALUE || now < lastAutomaticRefreshTick) {
             lastAutomaticRefreshTick = now;
             return;
