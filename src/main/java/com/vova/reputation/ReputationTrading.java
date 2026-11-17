@@ -11,6 +11,10 @@ public final class ReputationTrading {
     public static int adjustment(ServerPlayer player) {
         int score = player.getData(ReputationMod.REP);
         int standing = ReputationMod.factionStandings(player)[0];
+        return adjustmentFor(score, standing);
+    }
+
+    static int adjustmentFor(int score, int standing) {
         int amount = score >= 200 ? -12 : score >= 151 ? -8 : score >= 101 ? -4
             : score <= -80 ? 12 : score < 0 ? 6 : 0;
         amount += standing >= 100 ? -5 : standing >= 40 ? -2
