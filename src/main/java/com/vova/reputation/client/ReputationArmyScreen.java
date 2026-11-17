@@ -53,6 +53,16 @@ public final class ReputationArmyScreen extends Screen {
         "Атаковать · отмеченная цель",
         "К точке · идти к блоку взгляда"
     };
+    // Reuse the same immutable tooltips when server snapshots enable or disable
+    // orders. Avoid rebuilding six long components on every state transition.
+    private static final Tooltip[] ORDER_TOOLTIPS = {
+        Tooltip.create(Component.literal("За мной — волки следуют за вами и выходят из режима охраны.")),
+        Tooltip.create(Component.literal("Охранять позицию — волки остаются охранять текущую позицию.")),
+        Tooltip.create(Component.literal("Собрать рядом — позвать принадлежащих вам волков к себе.")),
+        Tooltip.create(Component.literal("Отступить ко мне — волки прекращают бой, встают и возвращаются к вам. Близкие волки уже в безопасности.")),
+        Tooltip.create(Component.literal("Атаковать отмеченного монстра — ударьте монстра не более 10 секунд назад. Вы и волки должны видеть цель в радиусе 24 блоков. Криперы, Хранитель и Иссушитель исключены: эти цели смертельно опасны для волков.")),
+        Tooltip.create(Component.literal("К точке взгляда — наведите прицел на блок в радиусе 24 блоков ДО открытия панели G. После выбора приказа волки пойдут туда, если путь безопасен."))
+    };
     private static final Component NO_SQUAD_HELP = Component.literal("Нет доступных волков: приручите волка костями, затем подойдите к нему на расстояние приказов.");
     private static final Component STALE_SQUAD_HELP = Component.literal("Состав отряда не подтверждён сервером. Нажмите R, среднюю кнопку мыши или заголовок панели и дождитесь ответа сервера.");
     private static final Component PENDING_SQUAD_HELP = Component.literal("Обновляем состав отряда. Дождитесь ответа сервера перед отправкой приказа.");
@@ -189,37 +199,37 @@ public final class ReputationArmyScreen extends Screen {
         int firstButtonY = y + headerHeight();
         Button follow = Button.builder(commandLabel(1, "За мной", w - 16), b -> issue(0))
             .bounds(x + 8, firstButtonY, w - 16, buttonHeight).build();
-        follow.setTooltip(Tooltip.create(Component.literal("За мной — волки следуют за вами и выходят из режима охраны.")));
+        follow.setTooltip(ORDER_TOOLTIPS[0]);
         if (!canIssueOrders()) follow.setTooltip(Tooltip.create(unavailableHelp()));
         follow.active = canIssueOrders();
         orderButtons.add(addRenderableWidget(follow));
         Button guard = Button.builder(commandLabel(2, "Охранять позицию", w - 16), b -> issue(1))
             .bounds(x + 8, firstButtonY + buttonHeight + buttonGap, w - 16, buttonHeight).build();
-        guard.setTooltip(Tooltip.create(Component.literal("Охранять позицию — волки остаются охранять текущую позицию.")));
+        guard.setTooltip(ORDER_TOOLTIPS[1]);
         if (!canIssueOrders()) guard.setTooltip(Tooltip.create(unavailableHelp()));
         guard.active = canIssueOrders();
         orderButtons.add(addRenderableWidget(guard));
         Button rally = Button.builder(commandLabel(3, "Собрать рядом", w - 16), b -> issue(2))
             .bounds(x + 8, firstButtonY + 2 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
-        rally.setTooltip(Tooltip.create(Component.literal("Собрать рядом — позвать принадлежащих вам волков к себе.")));
+        rally.setTooltip(ORDER_TOOLTIPS[2]);
         if (!canIssueOrders()) rally.setTooltip(Tooltip.create(unavailableHelp()));
         rally.active = canIssueOrders();
         orderButtons.add(addRenderableWidget(rally));
         Button disengage = Button.builder(commandLabel(4, "Отступить ко мне", w - 16), b -> issue(3))
             .bounds(x + 8, firstButtonY + 3 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
-        disengage.setTooltip(Tooltip.create(Component.literal("Отступить ко мне — волки прекращают бой, встают и возвращаются к вам. Близкие волки уже в безопасности.")));
+        disengage.setTooltip(ORDER_TOOLTIPS[3]);
         if (!canIssueOrders()) disengage.setTooltip(Tooltip.create(unavailableHelp()));
         disengage.active = canIssueOrders();
         orderButtons.add(addRenderableWidget(disengage));
         Button attack = Button.builder(commandLabel(5, "Атаковать отмеченного монстра", w - 16), b -> issue(4))
             .bounds(x + 8, firstButtonY + 4 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
-        attack.setTooltip(Tooltip.create(Component.literal("Атаковать отмеченного монстра — ударьте монстра не более 10 секунд назад. Вы и волки должны видеть цель в радиусе 24 блоков. Криперы, Хранитель и Иссушитель исключены: эти цели смертельно опасны для волков.")));
+        attack.setTooltip(ORDER_TOOLTIPS[4]);
         if (!canIssueOrders()) attack.setTooltip(Tooltip.create(unavailableHelp()));
         attack.active = canIssueOrders();
         orderButtons.add(addRenderableWidget(attack));
         Button waypoint = Button.builder(commandLabel(6, "К точке взгляда", w - 16), b -> issue(5))
             .bounds(x + 8, firstButtonY + 5 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
-        waypoint.setTooltip(Tooltip.create(Component.literal("К точке взгляда — наведите прицел на блок в радиусе 24 блоков ДО открытия панели G. После выбора приказа волки пойдут туда, если путь безопасен.")));
+        waypoint.setTooltip(ORDER_TOOLTIPS[5]);
         if (!canIssueOrders()) waypoint.setTooltip(Tooltip.create(unavailableHelp()));
         waypoint.active = canIssueOrders();
         orderButtons.add(addRenderableWidget(waypoint));
@@ -266,16 +276,8 @@ public final class ReputationArmyScreen extends Screen {
             for (Button button : orderButtons) button.setTooltip(Tooltip.create(unavailableHelp()));
         } else {
             // Restore the individual command explanations when the player becomes active.
-            String[] hints = {
-                "За мной — волки следуют за вами и выходят из режима охраны.",
-                "Охранять позицию — волки остаются охранять текущую позицию.",
-                "Собрать рядом — позвать принадлежащих вам волков к себе.",
-                "Отступить ко мне — волки прекращают бой, встают и возвращаются к вам. Близкие волки уже в безопасности.",
-                "Атаковать отмеченного монстра — ударьте монстра не более 10 секунд назад. Вы и волки должны видеть цель в радиусе 24 блоков. Криперы, Хранитель и Иссушитель исключены: эти цели смертельно опасны для волков.",
-                "К точке взгляда — наведите прицел на блок в радиусе 24 блоков ДО открытия панели G. После выбора приказа волки пойдут туда, если путь безопасен."
-            };
             for (int i = 0; i < orderButtons.size(); i++) {
-                orderButtons.get(i).setTooltip(Tooltip.create(Component.literal(hints[i])));
+                orderButtons.get(i).setTooltip(ORDER_TOOLTIPS[i]);
             }
         }
     }
