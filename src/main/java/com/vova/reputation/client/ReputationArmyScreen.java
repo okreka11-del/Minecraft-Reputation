@@ -67,7 +67,7 @@ public final class ReputationArmyScreen extends Screen {
         Tooltip.create(Component.literal("К точке взгляда — наведите прицел на блок в радиусе 24 блоков ДО открытия панели G. После выбора приказа волки пойдут туда, если путь безопасен."))
     };
     private static final Component NO_SQUAD_HELP = Component.literal("Нет доступных волков: приручите волка костями, затем подойдите к нему на расстояние приказов.");
-    private static final Component STALE_SQUAD_HELP = Component.literal("Состав отряда не подтверждён сервером. Нажмите R, среднюю кнопку мыши или заголовок панели и дождитесь ответа сервера.");
+    private static final Component STALE_SQUAD_HELP = Component.literal("Состав отряда не подтверждён сервером. Нажмите R/F5, среднюю кнопку мыши или заголовок панели и дождитесь ответа сервера.");
     private static final Component PENDING_SQUAD_HELP = Component.literal("Обновляем состав отряда. Дождитесь ответа сервера перед отправкой приказа.");
     private static final Component INACTIVE_PLAYER_HELP = Component.literal("Нельзя отдавать приказы отряду в режиме наблюдателя или после гибели.");
     // Disabled commands share immutable status tooltips. Reusing one instance per
@@ -608,13 +608,14 @@ public final class ReputationArmyScreen extends Screen {
             onClose();
             return true;
         }
-        // Refresh with R without closing the panel. The middle mouse button
+        // Refresh with R or F5 without closing the panel. F5 is useful when R is
+        // reserved by a custom key binding. The middle mouse button
         // offers the same action for players navigating the menu by mouse.
         // Lock-key state must not disable the manual squad refresh shortcut.
         // Only held Shift/Ctrl/Alt/Super should reserve R for another binding.
         int heldModifiers = modifiers & (GLFW.GLFW_MOD_SHIFT | GLFW.GLFW_MOD_CONTROL
             | GLFW.GLFW_MOD_ALT | GLFW.GLFW_MOD_SUPER);
-        if (keyCode == GLFW.GLFW_KEY_R && heldModifiers == 0) {
+        if ((keyCode == GLFW.GLFW_KEY_R || keyCode == GLFW.GLFW_KEY_F5) && heldModifiers == 0) {
             requestManualRefresh();
             return true;
         }
