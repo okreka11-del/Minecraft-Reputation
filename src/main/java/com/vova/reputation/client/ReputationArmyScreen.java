@@ -67,6 +67,25 @@ public final class ReputationArmyScreen extends Screen {
     private static final Component STALE_SQUAD_HELP = Component.literal("Состав отряда не подтверждён сервером. Нажмите R, среднюю кнопку мыши или заголовок панели и дождитесь ответа сервера.");
     private static final Component PENDING_SQUAD_HELP = Component.literal("Обновляем состав отряда. Дождитесь ответа сервера перед отправкой приказа.");
     private static final Component INACTIVE_PLAYER_HELP = Component.literal("Нельзя отдавать приказы отряду в режиме наблюдателя или после гибели.");
+    // Disabled commands share immutable status tooltips. Reusing one instance per
+    // state avoids six allocations whenever a verification starts or times out.
+    private static final Tooltip NO_SQUAD_TOOLTIP = Tooltip.create(NO_SQUAD_HELP);
+    private static final Tooltip STALE_SQUAD_TOOLTIP = Tooltip.create(STALE_SQUAD_HELP);
+    private static final Tooltip PENDING_SQUAD_TOOLTIP = Tooltip.create(PENDING_SQUAD_HELP);
+    private static final Tooltip INACTIVE_PLAYER_TOOLTIP = Tooltip.create(INACTIVE_PLAYER_HELP);
+
+    private Tooltip unavailableTooltip() {
+        if (minecraft != null && minecraft.player != null
+                && (!minecraft.player.isAlive() || minecraft.player.isSpectator())) {
+            return INACTIVE_PLAYER_TOOLTIP;
+        }
+        if (isManualRefreshPending()) return PENDING_SQUAD_TOOLTIP;
+        if (manualRefreshTimedOut || hasManualRefreshExpired() || isSquadSnapshotStale()) {
+            return STALE_SQUAD_TOOLTIP;
+        }
+        return NO_SQUAD_TOOLTIP;
+    }
+
 
     private boolean isSquadSnapshotStale() {
         if (minecraft == null || minecraft.player == null || lastSquadResponseTick == Integer.MIN_VALUE) return false;
@@ -200,37 +219,37 @@ public final class ReputationArmyScreen extends Screen {
         Button follow = Button.builder(commandLabel(1, "За мной", w - 16), b -> issue(0))
             .bounds(x + 8, firstButtonY, w - 16, buttonHeight).build();
         follow.setTooltip(ORDER_TOOLTIPS[0]);
-        if (!canIssueOrders()) follow.setTooltip(Tooltip.create(unavailableHelp()));
+        if (!canIssueOrders()) follow.setTooltip(unavailableTooltip());
         follow.active = canIssueOrders();
         orderButtons.add(addRenderableWidget(follow));
         Button guard = Button.builder(commandLabel(2, "Охранять позицию", w - 16), b -> issue(1))
             .bounds(x + 8, firstButtonY + buttonHeight + buttonGap, w - 16, buttonHeight).build();
         guard.setTooltip(ORDER_TOOLTIPS[1]);
-        if (!canIssueOrders()) guard.setTooltip(Tooltip.create(unavailableHelp()));
+        if (!canIssueOrders()) guard.setTooltip(unavailableTooltip());
         guard.active = canIssueOrders();
         orderButtons.add(addRenderableWidget(guard));
         Button rally = Button.builder(commandLabel(3, "Собрать рядом", w - 16), b -> issue(2))
             .bounds(x + 8, firstButtonY + 2 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
         rally.setTooltip(ORDER_TOOLTIPS[2]);
-        if (!canIssueOrders()) rally.setTooltip(Tooltip.create(unavailableHelp()));
+        if (!canIssueOrders()) rally.setTooltip(unavailableTooltip());
         rally.active = canIssueOrders();
         orderButtons.add(addRenderableWidget(rally));
         Button disengage = Button.builder(commandLabel(4, "Отступить ко мне", w - 16), b -> issue(3))
             .bounds(x + 8, firstButtonY + 3 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
         disengage.setTooltip(ORDER_TOOLTIPS[3]);
-        if (!canIssueOrders()) disengage.setTooltip(Tooltip.create(unavailableHelp()));
+        if (!canIssueOrders()) disengage.setTooltip(unavailableTooltip());
         disengage.active = canIssueOrders();
         orderButtons.add(addRenderableWidget(disengage));
         Button attack = Button.builder(commandLabel(5, "Атаковать отмеченного монстра", w - 16), b -> issue(4))
             .bounds(x + 8, firstButtonY + 4 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
         attack.setTooltip(ORDER_TOOLTIPS[4]);
-        if (!canIssueOrders()) attack.setTooltip(Tooltip.create(unavailableHelp()));
+        if (!canIssueOrders()) attack.setTooltip(unavailableTooltip());
         attack.active = canIssueOrders();
         orderButtons.add(addRenderableWidget(attack));
         Button waypoint = Button.builder(commandLabel(6, "К точке взгляда", w - 16), b -> issue(5))
             .bounds(x + 8, firstButtonY + 5 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
         waypoint.setTooltip(ORDER_TOOLTIPS[5]);
-        if (!canIssueOrders()) waypoint.setTooltip(Tooltip.create(unavailableHelp()));
+        if (!canIssueOrders()) waypoint.setTooltip(unavailableTooltip());
         waypoint.active = canIssueOrders();
         orderButtons.add(addRenderableWidget(waypoint));
         closeButton = addRenderableWidget(Button.builder(commandLabel(7, "Закрыть", w - 16), b -> onClose())
@@ -273,7 +292,8 @@ public final class ReputationArmyScreen extends Screen {
             }
         }
         if (!enabled) {
-            for (Button button : orderButtons) button.setTooltip(Tooltip.create(unavailableHelp()));
+            Tooltip statusTooltip = unavailableTooltip();
+            for (Button button : orderButtons) button.setTooltip(statusTooltip);
         } else {
             // Restore the individual command explanations when the player becomes active.
             for (int i = 0; i < orderButtons.size(); i++) {
