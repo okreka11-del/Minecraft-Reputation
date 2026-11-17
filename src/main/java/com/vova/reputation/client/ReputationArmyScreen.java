@@ -548,6 +548,11 @@ public final class ReputationArmyScreen extends Screen {
             return;
         }
         lastRefreshTick = now;
+        // A manual scan also satisfies the periodic polling schedule. Without
+        // resetting its clock, the next screen tick can send a redundant
+        // automatic request immediately after the manual reply, potentially
+        // racing the next player-initiated verification on a slow connection.
+        lastAutomaticRefreshTick = now;
         manualRefreshDeadlineTick = now + 40;
         manualRefreshTimedOut = false;
         pendingWheelScroll = 0;
