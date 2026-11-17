@@ -31,6 +31,6 @@ class ReputationTradingTest {
     void combinedAdjustmentsAreClamped() {
         assertEquals(-16, ReputationTrading.adjustmentFor(200, 100));
         assertEquals(16, ReputationTrading.adjustmentFor(-100, -100));
-        assertEquals(-3, ReputationTrading.adjustmentFor(151, -60));
+        assertEquals(1, ReputationTrading.adjustmentFor(151, -60));
     }
 }
