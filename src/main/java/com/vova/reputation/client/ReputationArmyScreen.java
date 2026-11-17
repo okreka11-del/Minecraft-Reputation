@@ -22,6 +22,9 @@ public final class ReputationArmyScreen extends Screen {
     // The server response recreates this screen; keep the cooldown across instances.
     // Otherwise holding R rebuilds the screen and resets its per-instance throttle.
     private static int lastRefreshTick = Integer.MIN_VALUE;
+    // The cooldown belongs to a specific local player, not the entire client.
+    // A reconnect or respawn may start a new tick clock at the same value.
+    private static net.minecraft.client.player.LocalPlayer refreshCooldownOwner;
     private int lastAutomaticRefreshTick = Integer.MIN_VALUE;
     // Distinguish a confirmed server snapshot from a stale count when periodic
     // requests receive no replies (for example during connection lag).
@@ -145,6 +148,13 @@ public final class ReputationArmyScreen extends Screen {
         if (!initialized) {
             openedPlayer = minecraft != null ? minecraft.player : null;
             openedDimension = openedPlayer != null ? openedPlayer.level().dimension() : null;
+            // Do not inherit a previous world's scan throttle when G is opened
+            // immediately after reconnecting or respawning. Keep it across
+            // ordinary screen reopenings for the same player instance.
+            if (refreshCooldownOwner != openedPlayer) {
+                refreshCooldownOwner = openedPlayer;
+                lastRefreshTick = Integer.MIN_VALUE;
+            }
             lastAutomaticRefreshTick = minecraft != null && minecraft.player != null
                 ? minecraft.player.tickCount : Integer.MIN_VALUE;
             lastSquadResponseTick = lastAutomaticRefreshTick;
