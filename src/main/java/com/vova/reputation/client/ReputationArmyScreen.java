@@ -437,7 +437,7 @@ public final class ReputationArmyScreen extends Screen {
         if (refreshing && height >= 165) {
             int barLeft = x + 8;
             int barRight = x + w - 8;
-            int barY = y + headerHeight() - 5;
+            int barY = y + headerHeight() - 2;
             int totalWidth = Math.max(0, barRight - barLeft);
             int ticksRemaining = Math.max(0, manualRefreshDeadlineTick - minecraft.player.tickCount);
             int filledWidth = totalWidth * Math.min(40, ticksRemaining) / 40;
