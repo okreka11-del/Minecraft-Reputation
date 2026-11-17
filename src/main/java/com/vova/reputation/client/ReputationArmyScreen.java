@@ -765,6 +765,20 @@ public final class ReputationArmyScreen extends Screen {
     // sending any order. This allows quick one-handed selection while preserving
     // Enter/Space activation and the existing numbered shortcuts.
     @Override public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        // Wheel navigation is local to the tactical panel. Scrolling over the
+        // visible world must not silently change the selected combat order.
+        // Discard a partial trackpad gesture on exit so returning to the panel
+        // cannot complete an old scroll and unexpectedly select another order.
+        int panelWidth = Math.max(24, Math.min(238, width - 16));
+        int panelX = (width - panelWidth) / 2;
+        int panelY = panelTop();
+        int panelBottom = Math.min(height - 2, panelY + headerHeight()
+            + 7 * commandButtonHeight() + 6 * commandButtonGap() + 8);
+        if (mouseX < panelX - 3 || mouseX >= panelX + panelWidth + 3
+                || mouseY < panelY - 3 || mouseY >= panelBottom) {
+            pendingWheelScroll = 0;
+            return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        }
         // Some trackpads report horizontal-only swipes. Use that axis only when
         // there is no vertical movement, so diagonal gestures never double-step.
         // Reject non-finite input before it can poison the accumulated fraction.
