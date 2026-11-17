@@ -164,7 +164,14 @@ public final class ReputationNetwork {
                 // the Nether (or vice versa): the cached result is dimension-local.
                 String dimension = player.level().dimension().location().toString();
                 boolean sameDimension = dimension.equals(data.getString("reputationCachedArmyDimension"));
-                if (data.getBoolean("reputationHasArmyRefreshTick") && sameDimension
+                // A teleport within the short refresh cooldown must not reuse
+                // the previous location's squad count. Check squared distance
+                // without allocating positions or scanning entities.
+                long dx = (long) player.blockPosition().getX() - data.getInt("reputationCachedArmyX");
+                long dy = (long) player.blockPosition().getY() - data.getInt("reputationCachedArmyY");
+                long dz = (long) player.blockPosition().getZ() - data.getInt("reputationCachedArmyZ");
+                boolean sameArea = dx * dx + dy * dy + dz * dz <= 64;
+                if (data.getBoolean("reputationHasArmyRefreshTick") && sameDimension && sameArea
                         && now >= last && now - last < 10) {
                     // Still answer a fresh G-open request. Dropping the response made
                     // the panel appear broken when players closed and reopened it
@@ -178,6 +185,9 @@ public final class ReputationNetwork {
                     .filter(wolf -> !wolf.isPassenger()).count();
                 data.putInt("reputationCachedArmyCount", count);
                 data.putString("reputationCachedArmyDimension", dimension);
+                data.putInt("reputationCachedArmyX", player.blockPosition().getX());
+                data.putInt("reputationCachedArmyY", player.blockPosition().getY());
+                data.putInt("reputationCachedArmyZ", player.blockPosition().getZ());
                 data.putBoolean("reputationHasArmyRefreshTick", true);
                 data.putInt("reputationLastArmyRefreshTick", now);
                 PacketDistributor.sendToPlayer(player, new ArmyOverview(count));
