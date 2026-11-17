@@ -487,7 +487,49 @@ public final class ReputationNetwork {
                             level, ownerGroundPos, net.minecraft.core.Direction.UP)
                         || !feetState.getCollisionShape(level, ownerFeet).isEmpty()
                         || !headState.getCollisionShape(level, ownerHead).isEmpty();
-                    if (burningDestination || trappingDestination || unsupportedDestination) {
+                    // Wolves are wider than a block's centre. A seemingly clear
+                    // owner position can still touch a cactus, fire, portal or lava
+                    // in a neighboring block. Check both body heights before
+                    // redirecting the squad, without loading adjacent chunks.
+                    boolean dangerousNeighbor = false;
+                    for (var direction : net.minecraft.core.Direction.Plane.HORIZONTAL) {
+                        var adjacentFeet = ownerFeet.relative(direction);
+                        var adjacentHead = ownerHead.relative(direction);
+                        if (!level.hasChunkAt(adjacentFeet) || !level.hasChunkAt(adjacentHead)
+                                || !level.getWorldBorder().isWithinBounds(adjacentFeet)
+                                || !level.getWorldBorder().isWithinBounds(adjacentHead)) {
+                            dangerousNeighbor = true;
+                            break;
+                        }
+                        var adjacentFeetState = level.getBlockState(adjacentFeet);
+                        var adjacentHeadState = level.getBlockState(adjacentHead);
+                        if (level.getFluidState(adjacentFeet).is(net.minecraft.tags.FluidTags.LAVA)
+                                || level.getFluidState(adjacentHead).is(net.minecraft.tags.FluidTags.LAVA)
+                                || adjacentFeetState.is(net.minecraft.world.level.block.Blocks.CACTUS)
+                                || adjacentHeadState.is(net.minecraft.world.level.block.Blocks.CACTUS)
+                                || adjacentFeetState.is(net.minecraft.world.level.block.Blocks.FIRE)
+                                || adjacentHeadState.is(net.minecraft.world.level.block.Blocks.FIRE)
+                                || adjacentFeetState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
+                                || adjacentHeadState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
+                                || adjacentFeetState.is(net.minecraft.world.level.block.Blocks.NETHER_PORTAL)
+                                || adjacentHeadState.is(net.minecraft.world.level.block.Blocks.NETHER_PORTAL)
+                                || adjacentFeetState.is(net.minecraft.world.level.block.Blocks.END_PORTAL)
+                                || adjacentHeadState.is(net.minecraft.world.level.block.Blocks.END_PORTAL)
+                                || adjacentFeetState.is(net.minecraft.world.level.block.Blocks.END_GATEWAY)
+                                || adjacentHeadState.is(net.minecraft.world.level.block.Blocks.END_GATEWAY)
+                                || adjacentFeetState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
+                                || adjacentHeadState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
+                                || adjacentFeetState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                                || adjacentHeadState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                                || adjacentFeetState.is(net.minecraft.world.level.block.Blocks.COBWEB)
+                                || adjacentHeadState.is(net.minecraft.world.level.block.Blocks.COBWEB)
+                                || adjacentFeetState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
+                                || adjacentHeadState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)) {
+                            dangerousNeighbor = true;
+                            break;
+                        }
+                    }
+                    if (burningDestination || trappingDestination || unsupportedDestination || dangerousNeighbor) {
                         player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                             "Точка сбора опасна: встаньте на твёрдую поверхность с двумя свободными блоками высоты, вдали от огня и ловушек."), true);
                         return;
