@@ -42,6 +42,17 @@ public final class ReputationArmyScreen extends Screen {
     private net.minecraft.client.player.LocalPlayer openedPlayer;
     private boolean lastOrdersEnabled;
     private String lastUnavailableReason = "";
+    // Reuse these labels instead of allocating a new array every rendered frame.
+    // Mouse hover takes precedence over keyboard focus, so the tactical hint
+    // always describes the command the player is currently pointing at.
+    private static final String[] ORDER_PREVIEWS = {
+        "За мной · следовать за игроком",
+        "Охранять · удерживать позицию",
+        "Собрать · вернуться к игроку",
+        "Отступить · прекратить бой",
+        "Атаковать · отмеченная цель",
+        "К точке · идти к блоку взгляда"
+    };
     private static final Component NO_SQUAD_HELP = Component.literal("Нет доступных волков: приручите волка костями, затем подойдите к нему на расстояние приказов.");
     private static final Component STALE_SQUAD_HELP = Component.literal("Состав отряда не подтверждён сервером. Нажмите R, среднюю кнопку мыши или заголовок панели и дождитесь ответа сервера.");
     private static final Component PENDING_SQUAD_HELP = Component.literal("Обновляем состав отряда. Дождитесь ответа сервера перед отправкой приказа.");
@@ -468,18 +479,20 @@ public final class ReputationArmyScreen extends Screen {
             // without hovering a tooltip. Reuse the spare header row as a
             // contextual command preview; no extra widgets or render passes.
             int selectedOrder = orderButtons.indexOf(getFocused());
-            String[] previews = {
-                "За мной · следовать за игроком",
-                "Охранять · удерживать позицию",
-                "Собрать · вернуться к игроку",
-                "Отступить · прекратить бой",
-                "Атаковать · отмеченная цель",
-                "К точке · идти к блоку взгляда"
-            };
-            String range = selectedOrder >= 0 && selectedOrder < previews.length
-                ? previews[selectedOrder]
-                : getFocused() == closeButton ? "Закрыть · вернуться в игру"
-                : "1–7 · R / заголовок: обновить";
+            boolean hoveringClose = closeButton != null && closeButton.isMouseOver(mouseX, mouseY);
+            // Hovering a command should describe that command even when a
+            // different button still owns keyboard/controller focus.
+            for (int i = 0; i < orderButtons.size(); i++) {
+                if (orderButtons.get(i).isMouseOver(mouseX, mouseY)) {
+                    selectedOrder = i;
+                    break;
+                }
+            }
+            String range = hoveringClose ? "Закрыть · вернуться в игру"
+                : selectedOrder >= 0 && selectedOrder < ORDER_PREVIEWS.length
+                    ? ORDER_PREVIEWS[selectedOrder]
+                    : getFocused() == closeButton ? "Закрыть · вернуться в игру"
+                    : "1–7 · R / заголовок: обновить";
             g.drawString(font, font.plainSubstrByWidth(range, w - 16), x + 8, y + 35, 0xFF705438, false);
         }
         super.render(g, mouseX, mouseY, partialTick);
