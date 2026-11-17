@@ -464,7 +464,22 @@ public final class ReputationArmyScreen extends Screen {
         // third text row: its 9px glyphs would overlap the first order button.
         // Reserve the range hint for the 48px header on taller windows.
         if (height >= 240) {
-            String range = "1–7 · R / заголовок / средняя кнопка: обновить";
+            // Keyboard and wheel users need to understand the focused order
+            // without hovering a tooltip. Reuse the spare header row as a
+            // contextual command preview; no extra widgets or render passes.
+            int selectedOrder = orderButtons.indexOf(getFocused());
+            String[] previews = {
+                "За мной · следовать за игроком",
+                "Охранять · удерживать позицию",
+                "Собрать · вернуться к игроку",
+                "Отступить · прекратить бой",
+                "Атаковать · отмеченная цель",
+                "К точке · идти к блоку взгляда"
+            };
+            String range = selectedOrder >= 0 && selectedOrder < previews.length
+                ? previews[selectedOrder]
+                : getFocused() == closeButton ? "Закрыть · вернуться в игру"
+                : "1–7 · R / заголовок: обновить";
             g.drawString(font, font.plainSubstrByWidth(range, w - 16), x + 8, y + 35, 0xFF705438, false);
         }
         super.render(g, mouseX, mouseY, partialTick);
