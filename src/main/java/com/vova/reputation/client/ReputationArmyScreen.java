@@ -431,6 +431,21 @@ public final class ReputationArmyScreen extends Screen {
                 : available > 0 ? 0xFF28613C : 0xFF705438;
             g.drawString(font, font.plainSubstrByWidth(count, w - 16), x + 8, y + 25, statusColor, false);
         }
+        // Show the manual verification deadline as a thin, pixel-aligned progress bar.
+        // It stays inside the header at every supported GUI scale and uses only
+        // two solid fills (no texture, shader, blur or additional network traffic).
+        if (refreshing && height >= 165) {
+            int barLeft = x + 8;
+            int barRight = x + w - 8;
+            int barY = y + headerHeight() - 5;
+            int totalWidth = Math.max(0, barRight - barLeft);
+            int ticksRemaining = Math.max(0, manualRefreshDeadlineTick - minecraft.player.tickCount);
+            int filledWidth = totalWidth * Math.min(40, ticksRemaining) / 40;
+            g.fill(barLeft, barY, barRight, barY + 2, 0xFF9D825A);
+            if (filledWidth > 0) {
+                g.fill(barLeft, barY, barLeft + filledWidth, barY + 2, 0xFF956019);
+            }
+        }
         // Only taller GUI heights have room for the optional range hint.
         // Omit this optional hint rather than drawing text over a clickable command.
         // The compact 37px header (GUI heights 165-239) has no room for a
