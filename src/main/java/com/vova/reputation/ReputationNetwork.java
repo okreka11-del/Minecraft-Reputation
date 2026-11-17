@@ -558,6 +558,9 @@ public final class ReputationNetwork {
                 int restrained = 0;
                 int mounted = 0;
                 int leashed = 0;
+                int attackOutOfRange = 0;
+                int attackNoSight = 0;
+                int attackNoPath = 0;
                 for (var wolf : wolves) {
                     // A mounted wolf cannot act on any squad order until dismounted:
                     // even Follow/Guard would misleadingly report success while it
@@ -577,8 +580,14 @@ public final class ReputationNetwork {
                         // Do not dispatch a pet against a target it cannot reach from
                         // the squad's local area. The owner's 24-block check alone
                         // permits a wolf on the opposite edge to chase 48 blocks.
-                        if (wolf.distanceToSqr(attackTarget) > 24.0D * 24.0D
-                                || !wolf.hasLineOfSight(attackTarget)) continue;
+                        if (wolf.distanceToSqr(attackTarget) > 24.0D * 24.0D) {
+                            attackOutOfRange++;
+                            continue;
+                        }
+                        if (!wolf.hasLineOfSight(attackTarget)) {
+                            attackNoSight++;
+                            continue;
+                        }
                         // Do not cancel an existing guard or follow order if this
                         // wolf has no traversable route to the marked monster.
                         // Check from the wolf's server-side position before mutating
@@ -588,7 +597,10 @@ public final class ReputationNetwork {
                         // that must not discard an otherwise valid attack command.
                         boolean inMeleeRange = wolf.distanceToSqr(attackTarget) <= 2.5D * 2.5D;
                         var attackPath = inMeleeRange ? null : wolf.getNavigation().createPath(attackTarget, 0);
-                        if (!inMeleeRange && (attackPath == null || !attackPath.canReach())) continue;
+                        if (!inMeleeRange && (attackPath == null || !attackPath.canReach())) {
+                            attackNoPath++;
+                            continue;
+                        }
                         wolf.setOrderedToSit(false);
                         wolf.setLastHurtByMob(null);
                         wolf.getNavigation().stop();
@@ -908,7 +920,9 @@ public final class ReputationNetwork {
                         "Отступление не удалось: волки не могут проложить путь к вам."), true);
                 } else if (payload.order() == 4 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                        "Приказ не выполнен: ни один ваш волк не видит цель в радиусе 24 блоков."), true);
+                        "Атака не выполнена: " + attackOutOfRange + " волков слишком далеко, "
+                            + attackNoSight + " не видят цель, " + attackNoPath
+                            + " не могут найти путь. Подведите отряд ближе или устраните препятствия."), true);
                 } else {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                         (payload.order() == 0 ? "Следовать: " : payload.order() == 1 ? "Охранять: " : payload.order() == 2 ? "Сбор отряда: " : payload.order() == 3 ? "Отступают к вам: " : payload.order() == 4 ? "Атакуют цель: " : "Идут к точке: ") + changed + " из " + wolves.size() + " волков" + (changed < wolves.size() ? " (не выполнили: " + (wolves.size() - changed) + (restrained > 0 ? ", из них " + mounted + " в транспорте" + (leashed > 0 ? " и " + leashed + " на поводках" : "") : "") + "; проверьте расстояние, путь и безопасность)" : "")), true);
