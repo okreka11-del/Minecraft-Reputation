@@ -43,7 +43,7 @@ public final class ReputationArmyScreen extends Screen {
     private boolean lastOrdersEnabled;
     private String lastUnavailableReason = "";
     private static final Component NO_SQUAD_HELP = Component.literal("Нет доступных волков: приручите волка костями, затем подойдите к нему на расстояние приказов.");
-    private static final Component STALE_SQUAD_HELP = Component.literal("Состав отряда не подтверждён сервером. Нажмите R или колесо мыши и дождитесь обновления перед приказом.");
+    private static final Component STALE_SQUAD_HELP = Component.literal("Состав отряда не подтверждён сервером. Нажмите R, среднюю кнопку мыши или заголовок панели и дождитесь ответа сервера.");
     private static final Component PENDING_SQUAD_HELP = Component.literal("Обновляем состав отряда. Дождитесь ответа сервера перед отправкой приказа.");
     private static final Component INACTIVE_PLAYER_HELP = Component.literal("Нельзя отдавать приказы отряду в режиме наблюдателя или после гибели.");
 
@@ -414,7 +414,7 @@ public final class ReputationArmyScreen extends Screen {
             ? (minecraft.player.isSpectator() ? "Режим наблюдателя" : "Игрок погиб")
             : height < 165
                 ? (refreshing ? "Проверка · " + manualRefreshSecondsRemaining() + " с"
-                    : refreshFailed ? "Нет ответа · R / колесо повторить"
+                    : refreshFailed ? "Нет ответа · R / средняя кнопка"
                     : staleSquad ? "Нет связи с отрядом · R"
                     : available == 0 ? "Нет отряда" : "Отряд: " + available)
                 : title.getString();
@@ -430,7 +430,7 @@ public final class ReputationArmyScreen extends Screen {
         g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + (height < 105 ? 1 : 8), headingColor, false);
         String count = playerInactive ? "Приказы временно недоступны"
             : refreshing ? "Проверка: " + manualRefreshSecondsRemaining() + " с · было: " + available
-            : refreshFailed ? "Нет ответа сервера · R / колесо повторить"
+            : refreshFailed ? "Нет ответа сервера · R / средняя кнопка"
             : staleSquad ? "Состав устарел · R обновить"
             : available == 0 ? "Приручите волка и подойдите ближе" : "Ваши волки рядом: " + available;
         if (height >= 165) {
@@ -464,7 +464,7 @@ public final class ReputationArmyScreen extends Screen {
         // third text row: its 9px glyphs would overlap the first order button.
         // Reserve the range hint for the 48px header on taller windows.
         if (height >= 240) {
-            String range = "1–7 · R / заголовок: обновить · 24 блока";
+            String range = "1–7 · R / заголовок / средняя кнопка: обновить";
             g.drawString(font, font.plainSubstrByWidth(range, w - 16), x + 8, y + 35, 0xFF705438, false);
         }
         super.render(g, mouseX, mouseY, partialTick);
