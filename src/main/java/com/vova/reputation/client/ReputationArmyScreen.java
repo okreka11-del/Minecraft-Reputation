@@ -56,6 +56,14 @@ public final class ReputationArmyScreen extends Screen {
             && minecraft.player.tickCount > manualRefreshDeadlineTick;
     }
 
+    // Display a whole-second countdown using the player's existing tick clock.
+    // No extra packets or timers: the number updates during normal screen rendering.
+    private int manualRefreshSecondsRemaining() {
+        if (!isManualRefreshPending()) return 0;
+        int ticksLeft = Math.max(0, manualRefreshDeadlineTick - minecraft.player.tickCount);
+        return (ticksLeft + 19) / 20;
+    }
+
     private boolean isManualRefreshPending() {
         return minecraft != null && minecraft.player != null
             && manualRefreshDeadlineTick != Integer.MIN_VALUE
@@ -395,7 +403,7 @@ public final class ReputationArmyScreen extends Screen {
         String headingText = playerInactive
             ? (minecraft.player.isSpectator() ? "Режим наблюдателя" : "Игрок погиб")
             : height < 165
-                ? (refreshing ? "Обновление отряда…"
+                ? (refreshing ? "Проверка · " + manualRefreshSecondsRemaining() + " с"
                     : refreshFailed ? "Нет ответа · R / колесо повторить"
                     : staleSquad ? "Нет связи с отрядом · R"
                     : available == 0 ? "Нет отряда" : "Отряд: " + available)
@@ -411,7 +419,7 @@ public final class ReputationArmyScreen extends Screen {
             : 0xFF45301B;
         g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + (height < 105 ? 1 : 8), headingColor, false);
         String count = playerInactive ? "Приказы временно недоступны"
-            : refreshing ? "Обновление отряда… · было: " + available
+            : refreshing ? "Проверка: " + manualRefreshSecondsRemaining() + " с · было: " + available
             : refreshFailed ? "Нет ответа сервера · R / колесо повторить"
             : staleSquad ? "Состав устарел · R обновить"
             : available == 0 ? "Приручите волка и подойдите ближе" : "Ваши волки рядом: " + available;
