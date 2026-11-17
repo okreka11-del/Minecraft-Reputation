@@ -16,6 +16,9 @@ import org.lwjgl.glfw.GLFW;
 public final class ReputationArmyScreen extends Screen {
     private int available;
     private final java.util.List<Button> orderButtons = new java.util.ArrayList<>();
+    // Reuse the navigation buffer for keyboard, controller and mouse-wheel input.
+    // A menu with seven controls should not allocate a fresh list on every gesture.
+    private final java.util.List<Button> selectableControls = new java.util.ArrayList<>(7);
     private Button closeButton;
     private double pendingWheelScroll;
     // Prevent held R / key repeat from flooding the server with squad scans.
@@ -583,6 +586,18 @@ public final class ReputationArmyScreen extends Screen {
         PacketDistributor.sendToServer(new ReputationNetwork.ArmyRequest());
     }
 
+    /** Rebuild the small navigation view in visual order, skipping unavailable controls. */
+    private java.util.List<Button> selectableControls() {
+        selectableControls.clear();
+        for (Button button : orderButtons) {
+            if (button.active && button.visible) selectableControls.add(button);
+        }
+        if (closeButton != null && closeButton.active && closeButton.visible) {
+            selectableControls.add(closeButton);
+        }
+        return selectableControls;
+    }
+
     @Override public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         // The configurable army key takes precedence over numeric shortcuts.
         // Otherwise remapping G to 1-7 would accidentally issue an order instead
@@ -619,9 +634,7 @@ public final class ReputationArmyScreen extends Screen {
         // disabled orders when the player has no available squad.
         if (keyCode == GLFW.GLFW_KEY_TAB) {
             pendingWheelScroll = 0; // A later wheel gesture must start fresh after keyboard navigation.
-            java.util.List<Button> selectable = new java.util.ArrayList<>();
-            for (Button button : orderButtons) if (button.active && button.visible) selectable.add(button);
-            if (closeButton != null && closeButton.active && closeButton.visible) selectable.add(closeButton);
+            java.util.List<Button> selectable = selectableControls();
             if (!selectable.isEmpty()) {
                 int direction = (modifiers & GLFW.GLFW_MOD_SHIFT) != 0 ? -1 : 1;
                 int current = selectable.indexOf(getFocused());
@@ -638,9 +651,7 @@ public final class ReputationArmyScreen extends Screen {
         if (keyCode == GLFW.GLFW_KEY_UP || keyCode == GLFW.GLFW_KEY_DOWN
             || keyCode == GLFW.GLFW_KEY_LEFT || keyCode == GLFW.GLFW_KEY_RIGHT) {
             pendingWheelScroll = 0;
-            java.util.List<Button> selectable = new java.util.ArrayList<>();
-            for (Button button : orderButtons) if (button.active && button.visible) selectable.add(button);
-            if (closeButton != null && closeButton.active && closeButton.visible) selectable.add(closeButton);
+            java.util.List<Button> selectable = selectableControls();
             if (!selectable.isEmpty()) {
                 int direction = (keyCode == GLFW.GLFW_KEY_DOWN || keyCode == GLFW.GLFW_KEY_RIGHT) ? 1 : -1;
                 int current = selectable.indexOf(getFocused());
@@ -654,9 +665,7 @@ public final class ReputationArmyScreen extends Screen {
         // order. Keep Close reachable when the player dies or has no squad.
         if (keyCode == GLFW.GLFW_KEY_HOME || keyCode == GLFW.GLFW_KEY_END) {
             pendingWheelScroll = 0;
-            java.util.List<Button> selectable = new java.util.ArrayList<>();
-            for (Button button : orderButtons) if (button.active) selectable.add(button);
-            if (closeButton != null && closeButton.active) selectable.add(closeButton);
+            java.util.List<Button> selectable = selectableControls();
             if (!selectable.isEmpty()) {
                 setFocused(selectable.get(keyCode == GLFW.GLFW_KEY_HOME ? 0 : selectable.size() - 1));
             }
@@ -667,9 +676,7 @@ public final class ReputationArmyScreen extends Screen {
         // without activating a command or sending a network packet.
         if (keyCode == GLFW.GLFW_KEY_PAGE_UP || keyCode == GLFW.GLFW_KEY_PAGE_DOWN) {
             pendingWheelScroll = 0;
-            java.util.List<Button> selectable = new java.util.ArrayList<>();
-            for (Button button : orderButtons) if (button.active) selectable.add(button);
-            if (closeButton != null && closeButton.active) selectable.add(closeButton);
+            java.util.List<Button> selectable = selectableControls();
             if (!selectable.isEmpty()) {
                 int current = selectable.indexOf(getFocused());
                 int direction = keyCode == GLFW.GLFW_KEY_PAGE_DOWN ? 1 : -1;
@@ -779,9 +786,7 @@ public final class ReputationArmyScreen extends Screen {
         pendingWheelScroll -= Math.copySign(wholeSteps, pendingWheelScroll);
         // Limit a single gesture to three controls. Huge scroll bursts should
         // not wrap all the way around and appear to have done nothing.
-        java.util.List<Button> selectable = new java.util.ArrayList<>();
-        for (Button button : orderButtons) if (button.active) selectable.add(button);
-        if (closeButton != null && closeButton.active) selectable.add(closeButton);
+        java.util.List<Button> selectable = selectableControls();
         if (selectable.isEmpty()) return true;
         int current = selectable.indexOf(getFocused());
         // A single event may contain several wheel notches. Honour each notch
