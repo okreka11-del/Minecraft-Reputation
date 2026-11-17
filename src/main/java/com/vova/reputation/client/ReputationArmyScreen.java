@@ -681,7 +681,20 @@ public final class ReputationArmyScreen extends Screen {
         // Do not carry a partial trackpad gesture into a mouse-selected command.
         pendingWheelScroll = 0;
         if (button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE) {
-            requestManualRefresh();
+            // Middle-click refresh is a panel action, not a global click trap.
+            // Dismiss clicks on the visible world instead of sending a server
+            // scan the player did not intend. This mirrors left-click outside.
+            int panelWidth = Math.max(24, Math.min(238, width - 16));
+            int panelX = (width - panelWidth) / 2;
+            int panelY = panelTop();
+            int panelBottom = Math.min(height - 2, panelY + headerHeight()
+                + 7 * commandButtonHeight() + 6 * commandButtonGap() + 8);
+            if (mouseX < panelX - 3 || mouseX >= panelX + panelWidth + 3
+                    || mouseY < panelY - 3 || mouseY >= panelBottom) {
+                onClose();
+            } else {
+                requestManualRefresh();
+            }
             return true;
         }
         if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
