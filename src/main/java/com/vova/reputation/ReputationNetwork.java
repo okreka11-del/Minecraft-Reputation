@@ -561,6 +561,9 @@ public final class ReputationNetwork {
                 int attackOutOfRange = 0;
                 int attackNoSight = 0;
                 int attackNoPath = 0;
+                int waypointOutOfRange = 0;
+                int waypointNoPath = 0;
+                int waypointNavigationRejected = 0;
                 for (var wolf : wolves) {
                     // A mounted wolf cannot act on any squad order until dismounted:
                     // even Follow/Guard would misleadingly report success while it
@@ -611,7 +614,10 @@ public final class ReputationNetwork {
                         // A wolf at the far edge of the squad radius must not be sent
                         // up to 48 blocks away across unloaded or dangerous terrain.
                         if (wolf.distanceToSqr(waypoint.getX() + 0.5D,
-                                waypoint.getY(), waypoint.getZ() + 0.5D) > 24.0D * 24.0D) continue;
+                                waypoint.getY(), waypoint.getZ() + 0.5D) > 24.0D * 24.0D) {
+                            waypointOutOfRange++;
+                            continue;
+                        }
                         // A wolf already standing at the destination has fulfilled
                         // the waypoint order. Pathfinding can return no path for a
                         // zero-distance destination, especially while the wolf sits.
@@ -620,10 +626,16 @@ public final class ReputationNetwork {
                                 waypoint.getX() + 0.5D, waypoint.getY(),
                                 waypoint.getZ() + 0.5D) <= 1.5D * 1.5D;
                         var path = alreadyAtWaypoint ? null : wolf.getNavigation().createPath(waypoint, 0);
-                        if (!alreadyAtWaypoint && (path == null || !path.canReach())) continue;
+                        if (!alreadyAtWaypoint && (path == null || !path.canReach())) {
+                            waypointNoPath++;
+                            continue;
+                        }
                         // Start the new route before discarding the old combat/guard
                         // state. A path may be valid but navigation can still reject it.
-                        if (!alreadyAtWaypoint && !wolf.getNavigation().moveTo(path, 1.2D)) continue;
+                        if (!alreadyAtWaypoint && !wolf.getNavigation().moveTo(path, 1.2D)) {
+                            waypointNavigationRejected++;
+                            continue;
+                        }
                         wolf.setTarget(null);
                         wolf.setLastHurtByMob(null);
                         wolf.setOrderedToSit(false);
@@ -908,7 +920,9 @@ public final class ReputationNetwork {
                                 : "Приказ не выполнен: волки в транспорте или на поводках. Освободите хотя бы одного."), true);
                 } else if (payload.order() == 5 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                        "Ни один волк не может дойти до точки в радиусе 24 блоков от него."), true);
+                        "Приказ к точке не выполнен: " + waypointOutOfRange + " волков дальше 24 блоков, "
+                            + waypointNoPath + " не находят путь, " + waypointNavigationRejected
+                            + " не смогли начать движение. Подведите отряд ближе или устраните препятствия."), true);
                 } else if (payload.order() == 1 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                         "Охрана не назначена: волки не стоят на земле или находятся рядом с опасными блоками."), true);
