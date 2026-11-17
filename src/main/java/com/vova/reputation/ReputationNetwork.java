@@ -382,7 +382,10 @@ public final class ReputationNetwork {
                                 || feetState.is(net.minecraft.world.level.block.Blocks.COBWEB)
                                 || headState.is(net.minecraft.world.level.block.Blocks.COBWEB)
                                 || feetState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
-                                || headState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)) {
+                                || headState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                                // Wither roses damage wolves on contact even without a solid collision box.
+                                || feetState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
+                                || headState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)) {
                             touchesHazard = true;
                             break;
                         }
