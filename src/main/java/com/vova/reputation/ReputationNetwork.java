@@ -739,6 +739,23 @@ public final class ReputationNetwork {
                                     || sideHeadState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
                                     || sideFeetState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
                                     || sideHeadState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
+                                    // A seated wolf cannot move away when a neighboring
+                                    // web or powder-snow block traps its hitbox. Reject
+                                    // these before clearing its previous combat stance.
+                                    || sideFeetState.is(net.minecraft.world.level.block.Blocks.COBWEB)
+                                    || sideHeadState.is(net.minecraft.world.level.block.Blocks.COBWEB)
+                                    || sideFeetState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
+                                    || sideHeadState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
+                                    || sideFeetState.is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)
+                                    || sideHeadState.is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)
+                                    || sideFeetState.is(net.minecraft.world.level.block.Blocks.CAMPFIRE)
+                                        && sideFeetState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
+                                    || sideHeadState.is(net.minecraft.world.level.block.Blocks.CAMPFIRE)
+                                        && sideHeadState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
+                                    || sideFeetState.is(net.minecraft.world.level.block.Blocks.SOUL_CAMPFIRE)
+                                        && sideFeetState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
+                                    || sideHeadState.is(net.minecraft.world.level.block.Blocks.SOUL_CAMPFIRE)
+                                        && sideHeadState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
                                     || guardLevel.getFluidState(sideFeet).is(net.minecraft.tags.FluidTags.LAVA)
                                     || guardLevel.getFluidState(sideHead).is(net.minecraft.tags.FluidTags.LAVA)) {
                                 guardTouchesPortal = true;
