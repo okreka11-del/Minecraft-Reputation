@@ -476,7 +476,14 @@ public final class ReputationArmyScreen extends Screen {
         }
         int now = minecraft.player.tickCount;
         if (lastRefreshTick != Integer.MIN_VALUE && now >= lastRefreshTick
-                && now - lastRefreshTick < 10) return;
+                && now - lastRefreshTick < 10) {
+            // An automatic scan may have just used the shared rate limit.
+            // Tell the player why R/click did nothing instead of silently
+            // ignoring an explicit request, especially after a timeout.
+            minecraft.player.displayClientMessage(Component.literal(
+                "Проверка отряда доступна через " + (10 - (now - lastRefreshTick)) + " тиков."), true);
+            return;
+        }
         lastRefreshTick = now;
         manualRefreshDeadlineTick = now + 40;
         manualRefreshTimedOut = false;
