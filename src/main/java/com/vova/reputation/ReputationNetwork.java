@@ -453,7 +453,7 @@ public final class ReputationNetwork {
                     // Reject both feet and head hazards before changing any order.
                     var feetState = level.getBlockState(ownerFeet);
                     var headState = level.getBlockState(ownerHead);
-                    boolean trappingDestination = feetState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
+                    // Portals and cactus can teleport or hurt wolves even when the\n                    // destination appears traversable. Never redirect a squad into them.\n                    boolean trappingDestination = feetState.is(net.minecraft.world.level.block.Blocks.NETHER_PORTAL)\n                        || headState.is(net.minecraft.world.level.block.Blocks.NETHER_PORTAL)\n                        || feetState.is(net.minecraft.world.level.block.Blocks.END_PORTAL)\n                        || headState.is(net.minecraft.world.level.block.Blocks.END_PORTAL)\n                        || feetState.is(net.minecraft.world.level.block.Blocks.END_GATEWAY)\n                        || headState.is(net.minecraft.world.level.block.Blocks.END_GATEWAY)\n                        || feetState.is(net.minecraft.world.level.block.Blocks.CACTUS)\n                        || headState.is(net.minecraft.world.level.block.Blocks.CACTUS)\n                        || feetState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
                         || headState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
                         || feetState.is(net.minecraft.world.level.block.Blocks.COBWEB)
                         || headState.is(net.minecraft.world.level.block.Blocks.COBWEB)
