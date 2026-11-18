@@ -67,7 +67,7 @@ public final class ReputationArmyScreen extends Screen {
         Tooltip.create(Component.literal("К точке взгляда — наведите прицел на блок в радиусе 24 блоков ДО открытия панели G. После выбора приказа волки пойдут туда, если путь безопасен."))
     };
     private static final Component NO_SQUAD_HELP = Component.literal("Нет доступных волков: приручите волка костями, затем подойдите к нему на расстояние приказов.");
-    private static final Component STALE_SQUAD_HELP = Component.literal("Состав отряда не подтверждён сервером. Нажмите R/F5, среднюю кнопку мыши или заголовок панели и дождитесь ответа сервера.");
+    private static final Component STALE_SQUAD_HELP = Component.literal("Состав отряда не подтверждён сервером. Нажмите 0/R/F5, среднюю кнопку мыши или заголовок панели и дождитесь ответа сервера.");
     private static final Component PENDING_SQUAD_HELP = Component.literal("Обновляем состав отряда. Дождитесь ответа сервера перед отправкой приказа.");
     private static final Component INACTIVE_PLAYER_HELP = Component.literal("Нельзя отдавать приказы отряду в режиме наблюдателя или после гибели.");
     // Disabled commands share immutable status tooltips. Reusing one instance per
@@ -452,8 +452,8 @@ public final class ReputationArmyScreen extends Screen {
             ? (minecraft.player.isSpectator() ? "Режим наблюдателя" : "Игрок погиб")
             : height < 165
                 ? (refreshing ? "Проверка · " + manualRefreshSecondsRemaining() + " с"
-                    : refreshFailed ? "Нет ответа · R/F5"
-                    : staleSquad ? "Нет связи · R/F5"
+                    : refreshFailed ? "Нет ответа · 0/R/F5"
+                    : staleSquad ? "Нет связи · 0/R/F5"
                     : available == 0 ? "Нет отряда" : "Отряд: " + available)
                 : title.getString();
         String heading = font.plainSubstrByWidth(headingText, Math.max(1, w - 16));
@@ -468,8 +468,8 @@ public final class ReputationArmyScreen extends Screen {
         g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + (height < 105 ? 1 : 8), headingColor, false);
         String count = playerInactive ? "Приказы временно недоступны"
             : refreshing ? "Проверка: " + manualRefreshSecondsRemaining() + " с · было: " + available
-            : refreshFailed ? "Нет ответа сервера · R/F5"
-            : staleSquad ? "Состав устарел · R/F5 обновить"
+            : refreshFailed ? "Нет ответа сервера · 0/R/F5"
+            : staleSquad ? "Состав устарел · 0/R/F5 обновить"
             : available == 0 ? "Приручите волка и подойдите ближе" : "Ваши волки рядом: " + available;
         if (height >= 165) {
             // Show server verification status without blur, overlays or extra render passes.
@@ -519,7 +519,7 @@ public final class ReputationArmyScreen extends Screen {
                 : selectedOrder >= 0 && selectedOrder < ORDER_PREVIEWS.length
                     ? ORDER_PREVIEWS[selectedOrder]
                     : getFocused() == closeButton ? "Закрыть · вернуться в игру"
-                    : "1–7 · R/F5: обновить";
+                    : "1–7 · 0/R/F5: обновить";
             g.drawString(font, font.plainSubstrByWidth(range, w - 16), x + 8, y + 35, 0xFF705438, false);
         }
         super.render(g, mouseX, mouseY, partialTick);
@@ -615,7 +615,9 @@ public final class ReputationArmyScreen extends Screen {
         // Only held Shift/Ctrl/Alt/Super should reserve R for another binding.
         int heldModifiers = modifiers & (GLFW.GLFW_MOD_SHIFT | GLFW.GLFW_MOD_CONTROL
             | GLFW.GLFW_MOD_ALT | GLFW.GLFW_MOD_SUPER);
-        if ((keyCode == GLFW.GLFW_KEY_R || keyCode == GLFW.GLFW_KEY_F5) && heldModifiers == 0) {
+        if ((keyCode == GLFW.GLFW_KEY_R || keyCode == GLFW.GLFW_KEY_F5
+                || keyCode == GLFW.GLFW_KEY_0 || keyCode == GLFW.GLFW_KEY_KP_0)
+                && heldModifiers == 0) {
             requestManualRefresh();
             return true;
         }
