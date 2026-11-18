@@ -672,7 +672,11 @@ public final class ReputationNetwork {
                         // Resume movement even if this wolf was previously guarding.
                         // Do not cancel an existing guard or combat order when a
                         // retreat route cannot be found (e.g. behind a closed door).
-                        boolean alreadySafe = wolf.distanceToSqr(player) <= 3.0D * 3.0D;
+                        // Proximity through a wall or across a ledge is not a completed retreat.
+                        // Require a similar elevation and clear sight before stopping movement.
+                        boolean alreadySafe = wolf.distanceToSqr(player) <= 3.0D * 3.0D
+                            && Math.abs(wolf.getY() - player.getY()) <= 1.5D
+                            && wolf.hasLineOfSight(player);
                         var retreatPath = alreadySafe ? null : wolf.getNavigation().createPath(player, 0);
                         if (!alreadySafe && (retreatPath == null || !retreatPath.canReach())) continue;
                         // Navigation can reject a route even after createPath reports
@@ -692,7 +696,11 @@ public final class ReputationNetwork {
                         // Rally nearby owned wolves without teleporting or changing their owner.
                         // Keep the existing stance if rally is impossible. An
                         // unreachable player should not accidentally release a guard.
-                        boolean alreadyGathered = wolf.distanceToSqr(player) <= 3.0D * 3.0D;
+                        // A wolf behind a wall or on another floor is not actually gathered,
+                        // even when its straight-line distance to the owner is small.
+                        boolean alreadyGathered = wolf.distanceToSqr(player) <= 3.0D * 3.0D
+                            && Math.abs(wolf.getY() - player.getY()) <= 1.5D
+                            && wolf.hasLineOfSight(player);
                         var rallyPath = alreadyGathered ? null : wolf.getNavigation().createPath(player, 0);
                         if (!alreadyGathered && (rallyPath == null || !rallyPath.canReach())) continue;
                         // Start a viable rally route before discarding an active guard
