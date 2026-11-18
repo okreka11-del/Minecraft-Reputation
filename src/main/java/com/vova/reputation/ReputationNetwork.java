@@ -508,15 +508,24 @@ public final class ReputationNetwork {
                     for (var direction : net.minecraft.core.Direction.Plane.HORIZONTAL) {
                         var adjacentFeet = ownerFeet.relative(direction);
                         var adjacentHead = ownerHead.relative(direction);
+                        var adjacentGround = adjacentFeet.below();
                         if (!level.hasChunkAt(adjacentFeet) || !level.hasChunkAt(adjacentHead)
+                                || !level.hasChunkAt(adjacentGround)
                                 || !level.getWorldBorder().isWithinBounds(adjacentFeet)
-                                || !level.getWorldBorder().isWithinBounds(adjacentHead)) {
+                                || !level.getWorldBorder().isWithinBounds(adjacentHead)
+                                || !level.getWorldBorder().isWithinBounds(adjacentGround)) {
                             dangerousNeighbor = true;
                             break;
                         }
                         var adjacentFeetState = level.getBlockState(adjacentFeet);
                         var adjacentHeadState = level.getBlockState(adjacentHead);
-                        if (level.getFluidState(adjacentFeet).is(net.minecraft.tags.FluidTags.LAVA)
+                        var adjacentGroundState = level.getBlockState(adjacentGround);
+                        if (adjacentGroundState.is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)
+                                || adjacentGroundState.is(net.minecraft.world.level.block.Blocks.CAMPFIRE)
+                                    && adjacentGroundState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
+                                || adjacentGroundState.is(net.minecraft.world.level.block.Blocks.SOUL_CAMPFIRE)
+                                    && adjacentGroundState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
+                                || level.getFluidState(adjacentFeet).is(net.minecraft.tags.FluidTags.LAVA)
                                 || level.getFluidState(adjacentHead).is(net.minecraft.tags.FluidTags.LAVA)
                                 // A wolf brushing a neighboring hot floor block can take
                                 // contact damage even when the owner's own block is safe.
