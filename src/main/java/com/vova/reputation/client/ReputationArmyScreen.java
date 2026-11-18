@@ -650,6 +650,18 @@ public final class ReputationArmyScreen extends Screen {
             // here instead of allowing a combat order to become selected.
             return true;
         }
+        // Enter/Space activate the focused vanilla Button. With Ctrl/Alt/Super
+        // held, these keys are commonly used by accessibility tools and OS
+        // shortcuts; do not let Screen forward them into a combat order.
+        // Plain Enter/Space (and Shift+Space for keyboard users) retain vanilla
+        // activation. This guard is local: it never sends a network packet.
+        if ((keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER
+                || keyCode == GLFW.GLFW_KEY_SPACE)
+                && (heldModifiers & (GLFW.GLFW_MOD_CONTROL | GLFW.GLFW_MOD_ALT
+                    | GLFW.GLFW_MOD_SUPER)) != 0) {
+            pendingWheelScroll = 0;
+            return true;
+        }
         // Tab and Shift+Tab cycle through enabled commands and Close in a stable
         // visual order. Never activate a command while navigating, and skip
         // disabled orders when the player has no available squad.
