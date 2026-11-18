@@ -643,7 +643,14 @@ public final class ReputationNetwork {
                         // Release a previous guard without requiring a needless route.
                         boolean alreadyAtWaypoint = wolf.distanceToSqr(
                                 waypoint.getX() + 0.5D, waypoint.getY(),
-                                waypoint.getZ() + 0.5D) <= 1.5D * 1.5D;
+                                waypoint.getZ() + 0.5D) <= 1.5D * 1.5D
+                                && Math.abs(wolf.getY() - waypoint.getY()) <= 1.0D
+                                && wolf.level().clip(new net.minecraft.world.level.ClipContext(
+                                    wolf.getEyePosition(),
+                                    net.minecraft.world.phys.Vec3.atCenterOf(waypoint),
+                                    net.minecraft.world.level.ClipContext.Block.COLLIDER,
+                                    net.minecraft.world.level.ClipContext.Fluid.NONE,
+                                    wolf)).getType() == net.minecraft.world.phys.HitResult.Type.MISS;
                         var path = alreadyAtWaypoint ? null : wolf.getNavigation().createPath(waypoint, 0);
                         if (!alreadyAtWaypoint && (path == null || !path.canReach())) {
                             waypointNoPath++;
