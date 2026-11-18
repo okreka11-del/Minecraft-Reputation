@@ -679,6 +679,22 @@ public final class ReputationArmyScreen extends Screen {
             }
             return true;
         }
+        // Page Up/Down jump three available controls at a time. This makes the
+        // seven-row tactical panel quicker to navigate with a keyboard or
+        // accessibility remap, without ever activating an order or skipping
+        // the Close button when squad commands are disabled.
+        if (keyCode == GLFW.GLFW_KEY_PAGE_UP || keyCode == GLFW.GLFW_KEY_PAGE_DOWN) {
+            pendingWheelScroll = 0;
+            java.util.List<Button> selectable = selectableControls();
+            if (!selectable.isEmpty()) {
+                int current = selectable.indexOf(getFocused());
+                int direction = keyCode == GLFW.GLFW_KEY_PAGE_DOWN ? 1 : -1;
+                int next = current < 0 ? (direction > 0 ? 0 : selectable.size() - 1)
+                    : Math.max(0, Math.min(selectable.size() - 1, current + direction * 3));
+                setFocused(selectable.get(next));
+            }
+            return true;
+        }
         // Home/End jump to the first/last available control without sending an
         // order. Keep Close reachable when the player dies or has no squad.
         if (keyCode == GLFW.GLFW_KEY_HOME || keyCode == GLFW.GLFW_KEY_END) {
