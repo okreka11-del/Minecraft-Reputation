@@ -385,7 +385,7 @@ public final class ReputationArmyScreen extends Screen {
         if (isManualRefreshPending()) return;
         // Once an explicit verification times out, do not let background polling
         // silently clear the warning with an unrelated late reply. The player
-        // must request a fresh scan with R, middle-click or the panel heading.
+        // must request a fresh scan with R/F5, middle-click or the panel heading.
         // This also avoids wasting packets while the connection is unresponsive.
         if (manualRefreshTimedOut) return;
         // Stop unattended polling after the last server-confirmed squad count
@@ -452,8 +452,8 @@ public final class ReputationArmyScreen extends Screen {
             ? (minecraft.player.isSpectator() ? "Режим наблюдателя" : "Игрок погиб")
             : height < 165
                 ? (refreshing ? "Проверка · " + manualRefreshSecondsRemaining() + " с"
-                    : refreshFailed ? "Нет ответа · R / средняя кнопка"
-                    : staleSquad ? "Нет связи с отрядом · R"
+                    : refreshFailed ? "Нет ответа · R/F5"
+                    : staleSquad ? "Нет связи · R/F5"
                     : available == 0 ? "Нет отряда" : "Отряд: " + available)
                 : title.getString();
         String heading = font.plainSubstrByWidth(headingText, Math.max(1, w - 16));
@@ -468,8 +468,8 @@ public final class ReputationArmyScreen extends Screen {
         g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + (height < 105 ? 1 : 8), headingColor, false);
         String count = playerInactive ? "Приказы временно недоступны"
             : refreshing ? "Проверка: " + manualRefreshSecondsRemaining() + " с · было: " + available
-            : refreshFailed ? "Нет ответа сервера · R / средняя кнопка"
-            : staleSquad ? "Состав устарел · R обновить"
+            : refreshFailed ? "Нет ответа сервера · R/F5"
+            : staleSquad ? "Состав устарел · R/F5 обновить"
             : available == 0 ? "Приручите волка и подойдите ближе" : "Ваши волки рядом: " + available;
         if (height >= 165) {
             // Show server verification status without blur, overlays or extra render passes.
@@ -519,7 +519,7 @@ public final class ReputationArmyScreen extends Screen {
                 : selectedOrder >= 0 && selectedOrder < ORDER_PREVIEWS.length
                     ? ORDER_PREVIEWS[selectedOrder]
                     : getFocused() == closeButton ? "Закрыть · вернуться в игру"
-                    : "1–7 · R / заголовок: обновить";
+                    : "1–7 · R/F5: обновить";
             g.drawString(font, font.plainSubstrByWidth(range, w - 16), x + 8, y + 35, 0xFF705438, false);
         }
         super.render(g, mouseX, mouseY, partialTick);
