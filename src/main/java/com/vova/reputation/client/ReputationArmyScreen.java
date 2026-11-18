@@ -489,8 +489,13 @@ public final class ReputationArmyScreen extends Screen {
             int barHeight = height < 165 ? 1 : 2;
             int barY = y + headerHeight() - barHeight;
             int totalWidth = Math.max(0, barRight - barLeft);
+            // Fill left-to-right as the verification deadline approaches. The
+            // previous shrinking bar looked like the request was being undone.
+            // Clamp the elapsed fraction to keep the bar inside its frame even
+            // when a frame arrives just after the timeout.
             int ticksRemaining = Math.max(0, manualRefreshDeadlineTick - minecraft.player.tickCount);
-            int filledWidth = totalWidth * Math.min(40, ticksRemaining) / 40;
+            int elapsedTicks = 40 - Math.min(40, ticksRemaining);
+            int filledWidth = totalWidth * elapsedTicks / 40;
             g.fill(barLeft, barY, barRight, barY + barHeight, 0xFF9D825A);
             if (filledWidth > 0) {
                 g.fill(barLeft, barY, barLeft + filledWidth, barY + barHeight, 0xFF956019);
