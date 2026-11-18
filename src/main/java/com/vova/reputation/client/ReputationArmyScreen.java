@@ -606,6 +606,12 @@ public final class ReputationArmyScreen extends Screen {
     }
 
     @Override public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        // A portal transfer or respawn can happen before the next screen tick.
+        // Reject input on the old tactical panel immediately.
+        if (!isOriginalDimension() || !isPlayerClockValid()) {
+            onClose();
+            return true;
+        }
         // The configurable army key takes precedence over numeric shortcuts.
         // Otherwise remapping G to 1-7 would accidentally issue an order instead
         // of closing the panel (and a remapped navigation key would move focus).
@@ -751,6 +757,10 @@ public final class ReputationArmyScreen extends Screen {
     // blur-free panel and needs to return to normal camera control quickly.
     // Only left-click may activate an order button.
     @Override public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (!isOriginalDimension() || !isPlayerClockValid()) {
+            onClose();
+            return true;
+        }
         // Do not carry a partial trackpad gesture into a mouse-selected command.
         pendingWheelScroll = 0;
         if (button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE) {
@@ -820,6 +830,10 @@ public final class ReputationArmyScreen extends Screen {
     // sending any order. This allows quick one-handed selection while preserving
     // Enter/Space activation and the existing numbered shortcuts.
     @Override public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (!isOriginalDimension() || !isPlayerClockValid()) {
+            onClose();
+            return true;
+        }
         // Wheel navigation is local to the tactical panel. Scrolling over the
         // visible world must not silently change the selected combat order.
         // Discard a partial trackpad gesture on exit so returning to the panel
