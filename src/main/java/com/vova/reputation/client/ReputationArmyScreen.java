@@ -634,7 +634,20 @@ public final class ReputationArmyScreen extends Screen {
         } else if (shortcutModifiers == 0 && keyCode >= GLFW.GLFW_KEY_KP_1 && keyCode <= GLFW.GLFW_KEY_KP_7) {
             order = keyCode - GLFW.GLFW_KEY_KP_1;
         }
-        // Respect system/accessibility shortcuts that combine Ctrl, Alt or Super\n        // with navigation keys. They must not silently change a combat selection.\n        // Shift remains available for reverse Tab navigation.\n        boolean reservedNavigationModifier = (heldModifiers & (GLFW.GLFW_MOD_CONTROL\n            | GLFW.GLFW_MOD_ALT | GLFW.GLFW_MOD_SUPER)) != 0;\n        if (reservedNavigationModifier && (keyCode == GLFW.GLFW_KEY_TAB\n                || keyCode == GLFW.GLFW_KEY_UP || keyCode == GLFW.GLFW_KEY_DOWN\n                || keyCode == GLFW.GLFW_KEY_LEFT || keyCode == GLFW.GLFW_KEY_RIGHT\n                || keyCode == GLFW.GLFW_KEY_HOME || keyCode == GLFW.GLFW_KEY_END\n                || keyCode == GLFW.GLFW_KEY_PAGE_UP || keyCode == GLFW.GLFW_KEY_PAGE_DOWN)) {\n            pendingWheelScroll = 0;\n            return super.keyPressed(keyCode, scanCode, modifiers);\n        }\n        // Tab and Shift+Tab cycle through enabled commands and Close in a stable
+        // Respect system/accessibility shortcuts that combine Ctrl, Alt or Super
+        // with navigation keys. They must not silently change a combat selection.
+        // Shift remains available for reverse Tab navigation.
+        boolean reservedNavigationModifier = (heldModifiers & (GLFW.GLFW_MOD_CONTROL
+            | GLFW.GLFW_MOD_ALT | GLFW.GLFW_MOD_SUPER)) != 0;
+        if (reservedNavigationModifier && (keyCode == GLFW.GLFW_KEY_TAB
+                || keyCode == GLFW.GLFW_KEY_UP || keyCode == GLFW.GLFW_KEY_DOWN
+                || keyCode == GLFW.GLFW_KEY_LEFT || keyCode == GLFW.GLFW_KEY_RIGHT
+                || keyCode == GLFW.GLFW_KEY_HOME || keyCode == GLFW.GLFW_KEY_END
+                || keyCode == GLFW.GLFW_KEY_PAGE_UP || keyCode == GLFW.GLFW_KEY_PAGE_DOWN)) {
+            pendingWheelScroll = 0;
+            return super.keyPressed(keyCode, scanCode, modifiers);
+        }
+        // Tab and Shift+Tab cycle through enabled commands and Close in a stable
         // visual order. Never activate a command while navigating, and skip
         // disabled orders when the player has no available squad.
         if (keyCode == GLFW.GLFW_KEY_TAB) {
