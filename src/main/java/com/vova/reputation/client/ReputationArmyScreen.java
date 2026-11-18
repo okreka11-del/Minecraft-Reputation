@@ -615,7 +615,13 @@ public final class ReputationArmyScreen extends Screen {
         // The configurable army key takes precedence over numeric shortcuts.
         // Otherwise remapping G to 1-7 would accidentally issue an order instead
         // of closing the panel (and a remapped navigation key would move focus).
-        if (ReputationKeys.ARMY.matches(keyCode, scanCode)) {
+        // A remapped G key can overlap Ctrl/Alt/Super shortcuts used by the
+        // operating system or accessibility tools. Never dismiss the tactical
+        // panel because a modified shortcut happens to share its base key.
+        // Shift remains usable for layouts that require it to type the binding.
+        if (ReputationKeys.ARMY.matches(keyCode, scanCode)
+                && (modifiers & (GLFW.GLFW_MOD_CONTROL | GLFW.GLFW_MOD_ALT
+                    | GLFW.GLFW_MOD_SUPER)) == 0) {
             onClose();
             return true;
         }
