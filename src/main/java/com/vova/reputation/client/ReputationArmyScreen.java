@@ -797,6 +797,22 @@ public final class ReputationArmyScreen extends Screen {
                 return true;
             }
         }
+        // Vanilla ignores clicks on inactive buttons without explaining why.
+        // Give mouse users the same actionable server/status feedback that the
+        // numbered keyboard shortcuts already provide, without sending an order.
+        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && !canIssueOrders()) {
+            for (Button orderButton : orderButtons) {
+                if (orderButton.visible && mouseX >= orderButton.getX()
+                        && mouseX < orderButton.getX() + orderButton.getWidth()
+                        && mouseY >= orderButton.getY()
+                        && mouseY < orderButton.getY() + orderButton.getHeight()) {
+                    if (minecraft != null && minecraft.player != null) {
+                        minecraft.player.displayClientMessage(unavailableHelp(), true);
+                    }
+                    return true;
+                }
+            }
+        }
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
