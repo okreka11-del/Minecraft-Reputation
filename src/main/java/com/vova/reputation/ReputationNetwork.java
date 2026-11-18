@@ -635,7 +635,14 @@ public final class ReputationNetwork {
                         }
                         // Start the new route before discarding the old combat/guard
                         // state. A path may be valid but navigation can still reject it.
+                        // Sitting wolves cannot reliably start navigation while the
+                        // ordered-to-sit flag remains set. Release that stance only
+                        // after validating the route, and restore it if navigation
+                        // rejects the move so a failed order preserves the guard.
+                        boolean wasSitting = wolf.isOrderedToSit();
+                        if (!alreadyAtWaypoint && wasSitting) wolf.setOrderedToSit(false);
                         if (!alreadyAtWaypoint && !wolf.getNavigation().moveTo(path, 1.2D)) {
+                            if (wasSitting) wolf.setOrderedToSit(true);
                             waypointNavigationRejected++;
                             continue;
                         }
