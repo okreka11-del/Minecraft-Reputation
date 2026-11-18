@@ -518,6 +518,13 @@ public final class ReputationNetwork {
                         var adjacentHeadState = level.getBlockState(adjacentHead);
                         if (level.getFluidState(adjacentFeet).is(net.minecraft.tags.FluidTags.LAVA)
                                 || level.getFluidState(adjacentHead).is(net.minecraft.tags.FluidTags.LAVA)
+                                // A wolf brushing a neighboring hot floor block can take
+                                // contact damage even when the owner's own block is safe.
+                                || adjacentFeetState.is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)
+                                || adjacentFeetState.is(net.minecraft.world.level.block.Blocks.CAMPFIRE)
+                                    && adjacentFeetState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
+                                || adjacentFeetState.is(net.minecraft.world.level.block.Blocks.SOUL_CAMPFIRE)
+                                    && adjacentFeetState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
                                 || adjacentFeetState.is(net.minecraft.world.level.block.Blocks.CACTUS)
                                 || adjacentHeadState.is(net.minecraft.world.level.block.Blocks.CACTUS)
                                 || adjacentFeetState.is(net.minecraft.world.level.block.Blocks.FIRE)
