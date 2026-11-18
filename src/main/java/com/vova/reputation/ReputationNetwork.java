@@ -241,6 +241,10 @@ public final class ReputationNetwork {
                 if (lastArmyAttemptTick > 0 && player.tickCount >= lastArmyAttemptTick
                         && player.tickCount - lastArmyAttemptTick < 2) return;
                 armyOrderData.putInt("reputationLastArmyAttemptTick", player.tickCount);
+                // Check the actual owned squad before validating a combat target or
+                // waypoint. Without this, a player with no wolves receives a misleading
+                // "no marked target" / "unsafe destination" error instead of the
+                // actionable reason the command cannot run. Scan only once per order.
                 // Attack only the last hostile non-player target actually struck by the owner.
                 // Never allow this packet to designate another player or a peaceful villager.
                 net.minecraft.world.entity.LivingEntity attackTarget = null;
