@@ -661,7 +661,12 @@ public final class ReputationNetwork {
                         if (!alreadySafe && (retreatPath == null || !retreatPath.canReach())) continue;
                         // Navigation can reject a route even after createPath reports
                         // reachability. Preserve the previous task on that failure.
-                        if (!alreadySafe && !wolf.getNavigation().moveTo(retreatPath, 1.35D)) continue;
+                        boolean wasSitting = wolf.isOrderedToSit();
+                        if (!alreadySafe && wasSitting) wolf.setOrderedToSit(false);
+                        if (!alreadySafe && !wolf.getNavigation().moveTo(retreatPath, 1.35D)) {
+                            if (wasSitting) wolf.setOrderedToSit(true);
+                            continue;
+                        }
                         wolf.setTarget(null);
                         wolf.setLastHurtByMob(null);
                         wolf.setOrderedToSit(false);
@@ -677,7 +682,12 @@ public final class ReputationNetwork {
                         // Start a viable rally route before discarding an active guard
                         // or attack task. A reachable path may still be rejected by
                         // navigation; in that case preserve the wolf's old orders.
-                        if (!alreadyGathered && !wolf.getNavigation().moveTo(rallyPath, 1.2D)) continue;
+                        boolean wasSitting = wolf.isOrderedToSit();
+                        if (!alreadyGathered && wasSitting) wolf.setOrderedToSit(false);
+                        if (!alreadyGathered && !wolf.getNavigation().moveTo(rallyPath, 1.2D)) {
+                            if (wasSitting) wolf.setOrderedToSit(true);
+                            continue;
+                        }
                         wolf.setTarget(null);
                         wolf.setLastHurtByMob(null);
                         wolf.setOrderedToSit(false);
