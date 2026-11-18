@@ -782,11 +782,21 @@ public final class ReputationArmyScreen extends Screen {
             pendingWheelScroll = 0;
             return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
         }
-        // Some trackpads report horizontal-only swipes. Use that axis only when
-        // there is no vertical movement, so diagonal gestures never double-step.
+        // Only vertical scrolling changes the selected combat order. Horizontal
+        // trackpad swipes are often used for navigation between desktops/pages;
+        // treating them as squad input could leave a dangerous attack command
+        // focused without the player intending to select it.
+        // Drop any fractional vertical gesture on a horizontal-only swipe.
+        if (scrollY == 0) {
+            pendingWheelScroll = 0;
+            return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        }
         // Reject non-finite input before it can poison the accumulated fraction.
-        double delta = scrollY != 0 ? scrollY : scrollX;
-        if (delta == 0 || !Double.isFinite(delta)) return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        double delta = scrollY;
+        if (!Double.isFinite(delta)) {
+            pendingWheelScroll = 0;
+            return true;
+        }
         // Trackpads send fractional deltas. Accumulate them so a tiny gesture
         // does not skip an entire command, while preserving fast wheel input.
         // Opposite fractional gestures cancel one another instead of discarding
