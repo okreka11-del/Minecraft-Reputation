@@ -645,7 +645,10 @@ public final class ReputationArmyScreen extends Screen {
                 || keyCode == GLFW.GLFW_KEY_HOME || keyCode == GLFW.GLFW_KEY_END
                 || keyCode == GLFW.GLFW_KEY_PAGE_UP || keyCode == GLFW.GLFW_KEY_PAGE_DOWN)) {
             pendingWheelScroll = 0;
-            return super.keyPressed(keyCode, scanCode, modifiers);
+            // Screen's default focus traversal may still act on modified Tab or
+            // arrow keys. Consume reserved system/accessibility combinations
+            // here instead of allowing a combat order to become selected.
+            return true;
         }
         // Tab and Shift+Tab cycle through enabled commands and Close in a stable
         // visual order. Never activate a command while navigating, and skip
