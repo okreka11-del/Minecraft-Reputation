@@ -810,10 +810,13 @@ public final class ReputationArmyScreen extends Screen {
         // rather than silently dropping fast wheel/trackpad input; cap the
         // number of steps to keep unusually large deltas predictable.
         int steps = Math.min(3, wholeSteps);
-        int start = current < 0 ? (direction > 0 ? -1 : 0) : current;
+        // Without keyboard focus, begin at the edge matching the wheel direction.
+        // The first notch selects the edge action rather than skipping past it.
+        int start = current < 0 ? (direction > 0 ? -1 : selectable.size()) : current;
+        int stepsToMove = current < 0 ? 1 : steps;
         // Stop at the first/last control instead of wrapping from Close to Attack.
         // A fast wheel gesture must never unexpectedly jump to a distant order.
-        int next = Math.max(0, Math.min(selectable.size() - 1, start + direction * steps));
+        int next = Math.max(0, Math.min(selectable.size() - 1, start + direction * stepsToMove));
         setFocused(selectable.get(next));
         return true;
     }
