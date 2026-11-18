@@ -795,7 +795,10 @@ public final class ReputationArmyScreen extends Screen {
         if (mouseX < panelX - 3 || mouseX >= panelX + panelWidth + 3
                 || mouseY < panelY - 3 || mouseY >= panelBottom) {
             pendingWheelScroll = 0;
-            return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+            // The world is visible but this is still a modal tactical screen.
+            // Do not delegate outside-panel wheel events to focused widgets:
+            // they could change the selected combat command unexpectedly.
+            return true;
         }
         // Only vertical scrolling changes the selected combat order. Horizontal
         // trackpad swipes are often used for navigation between desktops/pages;
@@ -809,7 +812,9 @@ public final class ReputationArmyScreen extends Screen {
         if (scrollY == 0 || (Double.isFinite(scrollX)
                 && Math.abs(scrollX) > Math.abs(scrollY))) {
             pendingWheelScroll = 0;
-            return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+            // A horizontal or horizontal-dominant gesture must not fall through
+            // to vanilla focus navigation, which may select a combat order.
+            return true;
         }
         // Reject non-finite input before it can poison the accumulated fraction.
         double delta = scrollY;
