@@ -786,8 +786,13 @@ public final class ReputationArmyScreen extends Screen {
         // trackpad swipes are often used for navigation between desktops/pages;
         // treating them as squad input could leave a dangerous attack command
         // focused without the player intending to select it.
-        // Drop any fractional vertical gesture on a horizontal-only swipe.
-        if (scrollY == 0) {
+        // Diagonal touchpad gestures are common. If horizontal movement
+        // dominates, treat the gesture as horizontal navigation rather than
+        // selecting a potentially dangerous attack or retreat order.
+        // Clear the accumulated fraction so a later vertical scroll starts
+        // cleanly instead of completing a discarded diagonal gesture.
+        if (scrollY == 0 || (Double.isFinite(scrollX)
+                && Math.abs(scrollX) > Math.abs(scrollY))) {
             pendingWheelScroll = 0;
             return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
         }
