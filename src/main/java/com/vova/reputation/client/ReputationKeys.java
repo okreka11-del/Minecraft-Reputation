@@ -109,6 +109,7 @@ public final class ReputationKeys {
             // Cancel without a warning when the player changes or opens another GUI.
             if (armyOpenPending && mc.player != null && mc.player == armyRequestPlayer
                     && mc.screen == null && mc.player.isAlive() && !mc.player.isSpectator()
+                    && mc.player.level().dimension() == armyRequestDimension
                     && armyRequestNanos != 0L
                     && System.nanoTime() - armyRequestNanos > 5_000_000_000L) {
                 armyOpenPending = false;
