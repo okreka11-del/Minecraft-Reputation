@@ -143,6 +143,7 @@
   "reputation.journal.tab.unlocks": "Benefits",
   "reputation.journal.tab.actions": "History",
   "reputation.journal.tab.help": "Help",
+  "reputation.army.overview_timeout": "Squad panel: the server did not respond. Press G to retry.",
   "key.categories.reputation": "Minecraft Reputation",
   "key.reputation.journal": "Open Reputation Journal",
   "key.reputation.village": "Manage Settlement",
