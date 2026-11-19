@@ -163,6 +163,10 @@ public final class ReputationKeys {
                         armyRequestDimension = mc.player.level().dimension();
                         armyRequestNanos = System.nanoTime();
                         PacketDistributor.sendToServer(new ReputationNetwork.ArmyRequest());
+                        // Give immediate feedback while the server prepares the overview.
+                        // The action bar does not block movement or render another screen.
+                        mc.player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
+                            "reputation.army.overview_loading"), true);
                     }
                 }
                 // J/V are explicit navigation choices: do not swallow them while
