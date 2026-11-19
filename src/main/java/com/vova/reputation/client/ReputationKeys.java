@@ -165,11 +165,20 @@ public final class ReputationKeys {
                         PacketDistributor.sendToServer(new ReputationNetwork.ArmyRequest());
                     }
                 }
-                // Do not send another menu request while the G overview is in flight:
-                // its delayed response could otherwise replace the newly opened screen.
-                else if (!armyOpenPending && mc.player.isAlive() && !mc.player.isSpectator()) {
+                // J/V are explicit navigation choices: do not swallow them while
+                // a slow G overview is pending. Cancel that overview first so its
+                // delayed response cannot replace the newly requested menu.
+                // Army still wins when several bindings fire in the same tick.
+                else if ((villagePressed || journalPressed)
+                        && mc.player.isAlive() && !mc.player.isSpectator()) {
+                    if (armyOpenPending) {
+                        armyOpenPending = false;
+                        armyRequestNanos = 0L;
+                        armyRequestPlayer = null;
+                        armyRequestDimension = null;
+                    }
                     if (villagePressed) PacketDistributor.sendToServer(new ReputationNetwork.VillageRequest());
-                    else if (journalPressed) PacketDistributor.sendToServer(new ReputationNetwork.JournalRequest());
+                    else PacketDistributor.sendToServer(new ReputationNetwork.JournalRequest());
                 }
             }
         }
