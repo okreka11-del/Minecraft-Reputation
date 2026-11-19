@@ -110,8 +110,12 @@ public final class ReputationKeys {
                         PacketDistributor.sendToServer(new ReputationNetwork.ArmyRequest());
                     }
                 }
-                else if (villagePressed) PacketDistributor.sendToServer(new ReputationNetwork.VillageRequest());
-                else if (journalPressed) PacketDistributor.sendToServer(new ReputationNetwork.JournalRequest());
+                // Do not send another menu request while the G overview is in flight:
+                // its delayed response could otherwise replace the newly opened screen.
+                else if (!armyOpenPending && mc.player.isAlive() && !mc.player.isSpectator()) {
+                    if (villagePressed) PacketDistributor.sendToServer(new ReputationNetwork.VillageRequest());
+                    else if (journalPressed) PacketDistributor.sendToServer(new ReputationNetwork.JournalRequest());
+                }
             }
         }
     }
