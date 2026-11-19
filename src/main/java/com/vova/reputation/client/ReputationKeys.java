@@ -147,7 +147,17 @@ public final class ReputationKeys {
                 // One panel at a time: army takes priority over village and journal.
                 // Prevent simultaneous bound keys from racing to replace the GUI.
                 if (armyPressed) {
-                    if (!armyOpenPending && mc.player.isAlive() && !mc.player.isSpectator()) {
+                    // A second deliberate G press cancels a stalled overview request.
+                    // The server may still reply, but consumeArmyOpenRequest() will
+                    // reject that late response instead of reopening the panel.
+                    if (armyOpenPending) {
+                        armyOpenPending = false;
+                        armyRequestNanos = 0L;
+                        armyRequestPlayer = null;
+                        armyRequestDimension = null;
+                        mc.player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
+                            "reputation.army.overview_cancelled"), true);
+                    } else if (mc.player.isAlive() && !mc.player.isSpectator()) {
                         armyOpenPending = true;
                         armyRequestPlayer = mc.player;
                         armyRequestDimension = mc.player.level().dimension();
