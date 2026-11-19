@@ -21,6 +21,9 @@ public final class ReputationKeys {
     private static long lastFart;
     // Never carry a half-finished gesture across respawns or server switches.
     private static net.minecraft.client.player.LocalPlayer shiftGesturePlayer;
+    // The same player instance may survive a portal transfer; do not let a
+    // first sneak tap in one dimension pair with a tap in another.
+    private static net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> shiftGestureDimension;
     // A delayed overview must not reopen the army menu after another GUI appears.
     private static boolean armyOpenPending;
     // Use monotonic wall time: game ticks can slow down under server/client lag,
@@ -73,8 +76,10 @@ public final class ReputationKeys {
         @SubscribeEvent public static void tick(ClientTickEvent.Post event) {
             Minecraft mc = Minecraft.getInstance();
             boolean shiftDown = mc.options.keyShift.isDown();
-            if (mc.player != shiftGesturePlayer) {
+            if (mc.player != shiftGesturePlayer
+                    || (mc.player != null && mc.player.level().dimension() != shiftGestureDimension)) {
                 shiftGesturePlayer = mc.player;
+                shiftGestureDimension = mc.player == null ? null : mc.player.level().dimension();
                 lastShiftTap = 0;
                 shiftWasDown = shiftDown;
             }
