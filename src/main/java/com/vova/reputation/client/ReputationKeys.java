@@ -73,11 +73,19 @@ public final class ReputationKeys {
             if (mc.player != null && mc.screen == null && mc.player.isAlive()
                     && !mc.player.isSpectator() && shiftDown && !shiftWasDown) {
                 long now = System.nanoTime();
-                if (now - lastShiftTap < 400_000_000L && now - lastFart > 1_500_000_000L) {
-                    PacketDistributor.sendToServer(new ReputationNetwork.FartRequest());
-                    lastFart = now;
-                    lastShiftTap = 0;
-                } else lastShiftTap = now;
+                // Consume the second tap even during cooldown. Otherwise a rapid
+                // third press could be treated as a fresh second tap and fire the
+                // ability unexpectedly when the cooldown ends.
+                long sinceTap = now - lastShiftTap;
+                if (lastShiftTap != 0L && sinceTap >= 0L && sinceTap < 400_000_000L) {
+                    lastShiftTap = 0L;
+                    if (now - lastFart > 1_500_000_000L) {
+                        PacketDistributor.sendToServer(new ReputationNetwork.FartRequest());
+                        lastFart = now;
+                    }
+                } else {
+                    lastShiftTap = now;
+                }
             }
             // A double-Shift gesture must consist of two taps during uninterrupted
             // gameplay. Opening a menu, dying or switching players cancels the
