@@ -143,6 +143,7 @@
   "reputation.journal.tab.unlocks": "Бонусы",
   "reputation.journal.tab.actions": "История",
   "reputation.journal.tab.help": "Справка",
+  "reputation.army.overview_timeout": "Панель отряда: сервер не ответил. Нажмите G, чтобы повторить.",
   "key.categories.reputation": "Minecraft Reputation",
   "key.reputation.journal": "Открыть книгу репутации",
   "key.reputation.village": "Управление поселением",
