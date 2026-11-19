@@ -94,8 +94,8 @@ public final class ReputationKeys {
                     && mc.screen == null && armyRequestNanos != 0L
                     && System.nanoTime() - armyRequestNanos > 5_000_000_000L) {
                 armyOpenPending = false;
-                mc.player.displayClientMessage(net.minecraft.network.chat.Component.literal(
-                    "Панель отряда: сервер не ответил. Нажмите G, чтобы повторить."), true);
+                mc.player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
+                    "reputation.army.overview_timeout"), true);
             }
             if (mc.screen != null || mc.player == null || mc.player != armyRequestPlayer
                     || (armyOpenPending && System.nanoTime() - armyRequestNanos < 0L)) {
