@@ -21,9 +21,16 @@ public final class ReputationKeys {
     private static long lastFart;
     // A delayed overview must not reopen the army menu after another GUI appears.
     private static boolean armyOpenPending;
+    // Ignore a delayed overview if the server did not answer within five seconds.
+    private static int armyRequestTick = Integer.MIN_VALUE;
+    private static net.minecraft.client.player.LocalPlayer armyRequestPlayer;
 
     public static boolean consumeArmyOpenRequest() {
-        boolean pending = armyOpenPending;
+        Minecraft mc = Minecraft.getInstance();
+        boolean pending = armyOpenPending && mc.player != null
+            && mc.player == armyRequestPlayer && mc.screen == null
+            && mc.player.tickCount >= armyRequestTick
+            && mc.player.tickCount - armyRequestTick <= 100;
         armyOpenPending = false;
         return pending;
     }
@@ -63,7 +70,9 @@ public final class ReputationKeys {
             }
             shiftWasDown = shiftDown;
             // Opening another GUI cancels any outstanding G request.
-            if (mc.screen != null || mc.player == null) armyOpenPending = false;
+            if (mc.screen != null || mc.player == null || mc.player != armyRequestPlayer
+                    || (armyOpenPending && (mc.player.tickCount < armyRequestTick
+                        || mc.player.tickCount - armyRequestTick > 100))) armyOpenPending = false;
             // Drain every queued press, but send at most one screen request per tick.
             // A burst of queued G presses previously sent several ArmyRequests before
             // the server could open the panel, causing duplicate responses/screens.
@@ -78,6 +87,8 @@ public final class ReputationKeys {
                 // Prevent simultaneous bound keys from racing to replace the GUI.
                 if (armyPressed && mc.player.isAlive() && !mc.player.isSpectator()) {
                     armyOpenPending = true;
+                    armyRequestPlayer = mc.player;
+                    armyRequestTick = mc.player.tickCount;
                     PacketDistributor.sendToServer(new ReputationNetwork.ArmyRequest());
                 }
                 else if (villagePressed) PacketDistributor.sendToServer(new ReputationNetwork.VillageRequest());
