@@ -147,5 +147,6 @@
   "key.categories.reputation": "Minecraft Reputation",
   "key.reputation.journal": "Открыть книгу репутации",
   "key.reputation.village": "Управление поселением",
-  "key.reputation.army": "Приказы отряду"
+  "key.reputation.army": "Приказы отряду",
+  "reputation.army.overview_cancelled": "Запрос отряда отменён. Нажмите G, чтобы открыть снова."
 }
