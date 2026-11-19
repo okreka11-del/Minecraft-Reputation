@@ -118,7 +118,7 @@ public final class ReputationNetwork {
     private static java.util.List<net.minecraft.world.entity.animal.Wolf> ownedWolves(ServerPlayer player) {
         return player.serverLevel().getEntitiesOfClass(net.minecraft.world.entity.animal.Wolf.class,
             player.getBoundingBox().inflate(24),
-            wolf -> wolf.isAlive() && wolf.isTame()
+            wolf -> wolf.isAlive() && wolf.isTame() && !wolf.isPassenger()
                 && player.getUUID().equals(wolf.getOwnerUUID())
                 // The bounding box is only a broad-phase lookup; enforce the advertised
                 // 24-block radius rather than including distant diagonal corners.
@@ -181,8 +181,7 @@ public final class ReputationNetwork {
                         Math.max(0, data.getInt("reputationCachedArmyCount"))));
                     return;
                 }
-                int count = (int) ownedWolves(player).stream()
-                    .filter(wolf -> !wolf.isPassenger()).count();
+                int count = ownedWolves(player).size();
                 data.putInt("reputationCachedArmyCount", count);
                 data.putString("reputationCachedArmyDimension", dimension);
                 data.putInt("reputationCachedArmyX", player.blockPosition().getX());
