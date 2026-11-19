@@ -30,13 +30,17 @@ public final class ReputationKeys {
 
     public static boolean consumeArmyOpenRequest() {
         Minecraft mc = Minecraft.getInstance();
+        // Snapshot the clock once so a reply arriving at the timeout boundary
+        // cannot pass the first time check and fail the second inconsistently.
+        long elapsed = System.nanoTime() - armyRequestNanos;
         boolean pending = armyOpenPending && mc.player != null
             && mc.player == armyRequestPlayer && mc.screen == null
             && mc.player.isAlive() && !mc.player.isSpectator()
             && armyRequestNanos != 0L
-            && System.nanoTime() - armyRequestNanos >= 0L
-            && System.nanoTime() - armyRequestNanos <= 5_000_000_000L;
+            && elapsed >= 0L && elapsed <= 5_000_000_000L;
         armyOpenPending = false;
+        armyRequestNanos = 0L;
+        armyRequestPlayer = null;
         return pending;
     }
     public static final KeyMapping JOURNAL = new KeyMapping(
