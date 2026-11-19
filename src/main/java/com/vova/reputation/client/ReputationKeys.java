@@ -27,6 +27,8 @@ public final class ReputationKeys {
     // leaving the player waiting much longer than five actual seconds.
     private static long armyRequestNanos;
     private static net.minecraft.client.player.LocalPlayer armyRequestPlayer;
+    // A portal transfer can keep the same LocalPlayer while changing levels.
+    private static net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> armyRequestDimension;
 
     public static boolean consumeArmyOpenRequest() {
         Minecraft mc = Minecraft.getInstance();
@@ -35,12 +37,14 @@ public final class ReputationKeys {
         long elapsed = System.nanoTime() - armyRequestNanos;
         boolean pending = armyOpenPending && mc.player != null
             && mc.player == armyRequestPlayer && mc.screen == null
+            && mc.player.level().dimension() == armyRequestDimension
             && mc.player.isAlive() && !mc.player.isSpectator()
             && armyRequestNanos != 0L
             && elapsed >= 0L && elapsed <= 5_000_000_000L;
         armyOpenPending = false;
         armyRequestNanos = 0L;
         armyRequestPlayer = null;
+        armyRequestDimension = null;
         return pending;
     }
     public static final KeyMapping JOURNAL = new KeyMapping(
@@ -108,13 +112,20 @@ public final class ReputationKeys {
                     && armyRequestNanos != 0L
                     && System.nanoTime() - armyRequestNanos > 5_000_000_000L) {
                 armyOpenPending = false;
+                armyRequestNanos = 0L;
+                armyRequestPlayer = null;
+                armyRequestDimension = null;
                 mc.player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
                     "reputation.army.overview_timeout"), true);
             }
             if (mc.screen != null || mc.player == null || mc.player != armyRequestPlayer
+                    || (armyOpenPending && mc.player.level().dimension() != armyRequestDimension)
                     || !mc.player.isAlive() || mc.player.isSpectator()
                     || (armyOpenPending && System.nanoTime() - armyRequestNanos < 0L)) {
                 armyOpenPending = false;
+                armyRequestNanos = 0L;
+                armyRequestPlayer = null;
+                armyRequestDimension = null;
             }
             // Drain every queued press; only one army overview may be in flight.
             // A burst of queued G presses previously sent several ArmyRequests before
@@ -133,6 +144,7 @@ public final class ReputationKeys {
                     if (!armyOpenPending && mc.player.isAlive() && !mc.player.isSpectator()) {
                         armyOpenPending = true;
                         armyRequestPlayer = mc.player;
+                        armyRequestDimension = mc.player.level().dimension();
                         armyRequestNanos = System.nanoTime();
                         PacketDistributor.sendToServer(new ReputationNetwork.ArmyRequest());
                     }
