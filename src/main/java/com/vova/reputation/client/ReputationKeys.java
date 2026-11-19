@@ -19,6 +19,8 @@ public final class ReputationKeys {
     private static boolean shiftWasDown;
     private static long lastShiftTap;
     private static long lastFart;
+    // Never carry a half-finished gesture across respawns or server switches.
+    private static net.minecraft.client.player.LocalPlayer shiftGesturePlayer;
     // A delayed overview must not reopen the army menu after another GUI appears.
     private static boolean armyOpenPending;
     // Ignore a delayed overview if the server did not answer within five seconds.
@@ -60,7 +62,13 @@ public final class ReputationKeys {
         @SubscribeEvent public static void tick(ClientTickEvent.Post event) {
             Minecraft mc = Minecraft.getInstance();
             boolean shiftDown = mc.options.keyShift.isDown();
-            if (mc.player != null && mc.screen == null && shiftDown && !shiftWasDown) {
+            if (mc.player != shiftGesturePlayer) {
+                shiftGesturePlayer = mc.player;
+                lastShiftTap = 0;
+                shiftWasDown = shiftDown;
+            }
+            if (mc.player != null && mc.screen == null && mc.player.isAlive()
+                    && !mc.player.isSpectator() && shiftDown && !shiftWasDown) {
                 long now = System.nanoTime();
                 if (now - lastShiftTap < 400_000_000L && now - lastFart > 1_500_000_000L) {
                     PacketDistributor.sendToServer(new ReputationNetwork.FartRequest());
