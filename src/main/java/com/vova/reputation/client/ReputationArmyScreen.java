@@ -520,7 +520,14 @@ public final class ReputationArmyScreen extends Screen {
                     break;
                 }
             }
-            String range = hoveringClose ? "Закрыть · вернуться в игру"
+            // A focused but disabled order must explain why it cannot be used,
+            // not advertise an action that the server will reject.
+            String range = !canIssueOrders() && !hoveringClose && getFocused() != closeButton
+                ? (refreshing ? "Ожидание ответа сервера"
+                    : refreshFailed || staleSquad ? "0/R/F5 · повторить проверку"
+                    : playerInactive ? "Приказы сейчас недоступны"
+                    : "Нет волков в радиусе приказов")
+                : hoveringClose ? "Закрыть · вернуться в игру"
                 : selectedOrder >= 0 && selectedOrder < ORDER_PREVIEWS.length
                     ? ORDER_PREVIEWS[selectedOrder]
                     : getFocused() == closeButton ? "Закрыть · вернуться в игру"
