@@ -68,6 +68,14 @@ public final class ReputationKeys {
                     lastShiftTap = 0;
                 } else lastShiftTap = now;
             }
+            // A double-Shift gesture must consist of two taps during uninterrupted
+            // gameplay. Opening a menu, dying or switching players cancels the
+            // first tap; otherwise closing a GUI and pressing sneak once could
+            // unexpectedly trigger the fart ability and cost reputation.
+            if (mc.player == null || mc.screen != null || !mc.player.isAlive()
+                    || mc.player.isSpectator()) {
+                lastShiftTap = 0;
+            }
             shiftWasDown = shiftDown;
             // Opening another GUI cancels any outstanding G request.
             if (mc.screen != null || mc.player == null || mc.player != armyRequestPlayer
