@@ -245,13 +245,13 @@ public final class ReputationNetwork {
                 // waypoint. Without this, a player with no wolves receives a misleading
                 // "no marked target" / "unsafe destination" error instead of the
                 // actionable reason the command cannot run. Scan only once per order.
-var wolves = ownedWolves(player);
+                var wolves = ownedWolves(player);
                 if (wolves.isEmpty()) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                         "Приказ не выполнен: ваших приручённых волков нет в радиусе 24 блоков."), true);
                     return;
                 }
-                                // Attack only the last hostile non-player target actually struck by the owner.
+                // Attack only the last hostile non-player target actually struck by the owner.
                 // Never allow this packet to designate another player or a peaceful villager.
                 net.minecraft.world.entity.LivingEntity attackTarget = null;
                 if (payload.order() == 4) {
