@@ -316,7 +316,17 @@ public final class ReputationNetwork {
                             || targetFeetState.is(net.minecraft.world.level.block.Blocks.FIRE)
                             || targetFeetState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
                             || targetHeadState.is(net.minecraft.world.level.block.Blocks.FIRE)
-                            || targetHeadState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)) {
+                            || targetHeadState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
+                            // Thorny plants and powder snow can injure or trap a pack
+                            // even though they do not form solid collision blocks.
+                            || targetFeetState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                            || targetHeadState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                            || targetFeetState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
+                            || targetHeadState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
+                            || targetFeetState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
+                            || targetHeadState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
+                            || targetFeetState.is(net.minecraft.world.level.block.Blocks.COBWEB)
+                            || targetHeadState.is(net.minecraft.world.level.block.Blocks.COBWEB)) {
                         player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                             "Цель находится на опасной поверхности: сначала выманите её в безопасное место."), true);
                         return;
