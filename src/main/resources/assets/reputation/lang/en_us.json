@@ -148,5 +148,6 @@
   "key.reputation.journal": "Open Reputation Journal",
   "key.reputation.village": "Manage Settlement",
   "key.reputation.army": "Squad Orders",
-  "reputation.army.overview_cancelled": "Squad request cancelled. Press G to open again."
+  "reputation.army.overview_cancelled": "Squad request cancelled. Press G to open again.",
+  "reputation.army.overview_loading": "Requesting army overview… Press G again to cancel."
 }
