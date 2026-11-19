@@ -73,9 +73,10 @@ public final class ReputationKeys {
             if (mc.screen != null || mc.player == null || mc.player != armyRequestPlayer
                     || (armyOpenPending && (mc.player.tickCount < armyRequestTick
                         || mc.player.tickCount - armyRequestTick > 100))) armyOpenPending = false;
-            // Drain every queued press, but send at most one screen request per tick.
+            // Drain every queued press; only one army overview may be in flight.
             // A burst of queued G presses previously sent several ArmyRequests before
             // the server could open the panel, causing duplicate responses/screens.
+            // Holding or repeatedly tapping G while awaiting the reply must not resend it.
             boolean armyPressed = false;
             while (ARMY.consumeClick()) armyPressed = true;
             boolean villagePressed = false;
@@ -85,7 +86,7 @@ public final class ReputationKeys {
             if (mc.player != null && mc.screen == null) {
                 // One panel at a time: army takes priority over village and journal.
                 // Prevent simultaneous bound keys from racing to replace the GUI.
-                if (armyPressed && mc.player.isAlive() && !mc.player.isSpectator()) {
+                if (armyPressed && !armyOpenPending && mc.player.isAlive() && !mc.player.isSpectator()) {
                     armyOpenPending = true;
                     armyRequestPlayer = mc.player;
                     armyRequestTick = mc.player.tickCount;
