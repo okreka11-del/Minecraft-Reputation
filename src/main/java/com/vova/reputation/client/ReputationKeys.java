@@ -32,6 +32,7 @@ public final class ReputationKeys {
         Minecraft mc = Minecraft.getInstance();
         boolean pending = armyOpenPending && mc.player != null
             && mc.player == armyRequestPlayer && mc.screen == null
+            && mc.player.isAlive() && !mc.player.isSpectator()
             && armyRequestNanos != 0L
             && System.nanoTime() - armyRequestNanos >= 0L
             && System.nanoTime() - armyRequestNanos <= 5_000_000_000L;
@@ -91,13 +92,15 @@ public final class ReputationKeys {
             // panel did not open and how to retry. Only show this once per request.
             // Cancel without a warning when the player changes or opens another GUI.
             if (armyOpenPending && mc.player != null && mc.player == armyRequestPlayer
-                    && mc.screen == null && armyRequestNanos != 0L
+                    && mc.screen == null && mc.player.isAlive() && !mc.player.isSpectator()
+                    && armyRequestNanos != 0L
                     && System.nanoTime() - armyRequestNanos > 5_000_000_000L) {
                 armyOpenPending = false;
                 mc.player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
                     "reputation.army.overview_timeout"), true);
             }
             if (mc.screen != null || mc.player == null || mc.player != armyRequestPlayer
+                    || !mc.player.isAlive() || mc.player.isSpectator()
                     || (armyOpenPending && System.nanoTime() - armyRequestNanos < 0L)) {
                 armyOpenPending = false;
             }
