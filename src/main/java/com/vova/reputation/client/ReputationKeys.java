@@ -23,16 +23,18 @@ public final class ReputationKeys {
     private static net.minecraft.client.player.LocalPlayer shiftGesturePlayer;
     // A delayed overview must not reopen the army menu after another GUI appears.
     private static boolean armyOpenPending;
-    // Ignore a delayed overview if the server did not answer within five seconds.
-    private static int armyRequestTick = Integer.MIN_VALUE;
+    // Use monotonic wall time: game ticks can slow down under server/client lag,
+    // leaving the player waiting much longer than five actual seconds.
+    private static long armyRequestNanos;
     private static net.minecraft.client.player.LocalPlayer armyRequestPlayer;
 
     public static boolean consumeArmyOpenRequest() {
         Minecraft mc = Minecraft.getInstance();
         boolean pending = armyOpenPending && mc.player != null
             && mc.player == armyRequestPlayer && mc.screen == null
-            && mc.player.tickCount >= armyRequestTick
-            && mc.player.tickCount - armyRequestTick <= 100;
+            && armyRequestNanos != 0L
+            && System.nanoTime() - armyRequestNanos >= 0L
+            && System.nanoTime() - armyRequestNanos <= 5_000_000_000L;
         armyOpenPending = false;
         return pending;
     }
@@ -89,14 +91,14 @@ public final class ReputationKeys {
             // panel did not open and how to retry. Only show this once per request.
             // Cancel without a warning when the player changes or opens another GUI.
             if (armyOpenPending && mc.player != null && mc.player == armyRequestPlayer
-                    && mc.screen == null && mc.player.tickCount >= armyRequestTick
-                    && mc.player.tickCount - armyRequestTick > 100) {
+                    && mc.screen == null && armyRequestNanos != 0L
+                    && System.nanoTime() - armyRequestNanos > 5_000_000_000L) {
                 armyOpenPending = false;
                 mc.player.displayClientMessage(net.minecraft.network.chat.Component.literal(
                     "Панель отряда: сервер не ответил. Нажмите G, чтобы повторить."), true);
             }
             if (mc.screen != null || mc.player == null || mc.player != armyRequestPlayer
-                    || (armyOpenPending && mc.player.tickCount < armyRequestTick)) {
+                    || (armyOpenPending && System.nanoTime() - armyRequestNanos < 0L)) {
                 armyOpenPending = false;
             }
             // Drain every queued press; only one army overview may be in flight.
@@ -116,7 +118,7 @@ public final class ReputationKeys {
                     if (!armyOpenPending && mc.player.isAlive() && !mc.player.isSpectator()) {
                         armyOpenPending = true;
                         armyRequestPlayer = mc.player;
-                        armyRequestTick = mc.player.tickCount;
+                        armyRequestNanos = System.nanoTime();
                         PacketDistributor.sendToServer(new ReputationNetwork.ArmyRequest());
                     }
                 }
