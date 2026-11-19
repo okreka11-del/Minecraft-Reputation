@@ -86,11 +86,13 @@ public final class ReputationKeys {
             if (mc.player != null && mc.screen == null) {
                 // One panel at a time: army takes priority over village and journal.
                 // Prevent simultaneous bound keys from racing to replace the GUI.
-                if (armyPressed && !armyOpenPending && mc.player.isAlive() && !mc.player.isSpectator()) {
+                if (armyPressed) {
+                    if (!armyOpenPending && mc.player.isAlive() && !mc.player.isSpectator()) {
                     armyOpenPending = true;
                     armyRequestPlayer = mc.player;
                     armyRequestTick = mc.player.tickCount;
                     PacketDistributor.sendToServer(new ReputationNetwork.ArmyRequest());
+                    }
                 }
                 else if (villagePressed) PacketDistributor.sendToServer(new ReputationNetwork.VillageRequest());
                 else if (journalPressed) PacketDistributor.sendToServer(new ReputationNetwork.JournalRequest());
