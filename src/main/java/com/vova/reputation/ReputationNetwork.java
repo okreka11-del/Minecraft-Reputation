@@ -291,6 +291,14 @@ public final class ReputationNetwork {
                             "Волки не атакуют Иссушителя по приказу: взрывы и иссушение опасны для отряда."), true);
                         return;
                     }
+                    // A marked monster standing in lava is not a safe target for
+                    // ground-based wolves. Reject the whole attack before changing
+                    // any wolf's current guard or follow stance.
+                    if (candidate.isInLava()) {
+                        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                            "Цель находится в лаве: не отправляйте волков в огонь."), true);
+                        return;
+                    }
                     attackTarget = candidate;
                 }
                 // Select a waypoint from the server-side player's view, not client coordinates.
