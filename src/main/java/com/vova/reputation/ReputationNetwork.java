@@ -299,6 +299,28 @@ public final class ReputationNetwork {
                             "Цель находится в лаве: не отправляйте волков в огонь."), true);
                         return;
                     }
+                    // Fire and magma can injure wolves even when the monster itself
+                    // is not in lava. Do not override the squad's current stance
+                    // to chase a target standing in these damaging blocks.
+                    var targetFeet = candidate.blockPosition();
+                    var targetHead = targetFeet.above();
+                    var targetLevel = player.serverLevel();
+                    var targetGround = targetLevel.getBlockState(targetFeet.below());
+                    var targetFeetState = targetLevel.getBlockState(targetFeet);
+                    var targetHeadState = targetLevel.getBlockState(targetHead);
+                    if (targetGround.is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)
+                            || targetGround.is(net.minecraft.world.level.block.Blocks.CAMPFIRE)
+                                && targetGround.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
+                            || targetGround.is(net.minecraft.world.level.block.Blocks.SOUL_CAMPFIRE)
+                                && targetGround.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
+                            || targetFeetState.is(net.minecraft.world.level.block.Blocks.FIRE)
+                            || targetFeetState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
+                            || targetHeadState.is(net.minecraft.world.level.block.Blocks.FIRE)
+                            || targetHeadState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)) {
+                        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                            "Цель находится на опасной поверхности: сначала выманите её в безопасное место."), true);
+                        return;
+                    }
                     attackTarget = candidate;
                 }
                 // Select a waypoint from the server-side player's view, not client coordinates.
