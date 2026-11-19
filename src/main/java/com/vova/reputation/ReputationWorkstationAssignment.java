@@ -121,6 +121,8 @@ public final class ReputationWorkstationAssignment {
     private static <T extends Entity> T nearest(java.util.List<T> entities, BlockPos position) {
         return entities.stream()
             .filter(Entity::isAlive)
+            // Baby villagers cannot work; wait until adulthood before assigning a workstation.
+            .filter(entity -> !(entity instanceof Villager villager) || !villager.isBaby())
             .filter(entity -> entity.getPersistentData().getString("ReputationProfession").isEmpty())
             // Preserve guard/builder/armorer assignments made by /specialist.
             .filter(entity -> entity.getPersistentData().getString("ReputationSpecialist").isEmpty())
