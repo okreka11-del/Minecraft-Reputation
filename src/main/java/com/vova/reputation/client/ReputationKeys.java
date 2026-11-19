@@ -85,10 +85,20 @@ public final class ReputationKeys {
                 lastShiftTap = 0;
             }
             shiftWasDown = shiftDown;
-            // Opening another GUI cancels any outstanding G request.
+            // A timed-out G request should not fail silently: explain why the
+            // panel did not open and how to retry. Only show this once per request.
+            // Cancel without a warning when the player changes or opens another GUI.
+            if (armyOpenPending && mc.player != null && mc.player == armyRequestPlayer
+                    && mc.screen == null && mc.player.tickCount >= armyRequestTick
+                    && mc.player.tickCount - armyRequestTick > 100) {
+                armyOpenPending = false;
+                mc.player.displayClientMessage(net.minecraft.network.chat.Component.literal(
+                    "Панель отряда: сервер не ответил. Нажмите G, чтобы повторить."), true);
+            }
             if (mc.screen != null || mc.player == null || mc.player != armyRequestPlayer
-                    || (armyOpenPending && (mc.player.tickCount < armyRequestTick
-                        || mc.player.tickCount - armyRequestTick > 100))) armyOpenPending = false;
+                    || (armyOpenPending && mc.player.tickCount < armyRequestTick)) {
+                armyOpenPending = false;
+            }
             // Drain every queued press; only one army overview may be in flight.
             // A burst of queued G presses previously sent several ArmyRequests before
             // the server could open the panel, causing duplicate responses/screens.
