@@ -88,10 +88,10 @@ public final class ReputationKeys {
                 // Prevent simultaneous bound keys from racing to replace the GUI.
                 if (armyPressed) {
                     if (!armyOpenPending && mc.player.isAlive() && !mc.player.isSpectator()) {
-                    armyOpenPending = true;
-                    armyRequestPlayer = mc.player;
-                    armyRequestTick = mc.player.tickCount;
-                    PacketDistributor.sendToServer(new ReputationNetwork.ArmyRequest());
+                        armyOpenPending = true;
+                        armyRequestPlayer = mc.player;
+                        armyRequestTick = mc.player.tickCount;
+                        PacketDistributor.sendToServer(new ReputationNetwork.ArmyRequest());
                     }
                 }
                 else if (villagePressed) PacketDistributor.sendToServer(new ReputationNetwork.VillageRequest());
