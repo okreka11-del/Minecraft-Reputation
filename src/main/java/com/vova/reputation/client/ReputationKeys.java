@@ -85,6 +85,7 @@ public final class ReputationKeys {
             }
             if (mc.player != null && mc.screen == null && mc.player.isAlive()
                     && !mc.player.isSpectator() && mc.player.getVehicle() == null
+                    && !mc.player.isFallFlying() && !mc.player.isSwimming()
                     && shiftDown && !shiftWasDown) {
                 long now = System.nanoTime();
                 // Consume the second tap even during cooldown. Otherwise a rapid
@@ -109,7 +110,8 @@ public final class ReputationKeys {
             // reputation-costing double-sneak gestures, including a tap made
             // immediately before mounting a vehicle.
             if (mc.player == null || mc.screen != null || !mc.player.isAlive()
-                    || mc.player.isSpectator() || mc.player.getVehicle() != null) {
+                    || mc.player.isSpectator() || mc.player.getVehicle() != null
+                    || mc.player.isFallFlying() || mc.player.isSwimming()) {
                 lastShiftTap = 0;
             }
             shiftWasDown = shiftDown;
