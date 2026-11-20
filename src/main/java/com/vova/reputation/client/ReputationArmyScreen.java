@@ -478,8 +478,8 @@ public final class ReputationArmyScreen extends Screen {
         g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + (height < 105 ? 1 : 8), headingColor, false);
         String count = playerInactive ? "Приказы временно недоступны"
             : refreshing ? "Проверка: " + manualRefreshSecondsRemaining() + " с · было: " + available
-            : refreshFailed ? "Нет ответа сервера · 0/R/F5"
-            : staleSquad ? "Состав устарел · 0/R/F5 обновить"
+            : refreshFailed ? "0/R/F5 · сервер не ответил"
+            : staleSquad ? "0/R/F5 · состав отряда устарел"
             : available == 0 ? "Приручите волка и подойдите ближе" : "Волки: " + available + " · проверено, ещё " + squadSnapshotSecondsRemaining() + " с";
         if (height >= 165) {
             // Show server verification status without blur, overlays or extra render passes.
