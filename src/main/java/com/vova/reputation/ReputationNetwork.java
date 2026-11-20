@@ -268,6 +268,14 @@ public final class ReputationNetwork {
                             "Нет видимой недавно отмеченной цели: ударьте монстра в радиусе 24 блоков."), true);
                         return;
                     }
+                    // Respect vanilla scoreboard teams: a monster may be allied to
+                    // the player through team rules even though it is hostile by type.
+                    // Never turn a squad command into an attack on a teammate.
+                    if (player.isAlliedTo(candidate)) {
+                        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                            "Цель состоит в вашей команде: волки не атакуют союзников."), true);
+                        return;
+                    }
                     // Wolves normally avoid creepers because their explosions can kill
                     // the entire pack. A manual attack order must not bypass that
                     // safety rule and send owned pets into point-blank explosions.
