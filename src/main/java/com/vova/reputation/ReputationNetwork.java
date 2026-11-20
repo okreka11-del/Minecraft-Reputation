@@ -700,6 +700,7 @@ public final class ReputationNetwork {
                 int restrained = 0;
                 int mounted = 0;
                 int leashed = 0;
+                int attackTooWounded = 0;
                 int attackOutOfRange = 0;
                 int attackNoSight = 0;
                 int attackNoPath = 0;
@@ -722,6 +723,13 @@ public final class ReputationNetwork {
                         continue;
                     }
                     if (payload.order() == 4) {
+                        // Keep critically wounded wolves out of offensive orders.
+                        // They retain their current stance and can still receive
+                        // follow, guard or retreat commands from their owner.
+                        if (wolf.getHealth() <= wolf.getMaxHealth() * 0.25F) {
+                            attackTooWounded++;
+                            continue;
+                        }
                         // Do not dispatch a pet against a target it cannot reach from
                         // the squad's local area. The owner's 24-block check alone
                         // permits a wolf on the opposite edge to chase 48 blocks.
