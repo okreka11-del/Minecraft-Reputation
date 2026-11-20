@@ -331,6 +331,37 @@ public final class ReputationNetwork {
                             "Цель находится на опасной поверхности: сначала выманите её в безопасное место."), true);
                         return;
                     }
+                    // Wolves fight at melee range. Even a safe target block can border
+                    // lava, fire or cactus that damages pets as they approach it.
+                    // Reject the entire attack rather than silently sacrificing a pack.
+                    boolean dangerousApproach = false;
+                    for (var direction : net.minecraft.core.Direction.Plane.HORIZONTAL) {
+                        var adjacentFeet = targetFeet.relative(direction);
+                        var adjacentHead = adjacentFeet.above();
+                        if (!targetLevel.hasChunkAt(adjacentFeet) || !targetLevel.hasChunkAt(adjacentHead)) {
+                            dangerousApproach = true;
+                            break;
+                        }
+                        var feet = targetLevel.getBlockState(adjacentFeet);
+                        var head = targetLevel.getBlockState(adjacentHead);
+                        if (!targetLevel.getFluidState(adjacentFeet).isEmpty()
+                                && targetLevel.getFluidState(adjacentFeet).is(net.minecraft.tags.FluidTags.LAVA)
+                                || targetLevel.getFluidState(adjacentHead).is(net.minecraft.tags.FluidTags.LAVA)
+                                || feet.is(net.minecraft.world.level.block.Blocks.FIRE)
+                                || head.is(net.minecraft.world.level.block.Blocks.FIRE)
+                                || feet.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
+                                || head.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
+                                || feet.is(net.minecraft.world.level.block.Blocks.CACTUS)
+                                || head.is(net.minecraft.world.level.block.Blocks.CACTUS)) {
+                            dangerousApproach = true;
+                            break;
+                        }
+                    }
+                    if (dangerousApproach) {
+                        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                            "Опасный подход к цели: рядом лава, огонь или кактусы."), true);
+                        return;
+                    }
                     attackTarget = candidate;
                 }
                 // Select a waypoint from the server-side player's view, not client coordinates.
