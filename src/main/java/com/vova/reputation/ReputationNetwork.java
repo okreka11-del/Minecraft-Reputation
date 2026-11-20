@@ -338,12 +338,14 @@ public final class ReputationNetwork {
                             "Цель находится в лаве: не отправляйте волков в огонь."), true);
                         return;
                     }
-                    // A submerged target can draw melee wolves into deep water, where
-                    // they may drown before reaching it. Keep their existing stance
-                    // until the owner lures the monster onto dry ground.
-                    if (candidate.isUnderWater()) {
+                    // Surface-swimming monsters are dangerous too: isUnderWater()
+                    // misses targets whose head is above water, even though wolves
+                    // would still have to swim after them. Include bubble columns,
+                    // which can pull pets away from the owner or trap them underwater.
+                    // Reject before changing any existing squad stance.
+                    if (candidate.isInWaterOrBubble()) {
                         player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                            "Цель под водой: выманите монстра на сушу, чтобы волки не утонули."), true);
+                            "Цель в воде или пузырьковой колонне: выманите её на сушу, чтобы волки не утонули."), true);
                         return;
                     }
                     // Fire and magma can injure wolves even when the monster itself
