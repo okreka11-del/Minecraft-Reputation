@@ -702,6 +702,7 @@ public final class ReputationNetwork {
                 int leashed = 0;
                 int attackTooWounded = 0;
                 int attackBurning = 0;
+                int attackFreezing = 0;
                 int attackLowAir = 0;
                 int attackOutOfRange = 0;
                 int attackNoSight = 0;
@@ -729,6 +730,12 @@ public final class ReputationNetwork {
                         // fire damage. The owner can still order it to retreat.
                         if (wolf.isOnFire()) {
                             attackBurning++;
+                            continue;
+                        }
+                        // A wolf trapped in powder snow or already freezing must not
+                        // be ordered deeper into combat. Retreat remains available.
+                        if (wolf.isInPowderSnow || wolf.isFullyFrozen()) {
+                            attackFreezing++;
                             continue;
                         }
                         // A submerged wolf running low on air must not be sent
@@ -1131,7 +1138,7 @@ public final class ReputationNetwork {
                         "Отступление не удалось: волки не могут проложить путь к вам."), true);
                 } else if (payload.order() == 4 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                        "Атака не выполнена: " + attackTooWounded + " волков тяжело ранены (≤25% здоровья), " + attackBurning + " горят, " + attackLowAir + " задыхаются в воде, " + attackOutOfRange + " слишком далеко, "
+                        "Атака не выполнена: " + attackTooWounded + " волков тяжело ранены (≤25% здоровья), " + attackBurning + " горят, " + attackFreezing + " замерзают, " + attackLowAir + " задыхаются в воде, " + attackOutOfRange + " слишком далеко, "
                             + attackNoSight + " не видят цель, " + attackNoPath
                             + " не могут найти путь. Подведите отряд ближе или устраните препятствия."), true);
                 } else {
