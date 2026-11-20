@@ -88,6 +88,9 @@ public final class ReputationKeys {
                     && !mc.player.isFallFlying() && !mc.player.isSwimming()
                     && !mc.player.isInWaterOrBubble() && !mc.player.onClimbable()
                     && !mc.player.isInLava() && !mc.player.isOnFire()
+                    // Sneaking while blocking, eating or drawing a bow is ordinary
+                    // combat/item control, not an intentional reputation ability.
+                    && !mc.player.isUsingItem()
                     && shiftDown && !shiftWasDown) {
                 long now = System.nanoTime();
                 // Consume the second tap even during cooldown. Otherwise a rapid
@@ -120,7 +123,8 @@ public final class ReputationKeys {
                     || mc.player.isSpectator() || mc.player.getVehicle() != null
                     || mc.player.isFallFlying() || mc.player.isSwimming()
                     || mc.player.isInWaterOrBubble() || mc.player.onClimbable()
-                    || mc.player.isInLava() || mc.player.isOnFire()) {
+                    || mc.player.isInLava() || mc.player.isOnFire()
+                    || mc.player.isUsingItem()) {
                 lastShiftTap = 0;
             }
             shiftWasDown = shiftDown;
