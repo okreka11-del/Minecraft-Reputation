@@ -84,7 +84,8 @@ public final class ReputationKeys {
                 shiftWasDown = shiftDown;
             }
             if (mc.player != null && mc.screen == null && mc.player.isAlive()
-                    && !mc.player.isSpectator() && shiftDown && !shiftWasDown) {
+                    && !mc.player.isSpectator() && mc.player.getVehicle() == null
+                    && shiftDown && !shiftWasDown) {
                 long now = System.nanoTime();
                 // Consume the second tap even during cooldown. Otherwise a rapid
                 // third press could be treated as a fresh second tap and fire the
@@ -104,8 +105,11 @@ public final class ReputationKeys {
             // gameplay. Opening a menu, dying or switching players cancels the
             // first tap; otherwise closing a GUI and pressing sneak once could
             // unexpectedly trigger the fart ability and cost reputation.
+            // Sneak is also the dismount key. Never treat dismount attempts as
+            // reputation-costing double-sneak gestures, including a tap made
+            // immediately before mounting a vehicle.
             if (mc.player == null || mc.screen != null || !mc.player.isAlive()
-                    || mc.player.isSpectator()) {
+                    || mc.player.isSpectator() || mc.player.getVehicle() != null) {
                 lastShiftTap = 0;
             }
             shiftWasDown = shiftDown;
