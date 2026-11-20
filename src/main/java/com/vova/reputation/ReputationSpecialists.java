@@ -104,7 +104,9 @@ public final class ReputationSpecialists {
         // A guard raises an alarm and rallies nearby iron golems rather than turning a villager into a fake melee mob.
         for (IronGolem golem : level.getEntitiesOfClass(IronGolem.class, villager.getBoundingBox().inflate(24))) {
             Pillager enemy = level.getEntitiesOfClass(Pillager.class, golem.getBoundingBox().inflate(20))
-                .stream().findFirst().orElse(null);
+                .stream().filter(Entity::isAlive)
+                .min((a, b) -> Double.compare(a.distanceToSqr(golem), b.distanceToSqr(golem)))
+                .orElse(null);
             if (enemy != null) golem.setTarget(enemy);
         }
     }
