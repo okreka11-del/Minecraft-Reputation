@@ -268,6 +268,14 @@ public final class ReputationNetwork {
                             "Нет видимой недавно отмеченной цели: ударьте монстра в радиусе 24 блоков."), true);
                         return;
                     }
+                    // Wolves are ground-based melee units. A target far above or below
+                    // the owner can lure them off cliffs or into unreachable terrain.
+                    // Keep the existing stance intact instead of starting unsafe pursuit.
+                    if (Math.abs(candidate.getY() - player.getY()) > 6.0D) {
+                        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                            "Цель слишком высоко или низко: подведите отряд на безопасную высоту."), true);
+                        return;
+                    }
                     // Respect vanilla scoreboard teams: a monster may be allied to
                     // the player through team rules even though it is hostile by type.
                     // Never turn a squad command into an attack on a teammate.
