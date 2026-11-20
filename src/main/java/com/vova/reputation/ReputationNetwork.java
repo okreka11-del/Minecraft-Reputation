@@ -1116,7 +1116,7 @@ public final class ReputationNetwork {
                         "Отступление не удалось: волки не могут проложить путь к вам."), true);
                 } else if (payload.order() == 4 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                        "Атака не выполнена: " + attackOutOfRange + " волков слишком далеко, "
+                        "Атака не выполнена: " + attackTooWounded + " волков тяжело ранены (≤25% здоровья), " + attackOutOfRange + " слишком далеко, "
                             + attackNoSight + " не видят цель, " + attackNoPath
                             + " не могут найти путь. Подведите отряд ближе или устраните препятствия."), true);
                 } else {
