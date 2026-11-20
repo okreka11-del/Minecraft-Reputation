@@ -701,6 +701,7 @@ public final class ReputationNetwork {
                 int mounted = 0;
                 int leashed = 0;
                 int attackTooWounded = 0;
+                int attackBurning = 0;
                 int attackOutOfRange = 0;
                 int attackNoSight = 0;
                 int attackNoPath = 0;
@@ -723,6 +724,12 @@ public final class ReputationNetwork {
                         continue;
                     }
                     if (payload.order() == 4) {
+                        // Do not force a burning pet to chase an enemy while it takes
+                        // fire damage. The owner can still order it to retreat.
+                        if (wolf.isOnFire()) {
+                            attackBurning++;
+                            continue;
+                        }
                         // Keep critically wounded wolves out of offensive orders.
                         // They retain their current stance and can still receive
                         // follow, guard or retreat commands from their owner.
@@ -1116,7 +1123,7 @@ public final class ReputationNetwork {
                         "Отступление не удалось: волки не могут проложить путь к вам."), true);
                 } else if (payload.order() == 4 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                        "Атака не выполнена: " + attackTooWounded + " волков тяжело ранены (≤25% здоровья), " + attackOutOfRange + " слишком далеко, "
+                        "Атака не выполнена: " + attackTooWounded + " волков тяжело ранены (≤25% здоровья), " + attackBurning + " горят, " + attackOutOfRange + " слишком далеко, "
                             + attackNoSight + " не видят цель, " + attackNoPath
                             + " не могут найти путь. Подведите отряд ближе или устраните препятствия."), true);
                 } else {
