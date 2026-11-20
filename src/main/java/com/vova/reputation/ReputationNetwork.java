@@ -409,8 +409,12 @@ public final class ReputationNetwork {
                                 || head.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
                                 || feet.is(net.minecraft.world.level.block.Blocks.COBWEB)
                                 || head.is(net.minecraft.world.level.block.Blocks.COBWEB)
-                                || !targetLevel.getFluidState(adjacentFeet).isEmpty()
-                                && targetLevel.getFluidState(adjacentFeet).is(net.minecraft.tags.FluidTags.LAVA)
+                                // Melee wolves must stand next to their target. Even when the target
+                                // is dry, water in adjacent melee cells can pull the pack into
+                                // a river or deep pool. Reject these attack orders as well.
+                                || targetLevel.getFluidState(adjacentFeet).is(net.minecraft.tags.FluidTags.WATER)
+                                || targetLevel.getFluidState(adjacentHead).is(net.minecraft.tags.FluidTags.WATER)
+                                || targetLevel.getFluidState(adjacentFeet).is(net.minecraft.tags.FluidTags.LAVA)
                                 || targetLevel.getFluidState(adjacentHead).is(net.minecraft.tags.FluidTags.LAVA)
                                 || feet.is(net.minecraft.world.level.block.Blocks.FIRE)
                                 || head.is(net.minecraft.world.level.block.Blocks.FIRE)
