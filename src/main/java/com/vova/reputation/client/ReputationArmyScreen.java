@@ -462,11 +462,14 @@ public final class ReputationArmyScreen extends Screen {
             ? (minecraft.player.isSpectator() ? "Режим наблюдателя" : "Игрок погиб")
             : height < 165
                 ? (refreshing ? "Проверка · " + manualRefreshSecondsRemaining() + " с"
-                    : refreshFailed ? "Нет ответа · 0/R/F5"
-                    : staleSquad ? "Нет связи · 0/R/F5"
+                    : refreshFailed ? "0/R/F5 · нет ответа"
+                    : staleSquad ? "0/R/F5 · нет связи"
                     : available == 0 ? "Нет отряда" : "Отряд: " + available + " · " + squadSnapshotSecondsRemaining() + " с")
                 : title.getString();
-        String heading = font.plainSubstrByWidth(headingText, Math.max(1, w - 16));
+        // Preserve the actionable refresh shortcut even at very large GUI scales.
+        // Truncate the explanation after the shortcut, never the shortcut itself.
+        int headingWidth = Math.max(1, w - 16);
+        String heading = font.plainSubstrByWidth(headingText, headingWidth);
         // Compact GUI scales hide the secondary status row. Keep critical
         // server/time-out feedback visible in the heading itself, using the
         // same accessible status palette as the full-size panel.
