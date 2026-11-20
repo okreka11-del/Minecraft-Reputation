@@ -115,10 +115,12 @@ public final class ReputationNetwork {
         @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
     }
 
+    // Include mounted pets in the authoritative squad overview. The order loop
+    // reports them as restrained instead of silently hiding them from the count.
     private static java.util.List<net.minecraft.world.entity.animal.Wolf> ownedWolves(ServerPlayer player) {
         return player.serverLevel().getEntitiesOfClass(net.minecraft.world.entity.animal.Wolf.class,
             player.getBoundingBox().inflate(24),
-            wolf -> wolf.isAlive() && wolf.isTame() && !wolf.isPassenger()
+            wolf -> wolf.isAlive() && wolf.isTame()
                 && player.getUUID().equals(wolf.getOwnerUUID())
                 // The bounding box is only a broad-phase lookup; enforce the advertised
                 // 24-block radius rather than including distant diagonal corners.
