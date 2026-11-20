@@ -87,6 +87,7 @@ public final class ReputationKeys {
                     && !mc.player.isSpectator() && mc.player.getVehicle() == null
                     && !mc.player.isFallFlying() && !mc.player.isSwimming()
                     && !mc.player.isInWaterOrBubble() && !mc.player.onClimbable()
+                    && !mc.player.isInLava() && !mc.player.isOnFire()
                     && shiftDown && !shiftWasDown) {
                 long now = System.nanoTime();
                 // Consume the second tap even during cooldown. Otherwise a rapid
@@ -110,13 +111,16 @@ public final class ReputationKeys {
             // Sneak is also used to descend ladders and move in water. Cancel a
             // partial gesture before climbing or entering water, even before the
             // swimming animation begins, to avoid charging reputation for movement.
+            // Emergency sneaking while burning or escaping lava must not spend
+            // reputation; clear a half-finished gesture in either hazard state.
             // Sneak is also the dismount key. Never treat dismount attempts as
             // reputation-costing double-sneak gestures, including a tap made
             // immediately before mounting a vehicle.
             if (mc.player == null || mc.screen != null || !mc.player.isAlive()
                     || mc.player.isSpectator() || mc.player.getVehicle() != null
                     || mc.player.isFallFlying() || mc.player.isSwimming()
-                    || mc.player.isInWaterOrBubble() || mc.player.onClimbable()) {
+                    || mc.player.isInWaterOrBubble() || mc.player.onClimbable()
+                    || mc.player.isInLava() || mc.player.isOnFire()) {
                 lastShiftTap = 0;
             }
             shiftWasDown = shiftDown;
