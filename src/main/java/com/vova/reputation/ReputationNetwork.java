@@ -338,6 +338,14 @@ public final class ReputationNetwork {
                             "Цель находится в лаве: не отправляйте волков в огонь."), true);
                         return;
                     }
+                    // A submerged target can draw melee wolves into deep water, where
+                    // they may drown before reaching it. Keep their existing stance
+                    // until the owner lures the monster onto dry ground.
+                    if (candidate.isUnderWater()) {
+                        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                            "Цель под водой: выманите монстра на сушу, чтобы волки не утонули."), true);
+                        return;
+                    }
                     // Fire and magma can injure wolves even when the monster itself
                     // is not in lava. Do not override the squad's current stance
                     // to chase a target standing in these damaging blocks.
