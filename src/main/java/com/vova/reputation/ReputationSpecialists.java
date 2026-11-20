@@ -48,6 +48,8 @@ public final class ReputationSpecialists {
         // Do not overwrite an existing specialist or workstation profession when assigning a role.
         Entity nearest = candidates.stream()
             .filter(Entity::isAlive)
+            // Specialist duties require an adult villager; keep baby villagers unassigned.
+            .filter(npc -> !(npc instanceof Villager villager) || !villager.isBaby())
             .filter(npc -> npc.getPersistentData().getString(ROLE).isEmpty())
             .filter(npc -> npc.getPersistentData().getString("ReputationProfession").isEmpty())
             .min((a,b) -> Double.compare(a.distanceToSqr(player), b.distanceToSqr(player)))
