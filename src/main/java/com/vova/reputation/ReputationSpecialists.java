@@ -116,7 +116,11 @@ public final class ReputationSpecialists {
         long last = villager.getPersistentData().getLong(LAST);
         if (now - last < 1200) return;
         IronGolem golem = level.getEntitiesOfClass(IronGolem.class, villager.getBoundingBox().inflate(12))
-            .stream().filter(g -> g.getHealth() < g.getMaxHealth()).findFirst().orElse(null);
+            .stream()
+            .filter(Entity::isAlive)
+            .filter(g -> g.getHealth() < g.getMaxHealth())
+            .min((a, b) -> Double.compare(a.distanceToSqr(villager), b.distanceToSqr(villager)))
+            .orElse(null);
         if (golem == null) return;
         if (villager.distanceToSqr(golem) > 9) {
             villager.getNavigation().moveTo(golem, 0.7);
