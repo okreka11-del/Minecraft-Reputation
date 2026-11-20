@@ -730,6 +730,13 @@ public final class ReputationNetwork {
                             attackBurning++;
                             continue;
                         }
+                        // A submerged wolf running low on air must not be sent
+                        // deeper into combat. Retreat and follow remain available
+                        // so its owner can guide it back to safety.
+                        if (wolf.isInWaterOrBubble() && wolf.getAirSupply() <= 60) {
+                            attackTooWounded++;
+                            continue;
+                        }
                         // Keep critically wounded wolves out of offensive orders.
                         // They retain their current stance and can still receive
                         // follow, guard or retreat commands from their owner.
