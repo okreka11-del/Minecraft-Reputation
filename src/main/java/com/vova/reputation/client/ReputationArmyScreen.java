@@ -66,7 +66,7 @@ public final class ReputationArmyScreen extends Screen {
         Tooltip.create(Component.literal("Атаковать отмеченного монстра — ударьте монстра не более 10 секунд назад. Вы и волки должны видеть цель в радиусе 24 блоков. Не выбирайте цели в воде: сервер отклоняет погоню, чтобы волки не утонули. Криперы, Хранитель и Иссушитель также исключены.")),
         Tooltip.create(Component.literal("К точке взгляда — наведите прицел на блок в радиусе 24 блоков ДО открытия панели G. После выбора приказа волки пойдут туда, если путь безопасен."))
     };
-    private static final Component NO_SQUAD_HELP = Component.literal("Нет доступных волков: приручите волка костями, затем подойдите к нему на расстояние приказов.");
+    private static final Component NO_SQUAD_HELP = Component.literal("Нет доступных волков: приручите волка костями или подойдите к своим волкам. Нажмите 0/R/F5, чтобы повторно проверить отряд.");
     private static final Component STALE_SQUAD_HELP = Component.literal("Состав отряда не подтверждён сервером. Нажмите 0/R/F5, среднюю кнопку мыши или заголовок панели и дождитесь ответа сервера.");
     private static final Component PENDING_SQUAD_HELP = Component.literal("Обновляем состав отряда. Дождитесь ответа сервера перед отправкой приказа.");
     private static final Component INACTIVE_PLAYER_HELP = Component.literal("Нельзя отдавать приказы отряду в режиме наблюдателя или после гибели.");
@@ -464,7 +464,7 @@ public final class ReputationArmyScreen extends Screen {
                 ? (refreshing ? "Проверка · " + manualRefreshSecondsRemaining() + " с"
                     : refreshFailed ? "0/R/F5 · нет ответа"
                     : staleSquad ? "0/R/F5 · нет связи"
-                    : available == 0 ? "Нет отряда" : "Отряд: " + available + " · " + squadSnapshotSecondsRemaining() + " с")
+                    : available == 0 ? "0/R/F5 · нет волков" : "Отряд: " + available + " · " + squadSnapshotSecondsRemaining() + " с")
                 : title.getString();
         // Preserve the actionable refresh shortcut even at very large GUI scales.
         // Truncate the explanation after the shortcut, never the shortcut itself.
@@ -483,7 +483,7 @@ public final class ReputationArmyScreen extends Screen {
             : refreshing ? "Проверка: " + manualRefreshSecondsRemaining() + " с · было: " + available
             : refreshFailed ? "0/R/F5 · сервер не ответил"
             : staleSquad ? "0/R/F5 · состав отряда устарел"
-            : available == 0 ? "Приручите волка и подойдите ближе" : "Волки: " + available + " · проверено, ещё " + squadSnapshotSecondsRemaining() + " с";
+            : available == 0 ? "0/R/F5 · нет волков рядом" : "Волки: " + available + " · проверено, ещё " + squadSnapshotSecondsRemaining() + " с";
         if (height >= 165) {
             // Show server verification status without blur, overlays or extra render passes.
             // Red = unavailable/stale, amber = pending, green = confirmed squad.
@@ -539,7 +539,7 @@ public final class ReputationArmyScreen extends Screen {
                 ? (refreshing ? "Ожидание ответа сервера"
                     : refreshFailed || staleSquad ? "0/R/F5 · повторить проверку"
                     : playerInactive ? "Приказы сейчас недоступны"
-                    : "Нет волков в радиусе приказов")
+                    : "0/R/F5 · проверить волков рядом")
                 : hoveringClose ? "Закрыть · вернуться в игру"
                 : selectedOrder >= 0 && selectedOrder < ORDER_PREVIEWS.length
                     ? ORDER_PREVIEWS[selectedOrder]
