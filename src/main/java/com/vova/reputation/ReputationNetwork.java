@@ -229,7 +229,11 @@ public final class ReputationNetwork {
                 // a new entity tick counter after respawn must not inherit a lockout.
                 var armyOrderData = player.getPersistentData();
                 int lastArmyOrderTick = armyOrderData.getInt("reputationLastArmyOrderTick");
-                if (lastArmyOrderTick > 0 && player.tickCount >= lastArmyOrderTick
+                // Emergency retreat must override a recently issued attack or move order.
+                // Keep the separate two-tick attempt throttle below to prevent
+                // modified clients from flooding the server with retreat packets.
+                if (payload.order() != 3 && lastArmyOrderTick > 0
+                        && player.tickCount >= lastArmyOrderTick
                         && player.tickCount - lastArmyOrderTick < 5) return;
                 // Failed orders must remain quickly retryable, but a modified client
                 // must not spam expensive navigation checks every server tick.
