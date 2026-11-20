@@ -344,7 +344,23 @@ public final class ReputationNetwork {
                         }
                         var feet = targetLevel.getBlockState(adjacentFeet);
                         var head = targetLevel.getBlockState(adjacentHead);
-                        if (!targetLevel.getFluidState(adjacentFeet).isEmpty()
+                        var ground = targetLevel.getBlockState(adjacentFeet.below());
+                        // Adjacent melee positions must be safe underfoot as well as
+                        // clear of non-solid hazards that harm or trap tame wolves.
+                        if (ground.is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)
+                                || ground.is(net.minecraft.world.level.block.Blocks.CAMPFIRE)
+                                    && ground.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
+                                || ground.is(net.minecraft.world.level.block.Blocks.SOUL_CAMPFIRE)
+                                    && ground.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
+                                || feet.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                                || head.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                                || feet.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
+                                || head.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
+                                || feet.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
+                                || head.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
+                                || feet.is(net.minecraft.world.level.block.Blocks.COBWEB)
+                                || head.is(net.minecraft.world.level.block.Blocks.COBWEB)
+                                || !targetLevel.getFluidState(adjacentFeet).isEmpty()
                                 && targetLevel.getFluidState(adjacentFeet).is(net.minecraft.tags.FluidTags.LAVA)
                                 || targetLevel.getFluidState(adjacentHead).is(net.minecraft.tags.FluidTags.LAVA)
                                 || feet.is(net.minecraft.world.level.block.Blocks.FIRE)
@@ -359,7 +375,7 @@ public final class ReputationNetwork {
                     }
                     if (dangerousApproach) {
                         player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                            "Опасный подход к цели: рядом лава, огонь или кактусы."), true);
+                            "Опасный подход к цели: рядом огонь, лава, колючки или ловушки."), true);
                         return;
                     }
                     attackTarget = candidate;
