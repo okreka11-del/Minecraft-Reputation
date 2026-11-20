@@ -90,6 +90,16 @@ public final class ReputationArmyScreen extends Screen {
     }
 
 
+    // Show how long the server-confirmed squad count remains actionable.
+    // Uses the existing player tick clock; no extra polling or render allocations.
+    private int squadSnapshotSecondsRemaining() {
+        if (minecraft == null || minecraft.player == null
+                || lastSquadResponseTick == Integer.MIN_VALUE) return 0;
+        int elapsed = minecraft.player.tickCount - lastSquadResponseTick;
+        if (elapsed < 0) return 0;
+        return Math.max(0, (120 - elapsed + 19) / 20);
+    }
+
     private boolean isSquadSnapshotStale() {
         if (minecraft == null || minecraft.player == null || lastSquadResponseTick == Integer.MIN_VALUE) return false;
         int now = minecraft.player.tickCount;
@@ -454,7 +464,7 @@ public final class ReputationArmyScreen extends Screen {
                 ? (refreshing ? "Проверка · " + manualRefreshSecondsRemaining() + " с"
                     : refreshFailed ? "Нет ответа · 0/R/F5"
                     : staleSquad ? "Нет связи · 0/R/F5"
-                    : available == 0 ? "Нет отряда" : "Отряд: " + available)
+                    : available == 0 ? "Нет отряда" : "Отряд: " + available + " · " + squadSnapshotSecondsRemaining() + " с")
                 : title.getString();
         String heading = font.plainSubstrByWidth(headingText, Math.max(1, w - 16));
         // Compact GUI scales hide the secondary status row. Keep critical
@@ -470,7 +480,7 @@ public final class ReputationArmyScreen extends Screen {
             : refreshing ? "Проверка: " + manualRefreshSecondsRemaining() + " с · было: " + available
             : refreshFailed ? "Нет ответа сервера · 0/R/F5"
             : staleSquad ? "Состав устарел · 0/R/F5 обновить"
-            : available == 0 ? "Приручите волка и подойдите ближе" : "Ваши волки рядом: " + available;
+            : available == 0 ? "Приручите волка и подойдите ближе" : "Волки: " + available + " · проверено, ещё " + squadSnapshotSecondsRemaining() + " с";
         if (height >= 165) {
             // Show server verification status without blur, overlays or extra render passes.
             // Red = unavailable/stale, amber = pending, green = confirmed squad.
