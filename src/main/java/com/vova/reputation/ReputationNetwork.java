@@ -299,6 +299,23 @@ public final class ReputationNetwork {
                             "Волки не атакуют Иссушителя по приказу: взрывы и иссушение опасны для отряда."), true);
                         return;
                     }
+                    // Never pursue a marked monster through an active portal. Wolves
+                    // following an attack target could cross dimensions and become
+                    // separated from their owner, even if the portal has no collision.
+                    var markedFeet = candidate.blockPosition();
+                    var markedHead = markedFeet.above();
+                    var markedLevel = player.serverLevel();
+                    if (!markedLevel.hasChunkAt(markedFeet) || !markedLevel.hasChunkAt(markedHead)
+                            || markedLevel.getBlockState(markedFeet).is(net.minecraft.world.level.block.Blocks.NETHER_PORTAL)
+                            || markedLevel.getBlockState(markedHead).is(net.minecraft.world.level.block.Blocks.NETHER_PORTAL)
+                            || markedLevel.getBlockState(markedFeet).is(net.minecraft.world.level.block.Blocks.END_PORTAL)
+                            || markedLevel.getBlockState(markedHead).is(net.minecraft.world.level.block.Blocks.END_PORTAL)
+                            || markedLevel.getBlockState(markedFeet).is(net.minecraft.world.level.block.Blocks.END_GATEWAY)
+                            || markedLevel.getBlockState(markedHead).is(net.minecraft.world.level.block.Blocks.END_GATEWAY)) {
+                        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                            "Цель находится в портале: волки останутся в вашем измерении."), true);
+                        return;
+                    }
                     // A marked monster standing in lava is not a safe target for
                     // ground-based wolves. Reject the whole attack before changing
                     // any wolf's current guard or follow stance.
