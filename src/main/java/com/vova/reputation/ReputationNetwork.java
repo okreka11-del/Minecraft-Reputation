@@ -745,6 +745,7 @@ public final class ReputationNetwork {
                 int attackOutOfRange = 0;
                 int attackNoSight = 0;
                 int attackNoPath = 0;
+                int waypointUnsafeWolf = 0;
                 int waypointOutOfRange = 0;
                 int waypointNoPath = 0;
                 int waypointNavigationRejected = 0;
@@ -820,6 +821,14 @@ public final class ReputationNetwork {
                         wolf.setTarget(attackTarget);
                         changed++;
                     } else if (payload.order() == 5) {
+                        // Optional travel must not override a wolf escaping fire, freezing
+                        // or drowning. Preserve its current stance and navigation;
+                        // Follow and emergency Retreat remain available.
+                        if (wolf.isOnFire() || wolf.isInPowderSnow || wolf.isFullyFrozen()
+                                || (wolf.isInWaterOrBubble() && wolf.getAirSupply() <= 60)) {
+                            waypointUnsafeWolf++;
+                            continue;
+                        }
                         // Keep waypoint orders local to each wolf as well as the owner.
                         // A wolf at the far edge of the squad radius must not be sent
                         // up to 48 blocks away across unloaded or dangerous terrain.
@@ -1168,7 +1177,8 @@ public final class ReputationNetwork {
                                 : "Приказ не выполнен: волки в транспорте или на поводках. Освободите хотя бы одного."), true);
                 } else if (payload.order() == 5 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                        "Приказ к точке не выполнен: " + waypointOutOfRange + " волков дальше 24 блоков, "
+                        "Приказ к точке не выполнен: " + waypointUnsafeWolf + " волков в опасности (огонь, мороз или нехватка воздуха), "
+                            + waypointOutOfRange + " волков дальше 24 блоков, "
                             + waypointNoPath + " не находят путь, " + waypointNavigationRejected
                             + " не смогли начать движение. Подведите отряд ближе или устраните препятствия."), true);
                 } else if (payload.order() == 1 && changed == 0) {
