@@ -330,6 +330,14 @@ public final class ReputationNetwork {
                             "Цель находится в портале: волки останутся в вашем измерении."), true);
                         return;
                     }
+                    // Burning monsters can ignite wolves on contact during melee.
+                    // Preserve the squad's current stance until the target stops burning.
+                    // This includes daylight-burning undead on otherwise safe ground.
+                    if (candidate.isOnFire()) {
+                        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                            "Цель горит: дождитесь, пока огонь погаснет, чтобы волки не загорелись в ближнем бою."), true);
+                        return;
+                    }
                     // A marked monster standing in lava is not a safe target for
                     // ground-based wolves. Reject the whole attack before changing
                     // any wolf's current guard or follow stance.
