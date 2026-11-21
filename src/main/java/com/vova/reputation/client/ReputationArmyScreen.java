@@ -232,48 +232,52 @@ public final class ReputationArmyScreen extends Screen {
         lastUnavailableReason = unavailableHelp();
         int w = Math.max(1, Math.min(238, width - 16));
         int x = (width - w) / 2;
+        // Even at extreme GUI scales, vanilla Button requires a positive width.
+        // Keep its hitbox inside the panel instead of passing a negative width.
+        int buttonWidth = Math.max(1, w - 16);
+        int buttonX = x + Math.min(8, w - buttonWidth);
         int y = panelTop();
         int buttonHeight = commandButtonHeight();
         int buttonGap = commandButtonGap();
         int firstButtonY = y + headerHeight();
-        Button follow = Button.builder(commandLabel(1, "За мной", w - 16), b -> issue(0))
-            .bounds(x + 8, firstButtonY, w - 16, buttonHeight).build();
+        Button follow = Button.builder(commandLabel(1, "За мной", buttonWidth), b -> issue(0))
+            .bounds(buttonX, firstButtonY, buttonWidth, buttonHeight).build();
         follow.setTooltip(ORDER_TOOLTIPS[0]);
         if (!canIssueOrders()) follow.setTooltip(unavailableTooltip());
         follow.active = canIssueOrders();
         orderButtons.add(addRenderableWidget(follow));
-        Button guard = Button.builder(commandLabel(2, "Охранять позицию", w - 16), b -> issue(1))
-            .bounds(x + 8, firstButtonY + buttonHeight + buttonGap, w - 16, buttonHeight).build();
+        Button guard = Button.builder(commandLabel(2, "Охранять позицию", buttonWidth), b -> issue(1))
+            .bounds(buttonX, firstButtonY + buttonHeight + buttonGap, buttonWidth, buttonHeight).build();
         guard.setTooltip(ORDER_TOOLTIPS[1]);
         if (!canIssueOrders()) guard.setTooltip(unavailableTooltip());
         guard.active = canIssueOrders();
         orderButtons.add(addRenderableWidget(guard));
-        Button rally = Button.builder(commandLabel(3, "Собрать рядом", w - 16), b -> issue(2))
-            .bounds(x + 8, firstButtonY + 2 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
+        Button rally = Button.builder(commandLabel(3, "Собрать рядом", buttonWidth), b -> issue(2))
+            .bounds(buttonX, firstButtonY + 2 * (buttonHeight + buttonGap), buttonWidth, buttonHeight).build();
         rally.setTooltip(ORDER_TOOLTIPS[2]);
         if (!canIssueOrders()) rally.setTooltip(unavailableTooltip());
         rally.active = canIssueOrders();
         orderButtons.add(addRenderableWidget(rally));
-        Button disengage = Button.builder(commandLabel(4, "Отступить ко мне", w - 16), b -> issue(3))
-            .bounds(x + 8, firstButtonY + 3 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
+        Button disengage = Button.builder(commandLabel(4, "Отступить ко мне", buttonWidth), b -> issue(3))
+            .bounds(buttonX, firstButtonY + 3 * (buttonHeight + buttonGap), buttonWidth, buttonHeight).build();
         disengage.setTooltip(ORDER_TOOLTIPS[3]);
         if (!canIssueOrders()) disengage.setTooltip(unavailableTooltip());
         disengage.active = canIssueOrders();
         orderButtons.add(addRenderableWidget(disengage));
-        Button attack = Button.builder(commandLabel(5, "Атаковать отмеченного монстра", w - 16), b -> issue(4))
-            .bounds(x + 8, firstButtonY + 4 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
+        Button attack = Button.builder(commandLabel(5, "Атаковать отмеченного монстра", buttonWidth), b -> issue(4))
+            .bounds(buttonX, firstButtonY + 4 * (buttonHeight + buttonGap), buttonWidth, buttonHeight).build();
         attack.setTooltip(ORDER_TOOLTIPS[4]);
         if (!canIssueOrders()) attack.setTooltip(unavailableTooltip());
         attack.active = canIssueOrders();
         orderButtons.add(addRenderableWidget(attack));
-        Button waypoint = Button.builder(commandLabel(6, "К точке взгляда", w - 16), b -> issue(5))
-            .bounds(x + 8, firstButtonY + 5 * (buttonHeight + buttonGap), w - 16, buttonHeight).build();
+        Button waypoint = Button.builder(commandLabel(6, "К точке взгляда", buttonWidth), b -> issue(5))
+            .bounds(buttonX, firstButtonY + 5 * (buttonHeight + buttonGap), buttonWidth, buttonHeight).build();
         waypoint.setTooltip(ORDER_TOOLTIPS[5]);
         if (!canIssueOrders()) waypoint.setTooltip(unavailableTooltip());
         waypoint.active = canIssueOrders();
         orderButtons.add(addRenderableWidget(waypoint));
-        closeButton = addRenderableWidget(Button.builder(commandLabel(7, "Закрыть", w - 16), b -> onClose())
-            .bounds(x + 8, firstButtonY + 6 * (buttonHeight + buttonGap), w - 16, buttonHeight).build());
+        closeButton = addRenderableWidget(Button.builder(commandLabel(7, "Закрыть", buttonWidth), b -> onClose())
+            .bounds(buttonX, firstButtonY + 6 * (buttonHeight + buttonGap), buttonWidth, buttonHeight).build());
         // Keyboard/controller navigation should start on an actionable control.
         // When the squad is unavailable, focus Close instead of a disabled order.
         if (closeWasFocused && closeButton != null) {
