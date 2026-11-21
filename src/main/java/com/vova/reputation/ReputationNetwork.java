@@ -1027,6 +1027,42 @@ public final class ReputationNetwork {
                                 || guardHeadState.is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
                                 || guardFeetState.is(net.minecraft.world.level.block.Blocks.COBWEB)
                                 || guardHeadState.is(net.minecraft.world.level.block.Blocks.COBWEB)) continue;
+                        // A sitting wolf can still touch dangerous neighboring blocks.
+                        // Check both body heights without loading chunks; do not pin
+                        // a guard next to cactus, flames, lava or a lit campfire.
+                        boolean unsafeGuardNeighbor = false;
+                        for (var direction : net.minecraft.core.Direction.Plane.HORIZONTAL) {
+                            var neighborFeet = guardFeet.relative(direction);
+                            var neighborHead = guardHead.relative(direction);
+                            if (!guardLevel.hasChunkAt(neighborFeet) || !guardLevel.hasChunkAt(neighborHead)
+                                    || !guardLevel.getWorldBorder().isWithinBounds(neighborFeet)
+                                    || !guardLevel.getWorldBorder().isWithinBounds(neighborHead)) {
+                                unsafeGuardNeighbor = true;
+                                break;
+                            }
+                            var nearbyFeet = guardLevel.getBlockState(neighborFeet);
+                            var nearbyHead = guardLevel.getBlockState(neighborHead);
+                            if (guardLevel.getFluidState(neighborFeet).is(net.minecraft.tags.FluidTags.LAVA)
+                                    || guardLevel.getFluidState(neighborHead).is(net.minecraft.tags.FluidTags.LAVA)
+                                    || nearbyFeet.is(net.minecraft.world.level.block.Blocks.CACTUS)
+                                    || nearbyHead.is(net.minecraft.world.level.block.Blocks.CACTUS)
+                                    || nearbyFeet.is(net.minecraft.world.level.block.Blocks.FIRE)
+                                    || nearbyHead.is(net.minecraft.world.level.block.Blocks.FIRE)
+                                    || nearbyFeet.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
+                                    || nearbyHead.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
+                                    || nearbyFeet.is(net.minecraft.world.level.block.Blocks.CAMPFIRE)
+                                        && nearbyFeet.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
+                                    || nearbyHead.is(net.minecraft.world.level.block.Blocks.CAMPFIRE)
+                                        && nearbyHead.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
+                                    || nearbyFeet.is(net.minecraft.world.level.block.Blocks.SOUL_CAMPFIRE)
+                                        && nearbyFeet.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
+                                    || nearbyHead.is(net.minecraft.world.level.block.Blocks.SOUL_CAMPFIRE)
+                                        && nearbyHead.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)) {
+                                unsafeGuardNeighbor = true;
+                                break;
+                            }
+                        }
+                        if (unsafeGuardNeighbor) continue;
                         // Guard is a persistent sit order: unlike a moving wolf, a
                         // seated pet cannot step away if a portal is beside it.
                         // Reject portal blocks at its feet, head and immediate sides
