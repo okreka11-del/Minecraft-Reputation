@@ -753,7 +753,10 @@ public final class ReputationArmyScreen extends Screen {
             if (!selectable.isEmpty()) {
                 int current = selectable.indexOf(getFocused());
                 int direction = keyCode == GLFW.GLFW_KEY_PAGE_DOWN ? 1 : -1;
-                int start = current < 0 ? (direction > 0 ? -1 : 0) : current;
+                // With no focused control, start just outside the corresponding
+                // edge. Page Up should reach the last available control, not
+                // unexpectedly land several commands into the list.
+                int start = current < 0 ? (direction > 0 ? -1 : selectable.size()) : current;
                 int next = Math.floorMod(start + direction * Math.min(3, selectable.size()), selectable.size());
                 setFocused(selectable.get(next));
             }
