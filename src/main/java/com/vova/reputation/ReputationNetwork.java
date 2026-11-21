@@ -383,13 +383,15 @@ public final class ReputationNetwork {
                     // Wolves fight at melee range. Even a safe target block can border
                     // lava, fire or cactus that damages pets as they approach it.
                     // Reject the entire attack rather than silently sacrificing a pack.
-                    boolean dangerousApproach = false;
+                    // A single hazardous side must not block an otherwise safe melee
+                    // approach. Accept the attack if at least one adjacent standing
+                    // position is safe; wolves can approach from that side.
+                    boolean safeApproach = false;
                     for (var direction : net.minecraft.core.Direction.Plane.HORIZONTAL) {
                         var adjacentFeet = targetFeet.relative(direction);
                         var adjacentHead = adjacentFeet.above();
                         if (!targetLevel.hasChunkAt(adjacentFeet) || !targetLevel.hasChunkAt(adjacentHead)) {
-                            dangerousApproach = true;
-                            break;
+                            continue;
                         }
                         var feet = targetLevel.getBlockState(adjacentFeet);
                         var head = targetLevel.getBlockState(adjacentHead);
@@ -422,13 +424,20 @@ public final class ReputationNetwork {
                                 || head.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
                                 || feet.is(net.minecraft.world.level.block.Blocks.CACTUS)
                                 || head.is(net.minecraft.world.level.block.Blocks.CACTUS)) {
-                            dangerousApproach = true;
+                            continue;
+                        }
+                        // A wolf needs a walkable floor and enough room for its body.
+                        // An empty but unsupported or blocked side is not a usable route.
+                        if (ground.isFaceSturdy(targetLevel, adjacentFeet.below(), net.minecraft.core.Direction.UP)
+                                && feet.getCollisionShape(targetLevel, adjacentFeet).isEmpty()
+                                && head.getCollisionShape(targetLevel, adjacentHead).isEmpty()) {
+                            safeApproach = true;
                             break;
                         }
                     }
-                    if (dangerousApproach) {
+                    if (!safeApproach) {
                         player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                            "Опасный подход к цели: рядом огонь, лава, колючки или ловушки."), true);
+                            "Нет безопасного подхода к цели: проверьте воду, огонь, препятствия и поверхность."), true);
                         return;
                     }
                     attackTarget = candidate;
