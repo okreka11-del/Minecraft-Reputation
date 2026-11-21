@@ -1013,6 +1013,12 @@ public final class ReputationNetwork {
                                         && sideFeetState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
                                     || sideHeadState.is(net.minecraft.world.level.block.Blocks.SOUL_CAMPFIRE)
                                         && sideHeadState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
+                                    // Flowing water beside a sitting wolf can push its hitbox
+                                    // into a stream while its ordered-to-sit AI cannot escape.
+                                    // Reject only the affected guard order, preserving the
+                                    // wolf's previous stance and the rest of the squad.
+                                    || guardLevel.getFluidState(sideFeet).is(net.minecraft.tags.FluidTags.WATER)
+                                    || guardLevel.getFluidState(sideHead).is(net.minecraft.tags.FluidTags.WATER)
                                     || guardLevel.getFluidState(sideFeet).is(net.minecraft.tags.FluidTags.LAVA)
                                     || guardLevel.getFluidState(sideHead).is(net.minecraft.tags.FluidTags.LAVA)) {
                                 guardTouchesPortal = true;
