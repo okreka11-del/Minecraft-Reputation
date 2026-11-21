@@ -330,6 +330,14 @@ public final class ReputationNetwork {
                             "Цель находится в портале: волки останутся в вашем измерении."), true);
                         return;
                     }
+                    // Creepers explode at melee range, often killing an entire tame pack.
+                    // Keep the squad's current orders instead of sending wolves into
+                    // a blast; the owner can handle this target from a safe distance.
+                    if (candidate instanceof net.minecraft.world.entity.monster.Creeper) {
+                        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                            "Цель — крипер: волки не атакуют взрывающихся монстров. Разберитесь с ним на расстоянии."), true);
+                        return;
+                    }
                     // Burning monsters can ignite wolves on contact during melee.
                     // Preserve the squad's current stance until the target stops burning.
                     // This includes daylight-burning undead on otherwise safe ground.
