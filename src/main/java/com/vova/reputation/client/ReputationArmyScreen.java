@@ -44,8 +44,8 @@ public final class ReputationArmyScreen extends Screen {
     // resetting tickCount. Bind this screen to the exact player instance.
     private net.minecraft.client.player.LocalPlayer openedPlayer;
     private boolean lastOrdersEnabled;
-    private String lastUnavailableReason = "";
-    // Reuse these labels instead of allocating a new array every rendered frame.
+    private Component lastUnavailableReason;
+    // Unavailable help uses shared immutable Components. Compare their identity\n    // instead of allocating a localized String every render frame while G is open.\n    // Reuse these labels instead of allocating a new array every rendered frame.
     // Mouse hover takes precedence over keyboard focus, so the tactical hint
     // always describes the command the player is currently pointing at.
     private static final String[] ORDER_PREVIEWS = {
@@ -222,7 +222,7 @@ public final class ReputationArmyScreen extends Screen {
         pendingWheelScroll = 0;
         closeButton = null;
         lastOrdersEnabled = canIssueOrders();
-        lastUnavailableReason = unavailableHelp().getString();
+        lastUnavailableReason = unavailableHelp();
         int w = Math.max(24, Math.min(238, width - 16));
         int x = (width - w) / 2;
         int y = panelTop();
@@ -283,10 +283,10 @@ public final class ReputationArmyScreen extends Screen {
     // switch). Refresh button availability instead of retaining the init-time snapshot.
     private void refreshOrderAvailability() {
         boolean enabled = canIssueOrders();
-        String reason = unavailableHelp().getString();
+        Component reason = unavailableHelp();
         // A disabled panel may change from no wolves to spectator/death without
         // ever becoming enabled. Refresh the explanation as well as the buttons.
-        if (enabled == lastOrdersEnabled && reason.equals(lastUnavailableReason)) return;
+        if (enabled == lastOrdersEnabled && reason == lastUnavailableReason) return;
         boolean availabilityChanged = enabled != lastOrdersEnabled;
         lastOrdersEnabled = enabled;
         lastUnavailableReason = reason;
