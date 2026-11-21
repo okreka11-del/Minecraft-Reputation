@@ -406,7 +406,16 @@ public final class ReputationNetwork {
                     for (var direction : net.minecraft.core.Direction.Plane.HORIZONTAL) {
                         var adjacentFeet = targetFeet.relative(direction);
                         var adjacentHead = adjacentFeet.above();
-                        if (!targetLevel.hasChunkAt(adjacentFeet) || !targetLevel.hasChunkAt(adjacentHead)) {
+                        var adjacentGround = adjacentFeet.below();
+                        // Do not load a neighboring chunk or inspect a position beyond
+                        // the world border when checking a possible melee approach.
+                        // All three blocks must be present before reading their states.
+                        if (!targetLevel.hasChunkAt(adjacentFeet)
+                                || !targetLevel.hasChunkAt(adjacentHead)
+                                || !targetLevel.hasChunkAt(adjacentGround)
+                                || !targetLevel.getWorldBorder().isWithinBounds(adjacentFeet)
+                                || !targetLevel.getWorldBorder().isWithinBounds(adjacentHead)
+                                || !targetLevel.getWorldBorder().isWithinBounds(adjacentGround)) {
                             continue;
                         }
                         var feet = targetLevel.getBlockState(adjacentFeet);
