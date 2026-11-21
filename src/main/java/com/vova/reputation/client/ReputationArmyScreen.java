@@ -114,7 +114,9 @@ public final class ReputationArmyScreen extends Screen {
     private boolean hasManualRefreshExpired() {
         return minecraft != null && minecraft.player != null
             && manualRefreshDeadlineTick != Integer.MIN_VALUE
-            && minecraft.player.tickCount > manualRefreshDeadlineTick;
+            // The 40-tick deadline is exclusive: a response arriving at the
+            // exact boundary is already timed out, matching the zero countdown.
+            && minecraft.player.tickCount >= manualRefreshDeadlineTick;
     }
 
     // Display a whole-second countdown using the player's existing tick clock.
@@ -128,7 +130,7 @@ public final class ReputationArmyScreen extends Screen {
     private boolean isManualRefreshPending() {
         return minecraft != null && minecraft.player != null
             && manualRefreshDeadlineTick != Integer.MIN_VALUE
-            && minecraft.player.tickCount <= manualRefreshDeadlineTick;
+            && minecraft.player.tickCount < manualRefreshDeadlineTick;
     }
 
     private boolean isOriginalDimension() {
