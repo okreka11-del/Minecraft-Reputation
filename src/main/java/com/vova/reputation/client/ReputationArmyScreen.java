@@ -959,7 +959,13 @@ public final class ReputationArmyScreen extends Screen {
         // Limit a single gesture to three controls. Huge scroll bursts should
         // not wrap all the way around and appear to have done nothing.
         java.util.List<Button> selectable = selectableControls();
-        if (selectable.isEmpty()) return true;
+        if (selectable.isEmpty()) {
+            // Never carry an unconsumed wheel gesture into a later menu state.
+            // A server refresh may temporarily remove every selectable control;
+            // otherwise the next available command could receive stale input.
+            pendingWheelScroll = 0;
+            return true;
+        }
         int current = selectable.indexOf(getFocused());
         // A single event may contain several wheel notches. Honour each notch
         // rather than silently dropping fast wheel/trackpad input; cap the
