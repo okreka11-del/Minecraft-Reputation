@@ -230,7 +230,7 @@ public final class ReputationArmyScreen extends Screen {
         closeButton = null;
         lastOrdersEnabled = canIssueOrders();
         lastUnavailableReason = unavailableHelp();
-        int w = Math.max(24, Math.min(238, width - 16));
+        int w = Math.max(1, Math.min(238, width - 16));
         int x = (width - w) / 2;
         int y = panelTop();
         int buttonHeight = commandButtonHeight();
@@ -358,6 +358,9 @@ public final class ReputationArmyScreen extends Screen {
         return Math.max(1, Math.min(20, space / 7));
     }
 
+    // A tiny GUI-scaled viewport may be narrower than the old 24px minimum.
+    // Keep the tactical frame inside the screen rather than forcing it off-screen.
+    // Normal-sized viewports retain the original 238px maximum.
     private int panelTop() {
         int buttonHeight = commandButtonHeight();
         int buttonGap = commandButtonGap();
@@ -432,7 +435,7 @@ public final class ReputationArmyScreen extends Screen {
     @Override public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         refreshOrderAvailability();
         // Keep the world fully visible behind squad commands; no fullscreen dim layer.
-        int w = Math.max(24, Math.min(238, width - 16));
+        int w = Math.max(1, Math.min(238, width - 16));
         int x = (width - w) / 2, y = panelTop();
         int buttonHeight = commandButtonHeight();
         int buttonGap = commandButtonGap();
@@ -810,7 +813,7 @@ public final class ReputationArmyScreen extends Screen {
             // Middle-click refresh is a panel action, not a global click trap.
             // Dismiss clicks on the visible world instead of sending a server
             // scan the player did not intend. This mirrors left-click outside.
-            int panelWidth = Math.max(24, Math.min(238, width - 16));
+            int panelWidth = Math.max(1, Math.min(238, width - 16));
             int panelX = (width - panelWidth) / 2;
             int panelY = panelTop();
             int panelBottom = Math.min(height - 2, panelY + headerHeight()
@@ -831,7 +834,7 @@ public final class ReputationArmyScreen extends Screen {
         // without issuing an order. Keep clicks within the frame (including its
         // border) for the actual buttons so compact GUI scales remain usable.
         if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
-            int panelWidth = Math.max(24, Math.min(238, width - 16));
+            int panelWidth = Math.max(1, Math.min(238, width - 16));
             int panelX = (width - panelWidth) / 2;
             int panelY = panelTop();
             int panelBottom = Math.min(height - 2, panelY + headerHeight()
@@ -881,7 +884,7 @@ public final class ReputationArmyScreen extends Screen {
         // visible world must not silently change the selected combat order.
         // Discard a partial trackpad gesture on exit so returning to the panel
         // cannot complete an old scroll and unexpectedly select another order.
-        int panelWidth = Math.max(24, Math.min(238, width - 16));
+        int panelWidth = Math.max(1, Math.min(238, width - 16));
         int panelX = (width - panelWidth) / 2;
         int panelY = panelTop();
         int panelBottom = Math.min(height - 2, panelY + headerHeight()
