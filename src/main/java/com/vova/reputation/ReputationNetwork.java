@@ -944,8 +944,10 @@ public final class ReputationNetwork {
                         // Freezing wolves need to keep moving to seek warmth. Do not
                         // immobilize one with a guard order while it is taking
                         // environmental cold damage, even if its feet are clear.
+                        // Powder snow is unsafe immediately on entry, before the
+                        // freezing timer begins to report cold damage.
                         if (!wolf.onGround() || wolf.isInWater() || wolf.isInLava()
-                                || wolf.isOnFire() || wolf.isFreezing()) continue;
+                                || wolf.isOnFire() || wolf.isFreezing() || wolf.isInPowderSnow) continue;
                         // A seated guard cannot step away from damaging terrain.
                         // Check the actual wolf position on the server, not the
                         // owner's position or a client-supplied coordinate.
