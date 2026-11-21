@@ -757,7 +757,9 @@ public final class ReputationArmyScreen extends Screen {
                 // edge. Page Up should reach the last available control, not
                 // unexpectedly land several commands into the list.
                 int start = current < 0 ? (direction > 0 ? -1 : selectable.size()) : current;
-                int next = Math.floorMod(start + direction * Math.min(3, selectable.size()), selectable.size());
+                int next = current < 0
+                    ? (direction > 0 ? 0 : selectable.size() - 1)
+                    : Math.floorMod(start + direction * Math.min(3, selectable.size()), selectable.size());
                 setFocused(selectable.get(next));
             }
             return true;
