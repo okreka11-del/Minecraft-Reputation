@@ -14,6 +14,9 @@ public final class ReputationBookScreen extends Screen {
     private final int score, suspicion, hunterProgress;
     private final boolean hunterCompleted;
     private final String history, settlement;
+    // Parse the server-synced history once per book opening, not on every frame,
+    // hover and navigation event. The snapshot stays immutable for this screen.
+    private final String[] historyEntries;
     private final int[] factions = new int[6];
     private int section;
     private int historyPage;
@@ -25,6 +28,7 @@ public final class ReputationBookScreen extends Screen {
         this.score = Math.max(-100, Math.min(200, score));
         this.suspicion = suspicion;
         this.history = history == null ? "" : history;
+        this.historyEntries = this.history.isEmpty() ? new String[0] : this.history.split("\\n");
         this.settlement = settlement == null ? "none" : settlement;
         this.hunterProgress = Math.max(0, Math.min(10, hunterProgress));
         this.hunterCompleted = hunterCompleted;
@@ -60,7 +64,7 @@ public final class ReputationBookScreen extends Screen {
     }
 
     private int historyPages() {
-        return Math.max(1, (history.isEmpty() ? 0 : history.split("\\n").length + 7) / 8);
+        return Math.max(1, (historyEntries.length + 7) / 8);
     }
 
     @Override public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
@@ -204,10 +208,9 @@ public final class ReputationBookScreen extends Screen {
                 : localX >= 373 && localX < 573 ? 1 : -1;
             int row = localY >= 83 && localY < 219 ? (int) ((localY - 83) / 34) : -1;
             if (column >= 0 && row >= 0 && row < 4) {
-                String[] entries = history.split("\\n");
                 int index = historyPage * 8 + column * 4 + row;
-                if (index < entries.length && font.width(entries[index]) > 200) {
-                    g.renderTooltip(font, Component.literal(entries[index]), mouseX, mouseY);
+                if (index < historyEntries.length && font.width(historyEntries[index]) > 200) {
+                    g.renderTooltip(font, Component.literal(historyEntries[index]), mouseX, mouseY);
                 }
             }
         }
@@ -288,7 +291,7 @@ public final class ReputationBookScreen extends Screen {
         rule(g, 373, 174, 176);
         tr(g, "reputation.book.actions", 373, 187);
         if (history.isEmpty()) tr(g, "reputation.book.empty", 373, 207);
-        else text(g, history.split("\\n")[0], 373, 207, INK);
+        else text(g, historyEntries[0], 373, 207, INK);
     }
     private void factionPage(GuiGraphics g) {
         tr(g, "reputation.book.factions", 137, 60);
@@ -331,12 +334,11 @@ public final class ReputationBookScreen extends Screen {
     private void historyPage(GuiGraphics g) {
         tr(g, "reputation.book.actions", 137, 60);
         if (history.isEmpty()) { tr(g, "reputation.book.empty", 137, 90); return; }
-        String[] lines = history.split("\\n");
         int start = historyPage * 8;
-        for (int i = start; i < Math.min(start + 8, lines.length); i++) {
+        for (int i = start; i < Math.min(start + 8, historyEntries.length); i++) {
             int x = i - start < 4 ? 137 : 373;
             int y = 83 + ((i - start) % 4) * 34;
-            text(g, lines[i], x, y, INK);
+            text(g, historyEntries[i], x, y, INK);
             rule(g, x, y + 14, 180);
         }
         text(g, (historyPage + 1) + " / " + historyPages(), 137, 254, GOLD);
