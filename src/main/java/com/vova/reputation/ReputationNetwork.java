@@ -605,6 +605,11 @@ public final class ReputationNetwork {
                     boolean burningDestination = dangerousGround || player.isInLava()
                         || level.getFluidState(ownerFeet).is(net.minecraft.tags.FluidTags.LAVA)
                         || level.getFluidState(ownerHead).is(net.minecraft.tags.FluidTags.LAVA)
+                        // A rally into a river can strand or drown the pack even if the
+                        // owner is swimming safely. Require dry ground for squad assembly.
+                        || player.isInWaterOrBubble()
+                        || level.getFluidState(ownerFeet).is(net.minecraft.tags.FluidTags.WATER)
+                        || level.getFluidState(ownerHead).is(net.minecraft.tags.FluidTags.WATER)
                         || level.getBlockState(ownerFeet).is(net.minecraft.world.level.block.Blocks.FIRE)
                         || level.getBlockState(ownerFeet).is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
                         || level.getBlockState(ownerHead).is(net.minecraft.world.level.block.Blocks.FIRE)
@@ -676,6 +681,10 @@ public final class ReputationNetwork {
                                     && adjacentGroundState.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
                                 || level.getFluidState(adjacentFeet).is(net.minecraft.tags.FluidTags.LAVA)
                                 || level.getFluidState(adjacentHead).is(net.minecraft.tags.FluidTags.LAVA)
+                                // Keep retreat and rally positions clear of adjacent water:
+                                // a wolf moving around its owner can step into a deep pool.
+                                || level.getFluidState(adjacentFeet).is(net.minecraft.tags.FluidTags.WATER)
+                                || level.getFluidState(adjacentHead).is(net.minecraft.tags.FluidTags.WATER)
                                 // A wolf brushing a neighboring hot floor block can take
                                 // contact damage even when the owner's own block is safe.
                                 || adjacentFeetState.is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)
@@ -709,7 +718,7 @@ public final class ReputationNetwork {
                     }
                     if (burningDestination || trappingDestination || unsupportedDestination || dangerousNeighbor) {
                         player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                            "Точка сбора опасна: встаньте на твёрдую поверхность с двумя свободными блоками высоты, вдали от огня и ловушек."), true);
+                            "Точка сбора опасна: выберите сухую твёрдую поверхность с двумя свободными блоками высоты, вдали от воды, огня и ловушек."), true);
                         return;
                     }
                 }
