@@ -45,7 +45,9 @@ public final class ReputationArmyScreen extends Screen {
     private net.minecraft.client.player.LocalPlayer openedPlayer;
     private boolean lastOrdersEnabled;
     private Component lastUnavailableReason;
-    // Unavailable help uses shared immutable Components. Compare their identity\n    // instead of allocating a localized String every render frame while G is open.\n    // Reuse these labels instead of allocating a new array every rendered frame.
+    // Unavailable help uses shared immutable Components. Compare their identity
+    // instead of allocating a localized String every render frame while G is open.
+    // Reuse these labels instead of allocating a new array every rendered frame.
     // Mouse hover takes precedence over keyboard focus, so the tactical hint
     // always describes the command the player is currently pointing at.
     private static final String[] ORDER_PREVIEWS = {
