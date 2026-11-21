@@ -25,27 +25,34 @@ public final class ReputationDialogueScreen extends Screen {
     private int panelY() { return (height - panelHeight()) / 2; }
 
     @Override protected void init() {
-        int available = Math.max(2, panelWidth() - 20);
-        int gap = 6;
-        int buttonWidth = Math.max(1, (available - gap) / 2);
-        int x = panelX() + 10, y = panelY() + panelHeight() - 57;
+        // Keep both action rows inside compact GUI-scale viewports. The old
+        // fixed 57px footer could place the first row above the panel, while
+        // its fixed padding could push the second column outside narrow panels.
+        int w = panelWidth(), h = panelHeight();
+        int padding = Math.min(10, Math.max(0, (w - 2) / 4));
+        int gap = Math.min(6, Math.max(0, w - 2 * padding - 2));
+        int buttonWidth = Math.max(1, (w - 2 * padding - gap) / 2);
+        int buttonHeight = Math.max(1, Math.min(20, (h - 4) / 2));
+        int rowGap = Math.min(6, Math.max(0, h - 2 * buttonHeight - 2));
+        int x = panelX() + padding;
+        int y = panelY() + Math.max(0, h - 5 - 2 * buttonHeight - rowGap);
         addRenderableWidget(Button.builder(Component.literal("Поговорить"), b -> {
             response = score <= -80 ? "Не причиняй вреда нашей деревне!"
                 : score >= 151 ? "Спасибо, что защищаешь нас!"
                 : score >= 100 ? "Мы рады видеть нашего союзника!"
                 : "Наша деревня живёт торговлей и трудом.";
-        }).bounds(x, y, buttonWidth, 20).build());
+        }).bounds(x, y, buttonWidth, buttonHeight).build());
         addRenderableWidget(Button.builder(Component.literal("Торговля"), b -> {
             PacketDistributor.sendToServer(new ReputationNetwork.DialogueAction(entityId, 1));
             onClose();
-        }).bounds(x + buttonWidth + gap, y, buttonWidth, 20).build());
+        }).bounds(x + buttonWidth + gap, y, buttonWidth, buttonHeight).build());
         addRenderableWidget(Button.builder(Component.literal("Отношения"), b -> {
             response = score < 0 ? "Жители относятся к тебе с опаской."
                 : score >= 151 ? "Жители доверяют тебе свою безопасность."
                 : "Отношения зависят от твоих поступков.";
-        }).bounds(x, y + 26, buttonWidth, 20).build());
+        }).bounds(x, y + buttonHeight + rowGap, buttonWidth, buttonHeight).build());
         addRenderableWidget(Button.builder(Component.literal("Закрыть"), b -> onClose())
-            .bounds(x + buttonWidth + gap, y + 26, buttonWidth, 20).build());
+            .bounds(x + buttonWidth + gap, y + buttonHeight + rowGap, buttonWidth, buttonHeight).build());
     }
     // Constrain server-provided text without fractional font transforms.
     private void drawFittedCentered(GuiGraphics g, String value, int y) {
@@ -76,9 +83,11 @@ public final class ReputationDialogueScreen extends Screen {
         g.fill(x + 5, y + 5, x + w - 5, y + 7, 0xFFB5843B);
         g.fill(x + 9, y + 30, x + w - 9, y + 32, 0xFFB5843B);
         g.fill(x + 7, y + h - 8, x + w - 7, y + h - 6, 0xFF8C6034);
-        drawFittedCentered(g, title.getString(), y + 13);
-        drawFittedCentered(g, greeting, y + 45);
-        drawFittedCentered(g, response, y + 66);
+        // Prioritize usable actions over decorative text on very short screens.
+        // Never draw dialogue underneath the buttons at large GUI scales.
+        if (h >= 65) drawFittedCentered(g, title.getString(), y + (h < 120 ? 8 : 13));
+        if (h >= 95) drawFittedCentered(g, greeting, y + (h < 120 ? 28 : 45));
+        if (h >= 120) drawFittedCentered(g, response, y + 66);
         super.render(g, mouseX, mouseY, partialTick);
     }
     @Override public boolean isPauseScreen() { return false; }
