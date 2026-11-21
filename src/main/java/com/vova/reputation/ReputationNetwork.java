@@ -941,8 +941,11 @@ public final class ReputationNetwork {
                         // stay in water, lava, fire, or mid-air where it could drown,
                         // burn, or fall before it can move again. Other wolves may
                         // still accept the order independently.
+                        // Freezing wolves need to keep moving to seek warmth. Do not
+                        // immobilize one with a guard order while it is taking
+                        // environmental cold damage, even if its feet are clear.
                         if (!wolf.onGround() || wolf.isInWater() || wolf.isInLava()
-                                || wolf.isOnFire()) continue;
+                                || wolf.isOnFire() || wolf.isFreezing()) continue;
                         // A seated guard cannot step away from damaging terrain.
                         // Check the actual wolf position on the server, not the
                         // owner's position or a client-supplied coordinate.
