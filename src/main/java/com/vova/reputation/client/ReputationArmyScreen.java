@@ -446,11 +446,28 @@ public final class ReputationArmyScreen extends Screen {
         int firstButtonY = y + headerHeight();
         // Include all six orders AND the Close button in the panel frame.
         int panelBottom = Math.min(height - 2, firstButtonY + 7 * buttonHeight + 6 * buttonGap + 8);
-        g.fill(x - 3, y - 3, x + w + 3, panelBottom, 0xFF30251A);
-        g.fill(x, y, x + w, panelBottom - 3, 0xFFE2C796);
-        // Pixel-sharp inset frame and faction-neutral gold accent.
-        g.fill(x + 2, y + 2, x + w - 2, y + 4, 0xFFD4A64E);
-        g.fill(x + 3, panelBottom - 7, x + w - 3, panelBottom - 5, 0xFF8B6334);
+        // Clip the frame to the actual viewport. With an unusually small GUI
+        // width/height, the old decorative offsets could draw beyond the window
+        // or reverse a fill rectangle, even though the buttons were clamped.
+        int frameLeft = Math.max(0, x - 3);
+        int frameRight = Math.min(width, x + w + 3);
+        int frameTop = Math.max(0, y - 3);
+        int frameBottom = Math.min(height, panelBottom);
+        if (frameRight > frameLeft && frameBottom > frameTop) {
+            g.fill(frameLeft, frameTop, frameRight, frameBottom, 0xFF30251A);
+        }
+        int innerBottom = Math.min(height, panelBottom - 3);
+        if (x + w > x && innerBottom > y) {
+            g.fill(x, y, x + w, innerBottom, 0xFFE2C796);
+        }
+        // Skip decorative strokes that cannot fit: they must never overlap
+        // controls or produce reversed rectangles at extreme GUI scales.
+        if (w > 4 && y + 4 < innerBottom) {
+            g.fill(x + 2, y + 2, x + w - 2, y + 4, 0xFFD4A64E);
+        }
+        if (w > 6 && panelBottom - 5 > y + 4) {
+            g.fill(x + 3, panelBottom - 7, x + w - 3, panelBottom - 5, 0xFF8B6334);
+        }
         // The heading is a real refresh target: expose its hit area visually on
         // hover, including compact GUI layouts where the text hint is hidden.
         // Use integer pixel fills so GUI scaling stays crisp and inexpensive.
