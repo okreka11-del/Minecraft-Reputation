@@ -886,10 +886,12 @@ public final class ReputationArmyScreen extends Screen {
         // Diagonal touchpad gestures are common. If horizontal movement
         // dominates, treat the gesture as horizontal navigation rather than
         // selecting a potentially dangerous attack or retreat order.
+        // Also discard malformed horizontal deltas from input devices: they
+        // must not turn an ambiguous gesture into a combat-order selection.
         // Clear the accumulated fraction so a later vertical scroll starts
         // cleanly instead of completing a discarded diagonal gesture.
-        if (scrollY == 0 || (Double.isFinite(scrollX)
-                && Math.abs(scrollX) > Math.abs(scrollY))) {
+        if (!Double.isFinite(scrollX) || scrollY == 0
+                || Math.abs(scrollX) > Math.abs(scrollY)) {
             pendingWheelScroll = 0;
             // A horizontal or horizontal-dominant gesture must not fall through
             // to vanilla focus navigation, which may select a combat order.
