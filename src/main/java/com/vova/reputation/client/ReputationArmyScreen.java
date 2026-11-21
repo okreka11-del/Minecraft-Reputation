@@ -475,9 +475,14 @@ public final class ReputationArmyScreen extends Screen {
         // Compact GUI scales hide the secondary status row. Keep critical
         // server/time-out feedback visible in the heading itself, using the
         // same accessible status palette as the full-size panel.
+        // Warn before a confirmed squad snapshot expires. The countdown is
+        // already visible, but a low-time amber cue helps players refresh
+        // before a combat command becomes unavailable mid-selection.
+        boolean snapshotExpiring = !refreshing && !refreshFailed && !staleSquad
+            && !playerInactive && available > 0 && squadSnapshotSecondsRemaining() <= 3;
         int headingColor = height < 165
             ? (playerInactive || refreshFailed || staleSquad ? 0xFF9E3030
-                : refreshing ? 0xFF956019
+                : refreshing || snapshotExpiring ? 0xFF956019
                 : available > 0 ? 0xFF28613C : 0xFF45301B)
             : 0xFF45301B;
         g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + (height < 105 ? 1 : 8), headingColor, false);
@@ -490,7 +495,7 @@ public final class ReputationArmyScreen extends Screen {
             // Show server verification status without blur, overlays or extra render passes.
             // Red = unavailable/stale, amber = pending, green = confirmed squad.
             int statusColor = playerInactive || refreshFailed || staleSquad
-                ? 0xFF9E3030 : refreshing ? 0xFF956019
+                ? 0xFF9E3030 : refreshing || snapshotExpiring ? 0xFF956019
                 : available > 0 ? 0xFF28613C : 0xFF705438;
             g.drawString(font, font.plainSubstrByWidth(count, w - 16), x + 8, y + 25, statusColor, false);
         }
