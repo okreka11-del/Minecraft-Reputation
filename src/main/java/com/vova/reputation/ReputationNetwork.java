@@ -749,6 +749,10 @@ public final class ReputationNetwork {
                 int waypointOutOfRange = 0;
                 int waypointNoPath = 0;
                 int waypointNavigationRejected = 0;
+                int rallyNoPath = 0;
+                int rallyNavigationRejected = 0;
+                int retreatNoPath = 0;
+                int retreatNavigationRejected = 0;
                 for (var wolf : wolves) {
                     // A mounted wolf cannot act on any squad order until dismounted:
                     // even Follow/Guard would misleadingly report success while it
@@ -885,13 +889,17 @@ public final class ReputationNetwork {
                             && Math.abs(wolf.getY() - player.getY()) <= 1.5D
                             && wolf.hasLineOfSight(player);
                         var retreatPath = alreadySafe ? null : wolf.getNavigation().createPath(player, 0);
-                        if (!alreadySafe && (retreatPath == null || !retreatPath.canReach())) continue;
+                        if (!alreadySafe && (retreatPath == null || !retreatPath.canReach())) {
+                            retreatNoPath++;
+                            continue;
+                        }
                         // Navigation can reject a route even after createPath reports
                         // reachability. Preserve the previous task on that failure.
                         boolean wasSitting = wolf.isOrderedToSit();
                         if (!alreadySafe && wasSitting) wolf.setOrderedToSit(false);
                         if (!alreadySafe && !wolf.getNavigation().moveTo(retreatPath, 1.35D)) {
                             if (wasSitting) wolf.setOrderedToSit(true);
+                            retreatNavigationRejected++;
                             continue;
                         }
                         wolf.setTarget(null);
@@ -909,7 +917,10 @@ public final class ReputationNetwork {
                             && Math.abs(wolf.getY() - player.getY()) <= 1.5D
                             && wolf.hasLineOfSight(player);
                         var rallyPath = alreadyGathered ? null : wolf.getNavigation().createPath(player, 0);
-                        if (!alreadyGathered && (rallyPath == null || !rallyPath.canReach())) continue;
+                        if (!alreadyGathered && (rallyPath == null || !rallyPath.canReach())) {
+                            rallyNoPath++;
+                            continue;
+                        }
                         // Start a viable rally route before discarding an active guard
                         // or attack task. A reachable path may still be rejected by
                         // navigation; in that case preserve the wolf's old orders.
@@ -917,6 +928,7 @@ public final class ReputationNetwork {
                         if (!alreadyGathered && wasSitting) wolf.setOrderedToSit(false);
                         if (!alreadyGathered && !wolf.getNavigation().moveTo(rallyPath, 1.2D)) {
                             if (wasSitting) wolf.setOrderedToSit(true);
+                            rallyNavigationRejected++;
                             continue;
                         }
                         wolf.setTarget(null);
@@ -1186,10 +1198,12 @@ public final class ReputationNetwork {
                         "Охрана не назначена: волки не стоят на земле или находятся рядом с опасными блоками."), true);
                 } else if (payload.order() == 2 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                        "Сбор не удался: волки не могут проложить путь к вам. Подойдите ближе или уберите препятствия."), true);
+                        "Сбор не удался: " + rallyNoPath + " волков не находят путь, " + rallyNavigationRejected
+                            + " не смогли начать движение. Подойдите ближе или уберите препятствия."), true);
                 } else if (payload.order() == 3 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                        "Отступление не удалось: волки не могут проложить путь к вам."), true);
+                        "Отступление не удалось: " + retreatNoPath + " волков не находят путь, " + retreatNavigationRejected
+                            + " не смогли начать движение. Уберите препятствия или подойдите ближе."), true);
                 } else if (payload.order() == 4 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                         "Атака не выполнена: " + attackTooWounded + " волков тяжело ранены (≤25% здоровья), " + attackBurning + " горят, " + attackFreezing + " замерзают, " + attackLowAir + " задыхаются в воде, " + attackOutOfRange + " слишком далеко, "
