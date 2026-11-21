@@ -1,0 +1,28 @@
+{
+  "display": {
+    "icon": {
+      "id": "minecraft:nether_star"
+    },
+    "title": {
+      "text": "Герой Света",
+      "color": "light_purple"
+    },
+    "description": {
+      "text": "Достигните 200 репутации и станьте легендой Света"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "reached": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "reached"
+    ]
+  ]
+}
