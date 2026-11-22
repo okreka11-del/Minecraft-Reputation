@@ -598,6 +598,10 @@ public final class ReputationNetwork {
                                 || headState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
                                 || level.getFluidState(feetNeighbor).is(net.minecraft.tags.FluidTags.LAVA)
                                 || level.getFluidState(headNeighbor).is(net.minecraft.tags.FluidTags.LAVA)
+                                // Keep rally waypoints away from adjacent water: wolves can
+                                // drift into it while assembling and lose their footing.
+                                || level.getFluidState(feetNeighbor).is(net.minecraft.tags.FluidTags.WATER)
+                                || level.getFluidState(headNeighbor).is(net.minecraft.tags.FluidTags.WATER)
                                 // Powder snow traps ground-based pets; wither roses
                                 // damage them even when their collision is empty.
                                 // Berry bushes and lit campfires can also hurt wolves
