@@ -286,6 +286,14 @@ public final class ReputationNetwork {
                             "Нет видимой недавно отмеченной цели: ударьте монстра в радиусе 24 блоков."), true);
                         return;
                     }
+                    // Do not send tame wolves into a fight they cannot win. A monster
+                    // made invulnerable by a map, command or scripted encounter cannot
+                    // take ordinary melee damage; preserve the squad's existing stance.
+                    if (candidate.isInvulnerable()) {
+                        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                            "Цель неуязвима: приказ атаки отменён, чтобы не подвергать волков опасности."), true);
+                        return;
+                    }
                     // Wolves are ground-based melee units. A target far above or below
                     // the owner can lure them off cliffs or into unreachable terrain.
                     // Keep the existing stance intact instead of starting unsafe pursuit.
