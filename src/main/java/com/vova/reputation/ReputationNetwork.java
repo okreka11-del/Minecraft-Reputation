@@ -797,6 +797,7 @@ public final class ReputationNetwork {
                 int rallyNavigationRejected = 0;
                 int retreatNoPath = 0;
                 int retreatNavigationRejected = 0;
+                int retreatDisengagedWithoutPath = 0;
                 for (var wolf : wolves) {
                     // A mounted wolf cannot act on any squad order until dismounted:
                     // even Follow/Guard would misleadingly report success while it
@@ -967,6 +968,13 @@ public final class ReputationNetwork {
                         var retreatPath = alreadySafe ? null : wolf.getNavigation().createPath(player, 0);
                         if (!alreadySafe && (retreatPath == null || !retreatPath.canReach())) {
                             retreatNoPath++;
+                            // Even when the owner is unreachable, an emergency retreat
+                            // must stop the wolf attacking. Keep its sitting stance and
+                            // avoid sending it along a nonexistent route.
+                            wolf.setTarget(null);
+                            wolf.setLastHurtByMob(null);
+                            wolf.getNavigation().stop();
+                            retreatDisengagedWithoutPath++;
                             continue;
                         }
                         // Navigation can reject a route even after createPath reports
@@ -976,6 +984,12 @@ public final class ReputationNetwork {
                         if (!alreadySafe && !wolf.getNavigation().moveTo(retreatPath, 1.35D)) {
                             if (wasSitting) wolf.setOrderedToSit(true);
                             retreatNavigationRejected++;
+                            // Pathfinding rejected the route, but disengaging is still
+                            // safer than continuing to fight after an emergency order.
+                            wolf.setTarget(null);
+                            wolf.setLastHurtByMob(null);
+                            wolf.getNavigation().stop();
+                            retreatDisengagedWithoutPath++;
                             continue;
                         }
                         wolf.setTarget(null);
@@ -1254,7 +1268,7 @@ public final class ReputationNetwork {
                 }
                 // Failed orders must not lock out an immediate corrected command.
                 // Only a squad that actually changed state consumes the rate limit.
-                if (changed > 0 || restrainedDisengaged > 0) armyOrderData.putInt("reputationLastArmyOrderTick", player.tickCount);
+                if (changed > 0 || restrainedDisengaged > 0 || retreatDisengagedWithoutPath > 0) armyOrderData.putInt("reputationLastArmyOrderTick", player.tickCount);
                 // A valid target from the owner's perspective may still be hidden
                 // or out of range for every squad member. Explain that case rather
                 // than reporting an ambiguous successful "0 wolves" attack.
@@ -1282,10 +1296,10 @@ public final class ReputationNetwork {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                         "Сбор не удался: " + rallyNoPath + " волков не находят путь, " + rallyNavigationRejected
                             + " не смогли начать движение. Подойдите ближе или уберите препятствия."), true);
-                } else if (payload.order() == 3 && changed == 0 && restrainedDisengaged > 0) {
+                } else if (payload.order() == 3 && changed == 0 && (restrainedDisengaged > 0 || retreatDisengagedWithoutPath > 0)) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                        "Бой прекращён у " + restrainedDisengaged
-                            + " волков на поводке или в транспорте. Для отхода освободите их; самостоятельно двигаться они не могут."), true);
+                        "Бой прекращён: " + restrainedDisengaged + " волков удерживаются поводком/транспортом, "
+                            + retreatDisengagedWithoutPath + " не нашли путь к вам. Для полного отхода освободите их или уберите препятствия."), true);
                 } else if (payload.order() == 3 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                         "Отступление не удалось: " + retreatNoPath + " волков не находят путь, " + retreatNavigationRejected
@@ -1297,7 +1311,7 @@ public final class ReputationNetwork {
                             + " не могут найти путь. Подведите отряд ближе или устраните препятствия."), true);
                 } else {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                        (payload.order() == 0 ? "Следовать: " : payload.order() == 1 ? "Охранять: " : payload.order() == 2 ? "Сбор отряда: " : payload.order() == 3 ? "Отступают к вам: " : payload.order() == 4 ? "Атакуют цель: " : "Идут к точке: ") + changed + " из " + wolves.size() + " волков" + (payload.order() == 3 && restrainedDisengaged > 0 ? "; ещё " + restrainedDisengaged + " на поводке/в транспорте прекратили бой без движения" : "") + (changed < wolves.size() ? " (не выполнили: " + (wolves.size() - changed) + (restrained > 0 ? ", из них " + mounted + " в транспорте" + (leashed > 0 ? " и " + leashed + " на поводках" : "") : "") + "; проверьте расстояние, путь и безопасность)" : "")), true);
+                        (payload.order() == 0 ? "Следовать: " : payload.order() == 1 ? "Охранять: " : payload.order() == 2 ? "Сбор отряда: " : payload.order() == 3 ? "Отступают к вам: " : payload.order() == 4 ? "Атакуют цель: " : "Идут к точке: ") + changed + " из " + wolves.size() + " волков" + (payload.order() == 3 && restrainedDisengaged > 0 ? "; ещё " + restrainedDisengaged + " на поводке/в транспорте прекратили бой без движения" : "") + (payload.order() == 3 && retreatDisengagedWithoutPath > 0 ? "; " + retreatDisengagedWithoutPath + " прекратили бой, но путь недоступен" : "") + (changed < wolves.size() ? " (не выполнили: " + (wolves.size() - changed) + (restrained > 0 ? ", из них " + mounted + " в транспорте" + (leashed > 0 ? " и " + leashed + " на поводках" : "") : "") + "; проверьте расстояние, путь и безопасность)" : "")), true);
                 }
             }));
         registrar.playToServer(FartRequest.TYPE, FartRequest.STREAM_CODEC,
