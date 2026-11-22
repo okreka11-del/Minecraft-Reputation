@@ -115,12 +115,11 @@ public final class ReputationBookScreen extends Screen {
         // Bound unusually large wheel events before accumulation. A malformed
         // finite delta must not overflow the pending scroll to Infinity.
         scrollY = Math.max(-1.0D, Math.min(1.0D, scrollY));
-        // A reversed gesture should not inherit the fractional progress of the
-        // previous direction. Limit a single event to one turn to avoid skipping
-        // several sections on high-speed mouse wheels.
-        if (wheelRemainder != 0 && Math.signum(wheelRemainder) != Math.signum(scrollY)) {
-            wheelRemainder = 0;
-        }
+        // Opposite fractional gestures must cancel rather than discarding the
+        // earlier movement. On a touchpad, a 0.6-up/0.6-down correction should
+        // leave the page unchanged; resetting the accumulator on reversal made
+        // the next 0.4-down movement unexpectedly turn a page.
+        // The per-event clamp above still limits high-speed wheel input.
         wheelRemainder += scrollY;
         if (Math.abs(wheelRemainder) >= 1.0D) {
             turnPage(wheelRemainder > 0 ? -1 : 1);
