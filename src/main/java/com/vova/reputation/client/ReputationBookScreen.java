@@ -104,7 +104,17 @@ public final class ReputationBookScreen extends Screen {
             wheelRemainder = 0;
             return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
         }
-        if (scrollY == 0) return true;
+        // Trackpads can report horizontal or non-finite deltas. Never interpret
+        // sideways page gestures as vertical turns, and never allow NaN/Infinity
+        // to poison the fractional accumulator until the journal is reopened.
+        if (!Double.isFinite(scrollX) || !Double.isFinite(scrollY)
+                || scrollY == 0 || Math.abs(scrollX) > Math.abs(scrollY)) {
+            wheelRemainder = 0;
+            return true;
+        }
+        // Bound unusually large wheel events before accumulation. A malformed
+        // finite delta must not overflow the pending scroll to Infinity.
+        scrollY = Math.max(-1.0D, Math.min(1.0D, scrollY));
         // A reversed gesture should not inherit the fractional progress of the
         // previous direction. Limit a single event to one turn to avoid skipping
         // several sections on high-speed mouse wheels.
