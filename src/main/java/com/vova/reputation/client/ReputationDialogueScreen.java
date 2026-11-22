@@ -68,6 +68,15 @@ public final class ReputationDialogueScreen extends Screen {
         g.drawString(font, safe, textX, y, 0xFF49301F, false);
     }
 
+    // Preserve the full dialogue when the pixel-font line is clipped.
+    private void showFullTextOnHover(GuiGraphics g, String value, int textY, int mouseX, int mouseY) {
+        if (value == null || value.isEmpty() || font.width(value) <= Math.max(1, panelWidth() - 30)) return;
+        if (mouseX >= panelX() && mouseX < panelX() + panelWidth()
+            && mouseY >= textY - 2 && mouseY < textY + font.lineHeight + 2) {
+            g.renderTooltip(font, Component.literal(value), mouseX, mouseY);
+        }
+    }
+
     // Do not invoke vanilla's blurred/dimmed menu background for conversations.
     @Override public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         // The world remains visible while the pixel-art dialogue panel is open.
@@ -89,6 +98,8 @@ public final class ReputationDialogueScreen extends Screen {
         if (h >= 95) drawFittedCentered(g, greeting, y + (h < 120 ? 28 : 45));
         if (h >= 120) drawFittedCentered(g, response, y + 66);
         super.render(g, mouseX, mouseY, partialTick);
+        if (h >= 95) showFullTextOnHover(g, greeting, y + (h < 120 ? 28 : 45), mouseX, mouseY);
+        if (h >= 120) showFullTextOnHover(g, response, y + 66, mouseX, mouseY);
     }
     @Override public boolean isPauseScreen() { return false; }
 }
