@@ -81,10 +81,17 @@ public final class ReputationBookScreen extends Screen {
             historyPage = 0;
             return true;
         }
-        // Page Up/Down navigate history without changing sections.
-        if (section == 5 && (keyCode == 266 || keyCode == 267)) {
-            historyPage = Math.max(0, Math.min(historyPages() - 1,
-                historyPage + (keyCode == 266 ? -1 : 1)));
+        // Page Up/Down navigate history in place, and turn the journal
+        // normally on other sections so these keys never appear broken.
+        if (keyCode == 266 || keyCode == 267) {
+            int direction = keyCode == 266 ? -1 : 1;
+            if (section == 5) {
+                historyPage = Math.max(0, Math.min(historyPages() - 1,
+                    historyPage + direction));
+            } else {
+                turnPage(direction);
+            }
+            wheelRemainder = 0;
             return true;
         }
         // Number keys navigate directly to the seven journal sections.
