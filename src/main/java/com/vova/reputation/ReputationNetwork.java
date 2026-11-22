@@ -784,6 +784,7 @@ public final class ReputationNetwork {
                 int attackAllied = 0;
                 int attackNoPath = 0;
                 int waypointUnsafeWolf = 0;
+                int waypointTooWounded = 0;
                 int waypointOutOfRange = 0;
                 int waypointNoPath = 0;
                 int waypointNavigationRejected = 0;
@@ -869,6 +870,12 @@ public final class ReputationNetwork {
                         wolf.setTarget(attackTarget);
                         changed++;
                     } else if (payload.order() == 5) {
+                        // Optional waypoint travel is not worth risking a critically
+                        // injured pet. Follow and emergency Retreat remain available.
+                        if (wolf.getHealth() <= wolf.getMaxHealth() * 0.25F) {
+                            waypointTooWounded++;
+                            continue;
+                        }
                         // Optional travel must not override a wolf escaping fire, freezing
                         // or drowning. Preserve its current stance and navigation;
                         // Follow and emergency Retreat remain available.
@@ -1238,7 +1245,8 @@ public final class ReputationNetwork {
                                 : "Приказ не выполнен: волки в транспорте или на поводках. Освободите хотя бы одного."), true);
                 } else if (payload.order() == 5 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                        "Приказ к точке не выполнен: " + waypointUnsafeWolf + " волков в опасности (огонь, мороз или нехватка воздуха), "
+                        "Приказ к точке не выполнен: " + waypointTooWounded + " волков тяжело ранены (≤25% здоровья), "
+                            + waypointUnsafeWolf + " в опасности (огонь, мороз или нехватка воздуха), "
                             + waypointOutOfRange + " волков дальше 24 блоков, "
                             + waypointNoPath + " не находят путь, " + waypointNavigationRejected
                             + " не смогли начать движение. Подведите отряд ближе или устраните препятствия."), true);
