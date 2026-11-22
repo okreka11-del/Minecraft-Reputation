@@ -554,9 +554,15 @@ public final class ReputationArmyScreen extends Screen {
             int ticksRemaining = Math.max(0, manualRefreshDeadlineTick - minecraft.player.tickCount);
             int elapsedTicks = 40 - Math.min(40, ticksRemaining);
             int filledWidth = totalWidth * elapsedTicks / 40;
-            g.fill(barLeft, barY, barRight, barY + barHeight, 0xFF9D825A);
-            if (filledWidth > 0) {
-                g.fill(barLeft, barY, barLeft + filledWidth, barY + barHeight, 0xFF956019);
+            // At extreme GUI scales the panel can be narrower than the 16px
+            // status-bar insets. Never submit a reversed rectangle to GuiGraphics.
+            // A zero-width bar is intentionally omitted; the countdown remains
+            // available in the heading without covering command hitboxes.
+            if (totalWidth > 0 && barY >= 0 && barY + barHeight <= height) {
+                g.fill(barLeft, barY, barRight, barY + barHeight, 0xFF9D825A);
+                if (filledWidth > 0) {
+                    g.fill(barLeft, barY, barLeft + filledWidth, barY + barHeight, 0xFF956019);
+                }
             }
         }
         // Only taller GUI heights have room for the optional range hint.
@@ -602,10 +608,26 @@ public final class ReputationArmyScreen extends Screen {
             int right = focused.getX() + focused.getWidth() + 2;
             int bottom = focused.getY() + focused.getHeight() + 2;
             int accent = 0xFFFFD66B;
-            g.fill(left, top, right, top + 1, accent);
-            g.fill(left, bottom - 1, right, bottom, accent);
-            g.fill(left, top + 1, left + 1, bottom - 1, accent);
-            g.fill(right - 1, top + 1, right, bottom - 1, accent);
+            // Clip the focus outline to the viewport as well as the panel.
+            // Tiny GUI windows can put the first/last button against an edge.
+            int clippedLeft = Math.max(0, left);
+            int clippedTop = Math.max(0, top);
+            int clippedRight = Math.min(width, right);
+            int clippedBottom = Math.min(height, bottom);
+            if (clippedRight > clippedLeft && clippedBottom > clippedTop) {
+                if (top >= 0 && top < height) {
+                    g.fill(clippedLeft, top, clippedRight, top + 1, accent);
+                }
+                if (bottom > 0 && bottom <= height) {
+                    g.fill(clippedLeft, bottom - 1, clippedRight, bottom, accent);
+                }
+                if (left >= 0 && left < width && clippedBottom - clippedTop > 2) {
+                    g.fill(left, clippedTop + 1, left + 1, clippedBottom - 1, accent);
+                }
+                if (right > 0 && right <= width && clippedBottom - clippedTop > 2) {
+                    g.fill(right - 1, clippedTop + 1, right, clippedBottom - 1, accent);
+                }
+            }
         }
     }
 
