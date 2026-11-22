@@ -473,10 +473,19 @@ public final class ReputationArmyScreen extends Screen {
         // Use integer pixel fills so GUI scaling stays crisp and inexpensive.
         boolean headerHovered = mouseX >= x && mouseX < x + w
             && mouseY >= y && mouseY < y + headerHeight();
-        if (headerHovered) {
-            g.fill(x + 4, y + 5, x + w - 4, y + 6, 0xFF8B6334);
-            g.fill(x + 4, y + headerHeight() - 3, x + w - 4,
-                y + headerHeight() - 2, 0xFF8B6334);
+        if (headerHovered && w > 8) {
+            // Compact windows can be narrower than the decorative 8px inset.
+            // Never draw reversed rectangles or highlight outside the header.
+            int highlightLeft = x + 4;
+            int highlightRight = x + w - 4;
+            int headerBottom = Math.min(height, y + headerHeight());
+            if (y + 6 <= headerBottom) {
+                g.fill(highlightLeft, y + 5, highlightRight, y + 6, 0xFF8B6334);
+            }
+            if (headerBottom - 2 > y + 6) {
+                g.fill(highlightLeft, headerBottom - 3, highlightRight,
+                    headerBottom - 2, 0xFF8B6334);
+            }
         }
         // Windows below 165 GUI pixels cannot fit the secondary squad-count line: show the
         // actionable squad state in the heading instead of silently hiding it.
