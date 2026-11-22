@@ -350,14 +350,6 @@ public final class ReputationNetwork {
                             "Цель находится в портале: волки останутся в вашем измерении."), true);
                         return;
                     }
-                    // Creepers explode at melee range, often killing an entire tame pack.
-                    // Keep the squad's current orders instead of sending wolves into
-                    // a blast; the owner can handle this target from a safe distance.
-                    if (candidate instanceof net.minecraft.world.entity.monster.Creeper) {
-                        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                            "Цель — крипер: волки не атакуют взрывающихся монстров. Разберитесь с ним на расстоянии."), true);
-                        return;
-                    }
                     // Burning monsters can ignite wolves on contact during melee.
                     // Preserve the squad's current stance until the target stops burning.
                     // This includes daylight-burning undead on otherwise safe ground.
@@ -372,6 +364,16 @@ public final class ReputationNetwork {
                     if (candidate.isInLava()) {
                         player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                             "Цель находится в лаве: не отправляйте волков в огонь."), true);
+                        return;
+                    }
+                    // Powder snow traps ground-based wolves and can freeze them while
+                    // they try to reach a target. Preserve their existing orders until
+                    // the marked monster moves onto solid, safe ground.
+                    var snowFeet = candidate.blockPosition();
+                    if (player.serverLevel().getBlockState(snowFeet).is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
+                            || player.serverLevel().getBlockState(snowFeet.below()).is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)) {
+                        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                            "Цель в рыхлом снегу: волки могут замёрзнуть. Выманите монстра на безопасную землю."), true);
                         return;
                     }
                     // Surface-swimming monsters are dangerous too: isUnderWater()
