@@ -535,7 +535,7 @@ public final class ReputationArmyScreen extends Screen {
             int statusColor = playerInactive || refreshFailed || staleSquad
                 ? 0xFF9E3030 : refreshing || snapshotExpiring ? 0xFF956019
                 : available > 0 ? 0xFF28613C : 0xFF705438;
-            g.drawString(font, font.plainSubstrByWidth(count, w - 16), x + 8, y + 25, statusColor, false);
+            g.drawString(font, font.plainSubstrByWidth(count, Math.max(0, w - 16)), x + 8, y + 25, statusColor, false);
         }
         // Keep the verification progress visible even on compact GUI scales:
         // previously the entire bar disappeared below 165px, leaving only text.
@@ -620,7 +620,7 @@ public final class ReputationArmyScreen extends Screen {
                     ? ORDER_PREVIEWS[selectedOrder]
                     : getFocused() == closeButton ? "Закрыть · вернуться в игру"
                     : "1–7 · 0/R/F5: обновить";
-            g.drawString(font, font.plainSubstrByWidth(range, w - 16), x + 8, y + 35, 0xFF705438, false);
+            g.drawString(font, font.plainSubstrByWidth(range, Math.max(0, w - 16)), x + 8, y + 35, 0xFF705438, false);
         }
         super.render(g, mouseX, mouseY, partialTick);
         // Keyboard and wheel navigation must have an unmistakable selection cue.
