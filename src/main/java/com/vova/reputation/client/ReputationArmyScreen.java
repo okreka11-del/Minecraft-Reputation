@@ -54,7 +54,7 @@ public final class ReputationArmyScreen extends Screen {
         "За мной · следовать за игроком",
         "Охранять · удерживать позицию",
         "Собрать · вернуться к игроку",
-        "Отступить · прекратить бой",
+        "Отступить · Backspace: прекратить бой",
         "Атаковать · отмеченная цель",
         "К точке · идти к блоку взгляда"
     };
@@ -64,7 +64,7 @@ public final class ReputationArmyScreen extends Screen {
         Tooltip.create(Component.literal("За мной — волки следуют за вами и выходят из режима охраны.")),
         Tooltip.create(Component.literal("Охранять позицию — волки остаются охранять текущую позицию.")),
         Tooltip.create(Component.literal("Собрать рядом — позвать принадлежащих вам волков к себе.")),
-        Tooltip.create(Component.literal("Отступить ко мне — волки прекращают бой и возвращаются к вам. Волки на поводке или в транспорте прекращают атаку, но не могут двигаться до освобождения.")),
+        Tooltip.create(Component.literal("Отступить ко мне (Backspace) — волки прекращают бой и возвращаются к вам. Волки на поводке или в транспорте прекращают атаку, но не могут двигаться до освобождения.")),
         Tooltip.create(Component.literal("Атаковать — ударьте монстра не более 10 секунд назад. Цель должна быть видна в радиусе 24 блоков. Волки с 25% здоровья или меньше не атакуют; союзников, криперов, Хранителя и Иссушителя атаковать нельзя. Вода и опасные подходы также блокируют приказ.")),
         Tooltip.create(Component.literal("К точке взгляда — наведите прицел на блок в радиусе 24 блоков до открытия панели G. Волки идут только по безопасному доступному пути; тяжело раненые (25% здоровья или меньше) остаются на месте. Для экстренного возврата используйте «Отступить»."))
     };
@@ -710,6 +710,21 @@ public final class ReputationArmyScreen extends Screen {
                 && (modifiers & (GLFW.GLFW_MOD_CONTROL | GLFW.GLFW_MOD_ALT
                     | GLFW.GLFW_MOD_SUPER)) == 0) {
             onClose();
+            return true;
+        }
+        // Backspace is a dedicated emergency disengage shortcut while this panel
+        // is open. It never depends on which order has keyboard focus, so a
+        // player can stop a fight without navigating through attack commands.
+        // Ignore modified Backspace to preserve accessibility/system shortcuts.
+        if (keyCode == GLFW.GLFW_KEY_BACKSPACE
+                && (modifiers & (GLFW.GLFW_MOD_SHIFT | GLFW.GLFW_MOD_CONTROL
+                    | GLFW.GLFW_MOD_ALT | GLFW.GLFW_MOD_SUPER)) == 0) {
+            pendingWheelScroll = 0;
+            if (canIssueOrders()) {
+                issue(3);
+            } else if (minecraft != null && minecraft.player != null) {
+                minecraft.player.displayClientMessage(unavailableHelp(), true);
+            }
             return true;
         }
         // Refresh with R or F5 without closing the panel. F5 is useful when R is
