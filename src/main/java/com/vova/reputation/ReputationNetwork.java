@@ -773,6 +773,7 @@ public final class ReputationNetwork {
                 // corrected order. Keep throttling before costly per-wolf pathfinding.
                 int changed = 0;
                 int restrained = 0;
+                int restrainedDisengaged = 0;
                 int mounted = 0;
                 int leashed = 0;
                 int attackTooWounded = 0;
@@ -798,11 +799,31 @@ public final class ReputationNetwork {
                     // remains trapped in a vehicle. Leashed wolves may still switch
                     // Follow/Guard stance, but cannot obey movement/attack orders.
                     if (wolf.isPassenger()) {
+                        // A mounted pet cannot navigate, but an emergency retreat
+                        // must still cancel its combat target. Its rider controls
+                        // the actual withdrawal; never report it as walking home.
+                        if (payload.order() == 3) {
+                            wolf.setTarget(null);
+                            wolf.setLastHurtByMob(null);
+                            wolf.getNavigation().stop();
+                            restrainedDisengaged++;
+                            continue;
+                        }
                         restrained++;
                         mounted++;
                         continue;
                     }
                     if (payload.order() >= 2 && wolf.isLeashed()) {
+                        // A tether prevents movement, not disengagement. Allow the
+                        // owner to stop a leashed wolf fighting without first
+                        // releasing it into danger.
+                        if (payload.order() == 3) {
+                            wolf.setTarget(null);
+                            wolf.setLastHurtByMob(null);
+                            wolf.getNavigation().stop();
+                            restrainedDisengaged++;
+                            continue;
+                        }
                         restrained++;
                         leashed++;
                         continue;
@@ -1229,7 +1250,7 @@ public final class ReputationNetwork {
                 }
                 // Failed orders must not lock out an immediate corrected command.
                 // Only a squad that actually changed state consumes the rate limit.
-                if (changed > 0) armyOrderData.putInt("reputationLastArmyOrderTick", player.tickCount);
+                if (changed > 0 || restrainedDisengaged > 0) armyOrderData.putInt("reputationLastArmyOrderTick", player.tickCount);
                 // A valid target from the owner's perspective may still be hidden
                 // or out of range for every squad member. Explain that case rather
                 // than reporting an ambiguous successful "0 wolves" attack.
@@ -1257,6 +1278,10 @@ public final class ReputationNetwork {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                         "Сбор не удался: " + rallyNoPath + " волков не находят путь, " + rallyNavigationRejected
                             + " не смогли начать движение. Подойдите ближе или уберите препятствия."), true);
+                } else if (payload.order() == 3 && changed == 0 && restrainedDisengaged > 0) {
+                    player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                        "Бой прекращён у " + restrainedDisengaged
+                            + " волков на поводке или в транспорте. Для отхода освободите их; самостоятельно двигаться они не могут."), true);
                 } else if (payload.order() == 3 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                         "Отступление не удалось: " + retreatNoPath + " волков не находят путь, " + retreatNavigationRejected
@@ -1268,7 +1293,7 @@ public final class ReputationNetwork {
                             + " не могут найти путь. Подведите отряд ближе или устраните препятствия."), true);
                 } else {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                        (payload.order() == 0 ? "Следовать: " : payload.order() == 1 ? "Охранять: " : payload.order() == 2 ? "Сбор отряда: " : payload.order() == 3 ? "Отступают к вам: " : payload.order() == 4 ? "Атакуют цель: " : "Идут к точке: ") + changed + " из " + wolves.size() + " волков" + (changed < wolves.size() ? " (не выполнили: " + (wolves.size() - changed) + (restrained > 0 ? ", из них " + mounted + " в транспорте" + (leashed > 0 ? " и " + leashed + " на поводках" : "") : "") + "; проверьте расстояние, путь и безопасность)" : "")), true);
+                        (payload.order() == 0 ? "Следовать: " : payload.order() == 1 ? "Охранять: " : payload.order() == 2 ? "Сбор отряда: " : payload.order() == 3 ? "Отступают к вам: " : payload.order() == 4 ? "Атакуют цель: " : "Идут к точке: ") + changed + " из " + wolves.size() + " волков" + (payload.order() == 3 && restrainedDisengaged > 0 ? "; ещё " + restrainedDisengaged + " на поводке/в транспорте прекратили бой без движения" : "") + (changed < wolves.size() ? " (не выполнили: " + (wolves.size() - changed) + (restrained > 0 ? ", из них " + mounted + " в транспорте" + (leashed > 0 ? " и " + leashed + " на поводках" : "") : "") + "; проверьте расстояние, путь и безопасность)" : "")), true);
                 }
             }));
         registrar.playToServer(FartRequest.TYPE, FartRequest.STREAM_CODEC,
