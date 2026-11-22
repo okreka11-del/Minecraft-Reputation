@@ -781,6 +781,7 @@ public final class ReputationNetwork {
                 int attackLowAir = 0;
                 int attackOutOfRange = 0;
                 int attackNoSight = 0;
+                int attackAllied = 0;
                 int attackNoPath = 0;
                 int waypointUnsafeWolf = 0;
                 int waypointOutOfRange = 0;
@@ -806,6 +807,12 @@ public final class ReputationNetwork {
                         continue;
                     }
                     if (payload.order() == 4) {
+                        // Scoreboard teams can differ between the owner and individual pets.
+                        // Never override a wolf's stance to attack its own teammate.
+                        if (wolf.isAlliedTo(attackTarget)) {
+                            attackAllied++;
+                            continue;
+                        }
                         // Do not force a burning pet to chase an enemy while it takes
                         // fire damage. The owner can still order it to retreat.
                         if (wolf.isOnFire()) {
@@ -1249,7 +1256,7 @@ public final class ReputationNetwork {
                 } else if (payload.order() == 4 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                         "Атака не выполнена: " + attackTooWounded + " волков тяжело ранены (≤25% здоровья), " + attackBurning + " горят, " + attackFreezing + " замерзают, " + attackLowAir + " задыхаются в воде, " + attackOutOfRange + " слишком далеко, "
-                            + attackNoSight + " не видят цель, " + attackNoPath
+                            + attackNoSight + " не видят цель, " + attackAllied + " состоят в команде цели, " + attackNoPath
                             + " не могут найти путь. Подведите отряд ближе или устраните препятствия."), true);
                 } else {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
