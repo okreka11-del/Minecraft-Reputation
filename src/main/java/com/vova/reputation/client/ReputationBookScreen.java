@@ -81,16 +81,11 @@ public final class ReputationBookScreen extends Screen {
             historyPage = 0;
             return true;
         }
-        // Page Up/Down navigate history in place, and turn the journal
-        // normally on other sections so these keys never appear broken.
+        // Page Up/Down follow the same page sequence as the corner controls.
+        // At the first/last history leaf, continue into the adjacent section
+        // instead of trapping keyboard users in the history section.
         if (keyCode == 266 || keyCode == 267) {
-            int direction = keyCode == 266 ? -1 : 1;
-            if (section == 5) {
-                historyPage = Math.max(0, Math.min(historyPages() - 1,
-                    historyPage + direction));
-            } else {
-                turnPage(direction);
-            }
+            turnPage(keyCode == 266 ? -1 : 1);
             wheelRemainder = 0;
             return true;
         }
