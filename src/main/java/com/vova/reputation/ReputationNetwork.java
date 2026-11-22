@@ -842,21 +842,21 @@ public final class ReputationNetwork {
                         }
                         // Do not force a burning pet to chase an enemy while it takes
                         // fire damage. The owner can still order it to retreat.
-                        if (wolf.isOnFire()) {
+                        if (wolf.isOnFire() || wolf.isInLava()) {
                             attackBurning++;
+                            continue;
+                        }
+                        // Even with plenty of air remaining, an immersed wolf should
+                        // swim to safety instead of being forced into melee combat.
+                        // This also covers bubble columns that can drag the pet away.
+                        if (wolf.isInWaterOrBubble()) {
+                            attackLowAir++;
                             continue;
                         }
                         // A wolf trapped in powder snow or already freezing must not
                         // be ordered deeper into combat. Retreat remains available.
                         if (wolf.isInPowderSnow || wolf.isFullyFrozen()) {
                             attackFreezing++;
-                            continue;
-                        }
-                        // A submerged wolf running low on air must not be sent
-                        // deeper into combat. Retreat and follow remain available
-                        // so its owner can guide it back to safety.
-                        if (wolf.isInWaterOrBubble() && wolf.getAirSupply() <= 60) {
-                            attackLowAir++;
                             continue;
                         }
                         // Keep critically wounded wolves out of offensive orders.
