@@ -21,6 +21,8 @@ public final class ReputationBookScreen extends Screen {
     private int section;
     private int historyPage;
     private int ox, oy;
+    // Accumulate high-resolution touchpad deltas into one deliberate page turn.
+    private double wheelRemainder;
 
     public ReputationBookScreen(int score, int suspicion, String history, String factionData,
                                 String settlement, int hunterProgress, boolean hunterCompleted) {
@@ -92,6 +94,27 @@ public final class ReputationBookScreen extends Screen {
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    @Override public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        // Do not steal scrolling from gameplay or other overlays outside the journal.
+        if (mouseX < ox || mouseX >= ox + W || mouseY < oy || mouseY >= oy + H) {
+            wheelRemainder = 0;
+            return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        }
+        if (scrollY == 0) return true;
+        // A reversed gesture should not inherit the fractional progress of the
+        // previous direction. Limit a single event to one turn to avoid skipping
+        // several sections on high-speed mouse wheels.
+        if (wheelRemainder != 0 && Math.signum(wheelRemainder) != Math.signum(scrollY)) {
+            wheelRemainder = 0;
+        }
+        wheelRemainder += scrollY;
+        if (Math.abs(wheelRemainder) >= 1.0D) {
+            turnPage(wheelRemainder > 0 ? -1 : 1);
+            wheelRemainder = 0;
+        }
+        return true;
     }
 
     private void text(GuiGraphics g, String s, int x, int y, int color) {
