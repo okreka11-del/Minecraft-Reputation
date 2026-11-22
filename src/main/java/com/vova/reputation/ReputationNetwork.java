@@ -243,9 +243,20 @@ public final class ReputationNetwork {
                 // their five-tick cooldown, while failed orders can be corrected
                 // after just two ticks instead of waiting for the full cooldown.
                 int lastArmyAttemptTick = armyOrderData.getInt("reputationLastArmyAttemptTick");
-                if (lastArmyAttemptTick > 0 && player.tickCount >= lastArmyAttemptTick
-                        && player.tickCount - lastArmyAttemptTick < 2) return;
-                armyOrderData.putInt("reputationLastArmyAttemptTick", player.tickCount);
+                // Retreat is an emergency override: a failed attack or movement
+                // attempt must not prevent the owner from calling wolves back.
+                // Rate-limit retreat independently so forged packets still cannot
+                // spam expensive squad scans every tick.
+                if (payload.order() == 3) {
+                    int lastRetreatTick = armyOrderData.getInt("reputationLastArmyRetreatAttemptTick");
+                    if (lastRetreatTick > 0 && player.tickCount >= lastRetreatTick
+                            && player.tickCount - lastRetreatTick < 2) return;
+                    armyOrderData.putInt("reputationLastArmyRetreatAttemptTick", player.tickCount);
+                } else {
+                    if (lastArmyAttemptTick > 0 && player.tickCount >= lastArmyAttemptTick
+                            && player.tickCount - lastArmyAttemptTick < 2) return;
+                    armyOrderData.putInt("reputationLastArmyAttemptTick", player.tickCount);
+                }
                 // Check the actual owned squad before validating a combat target or
                 // waypoint. Without this, a player with no wolves receives a misleading
                 // "no marked target" / "unsafe destination" error instead of the
