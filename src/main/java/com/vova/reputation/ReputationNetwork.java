@@ -229,12 +229,13 @@ public final class ReputationNetwork {
                 // packets. This is per player, server authoritative and uses entity
                 // ticks (not client timestamps). Allow the first order immediately;
                 // a new entity tick counter after respawn must not inherit a lockout.
+                // Key presence also protects orders issued on the first entity tick (tick zero).
                 var armyOrderData = player.getPersistentData();
                 int lastArmyOrderTick = armyOrderData.getInt("reputationLastArmyOrderTick");
                 // Emergency retreat must override a recently issued attack or move order.
                 // Keep the separate two-tick attempt throttle below to prevent
                 // modified clients from flooding the server with retreat packets.
-                if (payload.order() != 3 && lastArmyOrderTick > 0
+                if (payload.order() != 3 && armyOrderData.contains("reputationLastArmyOrderTick")
                         && player.tickCount >= lastArmyOrderTick
                         && player.tickCount - lastArmyOrderTick < 5) return;
                 // Failed orders must remain quickly retryable, but a modified client
@@ -249,11 +250,11 @@ public final class ReputationNetwork {
                 // spam expensive squad scans every tick.
                 if (payload.order() == 3) {
                     int lastRetreatTick = armyOrderData.getInt("reputationLastArmyRetreatAttemptTick");
-                    if (lastRetreatTick > 0 && player.tickCount >= lastRetreatTick
+                    if (armyOrderData.contains("reputationLastArmyRetreatAttemptTick") && player.tickCount >= lastRetreatTick
                             && player.tickCount - lastRetreatTick < 2) return;
                     armyOrderData.putInt("reputationLastArmyRetreatAttemptTick", player.tickCount);
                 } else {
-                    if (lastArmyAttemptTick > 0 && player.tickCount >= lastArmyAttemptTick
+                    if (armyOrderData.contains("reputationLastArmyAttemptTick") && player.tickCount >= lastArmyAttemptTick
                             && player.tickCount - lastArmyAttemptTick < 2) return;
                     armyOrderData.putInt("reputationLastArmyAttemptTick", player.tickCount);
                 }
