@@ -565,6 +565,30 @@ public final class ReputationArmyScreen extends Screen {
                 }
             }
         }
+        // A confirmed squad snapshot expires after 120 ticks. Show its remaining
+        // validity as a thin, shrinking pixel bar so players can refresh before
+        // their next order is disabled. This is purely client-side: no extra
+        // polling, packets, textures or frame-dependent animations.
+        if (!refreshing && !refreshFailed && !staleSquad && !playerInactive
+                && available > 0 && lastSquadResponseTick != Integer.MIN_VALUE
+                && minecraft != null && minecraft.player != null) {
+            int elapsed = minecraft.player.tickCount - lastSquadResponseTick;
+            if (elapsed >= 0 && elapsed < 120) {
+                int left = x + 8;
+                int right = x + w - 8;
+                int barWidth = Math.max(0, right - left);
+                int barHeight = height < 165 ? 1 : 2;
+                int barY = y + headerHeight() - barHeight;
+                if (barWidth > 0 && barY >= 0 && barY + barHeight <= height) {
+                    int remainingWidth = barWidth * (120 - elapsed) / 120;
+                    g.fill(left, barY, right, barY + barHeight, 0xFF9D825A);
+                    if (remainingWidth > 0) {
+                        int color = elapsed >= 60 ? 0xFF956019 : 0xFF28613C;
+                        g.fill(left, barY, left + remainingWidth, barY + barHeight, color);
+                    }
+                }
+            }
+        }
         // Only taller GUI heights have room for the optional range hint.
         // Omit this optional hint rather than drawing text over a clickable command.
         // The compact 37px header (GUI heights 165-239) has no room for a
