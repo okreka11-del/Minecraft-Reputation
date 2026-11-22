@@ -78,6 +78,10 @@ public final class ReputationKeys {
             boolean shiftDown = mc.options.keyShift.isDown();
             if (mc.player != shiftGesturePlayer
                     || (mc.player != null && mc.player.level().dimension() != shiftGestureDimension)) {
+                // The cooldown belongs to the local player instance. A new
+                // connection or respawn must not inherit the previous player's
+                // ability lockout; dimension transfers retain the same cooldown.
+                if (mc.player != shiftGesturePlayer) lastFart = 0L;
                 shiftGesturePlayer = mc.player;
                 shiftGestureDimension = mc.player == null ? null : mc.player.level().dimension();
                 lastShiftTap = 0;
