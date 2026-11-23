@@ -3,6 +3,7 @@ package com.vova.reputation.client;
 import com.vova.reputation.ReputationNetwork;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -24,6 +25,16 @@ public final class ReputationDialogueScreen extends Screen {
     private int panelX() { return (width - panelWidth()) / 2; }
     private int panelY() { return (height - panelHeight()) / 2; }
 
+    // Keep compact buttons readable without clipping labels into neighboring actions.
+    // Full names remain available on hover and to keyboard/controller focus.
+    private Component fittedButtonLabel(String label, int buttonWidth) {
+        int maxWidth = Math.max(0, buttonWidth - 8);
+        if (font.width(label) <= maxWidth) return Component.literal(label);
+        String ellipsis = "…";
+        if (font.width(ellipsis) > maxWidth) return Component.literal("");
+        return Component.literal(font.plainSubstrByWidth(label, maxWidth - font.width(ellipsis)) + ellipsis);
+    }
+
     @Override protected void init() {
         // Keep both action rows inside compact GUI-scale viewports. The old
         // fixed 57px footer could place the first row above the panel, while
@@ -36,7 +47,7 @@ public final class ReputationDialogueScreen extends Screen {
         int rowGap = Math.min(6, Math.max(0, h - 2 * buttonHeight - 2));
         int x = panelX() + padding;
         int y = panelY() + Math.max(0, h - 5 - 2 * buttonHeight - rowGap);
-        addRenderableWidget(Button.builder(Component.literal("Поговорить"), b -> {
+        Button talkButton = addRenderableWidget(Button.builder(fittedButtonLabel("Поговорить", buttonWidth), b -> {
             response = score <= -80 ? "Не причиняй вреда нашей деревне!"
                 : score >= 151 ? "Спасибо, что защищаешь нас!"
                 : score >= 100 ? "Мы рады видеть нашего союзника!"
@@ -46,11 +57,11 @@ public final class ReputationDialogueScreen extends Screen {
                 minecraft.player.displayClientMessage(Component.literal(response), true);
             }
         }).bounds(x, y, buttonWidth, buttonHeight).build());
-        addRenderableWidget(Button.builder(Component.literal("Торговля"), b -> {
+        Button tradeButton = addRenderableWidget(Button.builder(fittedButtonLabel("Торговля", buttonWidth), b -> {
             PacketDistributor.sendToServer(new ReputationNetwork.DialogueAction(entityId, 1));
             onClose();
         }).bounds(x + buttonWidth + gap, y, buttonWidth, buttonHeight).build());
-        addRenderableWidget(Button.builder(Component.literal("Отношения"), b -> {
+        Button relationButton = addRenderableWidget(Button.builder(fittedButtonLabel("Отношения", buttonWidth), b -> {
             response = score < 0 ? "Жители относятся к тебе с опаской."
                 : score >= 151 ? "Жители доверяют тебе свою безопасность."
                 : "Отношения зависят от твоих поступков.";
@@ -58,8 +69,12 @@ public final class ReputationDialogueScreen extends Screen {
                 minecraft.player.displayClientMessage(Component.literal(response), true);
             }
         }).bounds(x, y + buttonHeight + rowGap, buttonWidth, buttonHeight).build());
-        addRenderableWidget(Button.builder(Component.literal("Закрыть"), b -> onClose())
+        Button closeButton = addRenderableWidget(Button.builder(fittedButtonLabel("Закрыть", buttonWidth), b -> onClose())
             .bounds(x + buttonWidth + gap, y + buttonHeight + rowGap, buttonWidth, buttonHeight).build());
+        talkButton.setTooltip(Tooltip.create(Component.literal("Поговорить")));
+        tradeButton.setTooltip(Tooltip.create(Component.literal("Торговля")));
+        relationButton.setTooltip(Tooltip.create(Component.literal("Отношения")));
+        closeButton.setTooltip(Tooltip.create(Component.literal("Закрыть")));
     }
     // Constrain server-provided text without fractional font transforms.
     private void drawFittedCentered(GuiGraphics g, String value, int y) {
