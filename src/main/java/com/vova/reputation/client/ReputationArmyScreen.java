@@ -950,6 +950,18 @@ public final class ReputationArmyScreen extends Screen {
             return true;
         }
         if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+            // The heading is a refresh target for both mouse buttons. Players
+            // using a touchpad can retry a timed-out squad scan without a
+            // middle button or keyboard, while right-clicking the world still
+            // dismisses the tactical overlay immediately.
+            int panelWidth = Math.max(1, Math.min(238, width - 16));
+            int panelX = (width - panelWidth) / 2;
+            int panelY = panelTop();
+            if (mouseX >= panelX && mouseX < panelX + panelWidth
+                    && mouseY >= panelY && mouseY < panelY + headerHeight()) {
+                requestManualRefresh();
+                return true;
+            }
             // Right-clicking the emergency retreat control should perform the
             // visible safety action, not silently close the panel. Right-click
             // anywhere else still dismisses the tactical overlay as before.
