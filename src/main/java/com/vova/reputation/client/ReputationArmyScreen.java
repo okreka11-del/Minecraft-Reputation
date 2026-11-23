@@ -994,6 +994,19 @@ public final class ReputationArmyScreen extends Screen {
                     return true;
                 }
             }
+            // A disabled command is still a visible control. Explain why it
+            // cannot run rather than closing the tactical panel on right-click.
+            // After a squad verification timeout the player can retry immediately.
+            for (Button orderButton : orderButtons) {
+                if (orderButton.visible && !orderButton.active
+                        && mouseX >= orderButton.getX()
+                        && mouseX < orderButton.getX() + orderButton.getWidth()
+                        && mouseY >= orderButton.getY()
+                        && mouseY < orderButton.getY() + orderButton.getHeight()) {
+                    minecraft.player.displayClientMessage(unavailableHelp(), true);
+                    return true;
+                }
+            }
             onClose();
             return true;
         }
