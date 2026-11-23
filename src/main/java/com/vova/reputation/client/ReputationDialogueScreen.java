@@ -41,6 +41,10 @@ public final class ReputationDialogueScreen extends Screen {
                 : score >= 151 ? "Спасибо, что защищаешь нас!"
                 : score >= 100 ? "Мы рады видеть нашего союзника!"
                 : "Наша деревня живёт торговлей и трудом.";
+            // Compact GUI scales hide the response line; keep the answer readable.
+            if (panelHeight() < 120 && minecraft != null && minecraft.player != null) {
+                minecraft.player.displayClientMessage(Component.literal(response), true);
+            }
         }).bounds(x, y, buttonWidth, buttonHeight).build());
         addRenderableWidget(Button.builder(Component.literal("Торговля"), b -> {
             PacketDistributor.sendToServer(new ReputationNetwork.DialogueAction(entityId, 1));
@@ -50,6 +54,9 @@ public final class ReputationDialogueScreen extends Screen {
             response = score < 0 ? "Жители относятся к тебе с опаской."
                 : score >= 151 ? "Жители доверяют тебе свою безопасность."
                 : "Отношения зависят от твоих поступков.";
+            if (panelHeight() < 120 && minecraft != null && minecraft.player != null) {
+                minecraft.player.displayClientMessage(Component.literal(response), true);
+            }
         }).bounds(x, y + buttonHeight + rowGap, buttonWidth, buttonHeight).build());
         addRenderableWidget(Button.builder(Component.literal("Закрыть"), b -> onClose())
             .bounds(x + buttonWidth + gap, y + buttonHeight + rowGap, buttonWidth, buttonHeight).build());
