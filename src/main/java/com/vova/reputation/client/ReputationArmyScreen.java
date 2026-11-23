@@ -1123,11 +1123,15 @@ public final class ReputationArmyScreen extends Screen {
         // Without keyboard focus, begin at the edge matching the wheel direction.
         // One notch selects the edge action; a multi-notch wheel event advances
         // the remaining steps rather than silently discarding them.
-        int start = current < 0 ? (direction > 0 ? -1 : selectable.size()) : current;
-        int stepsToMove = steps;
-        // Stop at the first/last control instead of wrapping from Close to Attack.
-        // A fast wheel gesture must never unexpectedly jump to a distant order.
-        int next = Math.max(0, Math.min(selectable.size() - 1, start + direction * stepsToMove));
+        // When nothing is focused, the first wheel gesture must select the
+        // nearest edge action regardless of how many notches the device bundles.
+        // Otherwise a three-notch burst can skip straight into a combat order
+        // before the player has seen which command received focus.
+        int next = current < 0
+            ? (direction > 0 ? 0 : selectable.size() - 1)
+            // Stop at the first/last control instead of wrapping from Close
+            // to Attack. Further wheel notches at the edge are harmless.
+            : Math.max(0, Math.min(selectable.size() - 1, current + direction * steps));
         setFocused(selectable.get(next));
         return true;
     }
