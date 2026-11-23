@@ -782,6 +782,22 @@ public final class ReputationNetwork {
                         }
                     }
                     if (burningDestination || trappingDestination || unsupportedDestination || dangerousNeighbor) {
+                        // Emergency retreat is first and foremost a disengage order.
+                        // Even if the owner is standing in lava, water or another
+                        // unsafe rally location, pets must be able to stop fighting.
+                        // Do not navigate them toward that hazardous position.
+                        if (payload.order() == 3) {
+                            int disengaged = 0;
+                            for (var wolf : wolves) {
+                                wolf.setTarget(null);
+                                wolf.setLastHurtByMob(null);
+                                wolf.getNavigation().stop();
+                                disengaged++;
+                            }
+                            player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                                "Отступление: " + disengaged + " волков прекратили бой. Перейдите на безопасную сушу для сбора отряда."), true);
+                            return;
+                        }
                         player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                             "Точка сбора опасна: выберите сухую твёрдую поверхность с двумя свободными блоками высоты, вдали от воды, огня и ловушек."), true);
                         return;
