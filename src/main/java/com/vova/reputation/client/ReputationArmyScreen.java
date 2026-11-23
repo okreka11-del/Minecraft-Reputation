@@ -44,6 +44,7 @@ public final class ReputationArmyScreen extends Screen {
     // resetting tickCount. Bind this screen to the exact player instance.
     private net.minecraft.client.player.LocalPlayer openedPlayer;
     private boolean lastOrdersEnabled;
+    private boolean lastRetreatEnabled;
     private Component lastUnavailableReason;
     // Unavailable help uses shared immutable Components. Compare their identity
     // instead of allocating a localized String every render frame while G is open.
@@ -148,6 +149,13 @@ public final class ReputationArmyScreen extends Screen {
                 || minecraft.player.tickCount >= lastSquadResponseTick);
     }
 
+    // Retreat is an emergency safety action: it must remain clickable even
+    // when the squad snapshot is stale, just like the Backspace shortcut.
+    private boolean canRetreat() {
+        return isOriginalDimension() && isPlayerClockValid()
+            && minecraft.player.isAlive() && !minecraft.player.isSpectator();
+    }
+
     private boolean canIssueOrders() {
         return isPlayerClockValid() && isOriginalDimension()
             // Keep commands locked until the server actually replies, even if
@@ -229,6 +237,7 @@ public final class ReputationArmyScreen extends Screen {
         pendingWheelScroll = 0;
         closeButton = null;
         lastOrdersEnabled = canIssueOrders();
+        lastRetreatEnabled = canRetreat();
         lastUnavailableReason = unavailableHelp();
         int w = Math.max(1, Math.min(238, width - 16));
         int x = (width - w) / 2;
@@ -261,8 +270,8 @@ public final class ReputationArmyScreen extends Screen {
         Button disengage = Button.builder(commandLabel(4, "Отступить ко мне", buttonWidth), b -> issue(3))
             .bounds(buttonX, firstButtonY + 3 * (buttonHeight + buttonGap), buttonWidth, buttonHeight).build();
         disengage.setTooltip(ORDER_TOOLTIPS[3]);
-        if (!canIssueOrders()) disengage.setTooltip(unavailableTooltip());
-        disengage.active = canIssueOrders();
+        if (!canRetreat()) disengage.setTooltip(unavailableTooltip());
+        disengage.active = canRetreat();
         orderButtons.add(addRenderableWidget(disengage));
         Button attack = Button.builder(commandLabel(5, "Атаковать отмеченного монстра", buttonWidth), b -> issue(4))
             .bounds(buttonX, firstButtonY + 4 * (buttonHeight + buttonGap), buttonWidth, buttonHeight).build();
@@ -297,19 +306,24 @@ public final class ReputationArmyScreen extends Screen {
         Component reason = unavailableHelp();
         // A disabled panel may change from no wolves to spectator/death without
         // ever becoming enabled. Refresh the explanation as well as the buttons.
-        if (enabled == lastOrdersEnabled && reason == lastUnavailableReason) return;
-        boolean availabilityChanged = enabled != lastOrdersEnabled;
+        boolean retreatEnabled = canRetreat();
+        if (enabled == lastOrdersEnabled && retreatEnabled == lastRetreatEnabled
+                && reason == lastUnavailableReason) return;
+        boolean availabilityChanged = enabled != lastOrdersEnabled || retreatEnabled != lastRetreatEnabled;
         lastOrdersEnabled = enabled;
+        lastRetreatEnabled = retreatEnabled;
         lastUnavailableReason = reason;
-        for (Button button : orderButtons) button.active = enabled;
+        for (int i = 0; i < orderButtons.size(); i++) {
+            orderButtons.get(i).active = i == 3 ? retreatEnabled : enabled;
+        }
         // Never leave keyboard/controller focus on a disabled order after death or
         // a spectator switch. Restore the first command when control returns.
         if (availabilityChanged) {
             // An automatic squad refresh must not steal keyboard focus from Close
             // when wolves walk back into range. Only move focus if the currently
             // selected control has become disabled (or no control is selected).
-            if (!enabled && closeButton != null) {
-                setFocused(closeButton);
+            if (getFocused() instanceof Button focused && !focused.active && closeButton != null) {
+                setFocused(retreatEnabled && orderButtons.size() > 3 ? orderButtons.get(3) : closeButton);
             } else if (enabled && !orderButtons.isEmpty()
                     && (!(getFocused() instanceof Button focused) || !focused.active)) {
                 setFocused(orderButtons.get(0));
@@ -317,7 +331,9 @@ public final class ReputationArmyScreen extends Screen {
         }
         if (!enabled) {
             Tooltip statusTooltip = unavailableTooltip();
-            for (Button button : orderButtons) button.setTooltip(statusTooltip);
+            for (int i = 0; i < orderButtons.size(); i++) {
+                orderButtons.get(i).setTooltip(i == 3 && retreatEnabled ? ORDER_TOOLTIPS[3] : statusTooltip);
+            }
         } else {
             // Restore the individual command explanations when the player becomes active.
             for (int i = 0; i < orderButtons.size(); i++) {
