@@ -69,6 +69,17 @@ public final class ReputationArmyScreen extends Screen {
         Tooltip.create(Component.literal("Атаковать — ударьте монстра не более 10 секунд назад. Цель должна быть видна в радиусе 24 блоков. Волки с 25% здоровья или меньше не атакуют; союзников, криперов, Хранителя и Иссушителя атаковать нельзя. Вода и опасные подходы также блокируют приказ.")),
         Tooltip.create(Component.literal("К точке взгляда — наведите прицел на блок в радиусе 24 блоков до открытия панели G. Волки идут только по безопасному доступному пути; тяжело раненые (25% здоровья или меньше) остаются на месте. Для экстренного возврата используйте «Отступить»."))
     };
+    // Sending a packet is not an acknowledgement from the server. Give players
+    // immediate, accurate feedback without claiming that a unit obeyed it.
+    // Cache components to avoid allocating text for every tactical command.
+    private static final Component[] ORDER_SENT_MESSAGES = {
+        Component.literal("Приказ «За мной» отправлен серверу"),
+        Component.literal("Приказ «Охранять» отправлен серверу"),
+        Component.literal("Приказ «Собрать» отправлен серверу"),
+        Component.literal("Приказ «Отступить» отправлен серверу"),
+        Component.literal("Приказ «Атаковать» отправлен серверу"),
+        Component.literal("Приказ «К точке» отправлен серверу")
+    };
     private static final Component NO_SQUAD_HELP = Component.literal("Нет волков рядом: приручите волка или подойдите к своим питомцам. 0/R/F5 — проверить отряд; 4/Backspace — экстренно прекратить бой у доступных волков.");
     private static final Component STALE_SQUAD_HELP = Component.literal("Состав отряда устарел. 0/R/F5, средняя кнопка мыши или заголовок — проверить снова; 4/Backspace — экстренное отступление.");
     private static final Component PENDING_SQUAD_HELP = Component.literal("Проверяем отряд: обычные приказы ждут сервер. Экстренное отступление доступно по 4/Backspace.");
@@ -412,6 +423,9 @@ public final class ReputationArmyScreen extends Screen {
             return;
         }
         PacketDistributor.sendToServer(new ReputationNetwork.ArmyOrder(order));
+        // Show a short action-bar receipt even though the menu closes immediately.
+        // The server still independently validates ownership, range and safety.
+        minecraft.player.displayClientMessage(ORDER_SENT_MESSAGES[order], true);
         onClose();
     }
 
