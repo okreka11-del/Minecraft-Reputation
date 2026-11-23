@@ -71,7 +71,7 @@ public final class ReputationArmyScreen extends Screen {
     };
     private static final Component NO_SQUAD_HELP = Component.literal("Нет доступных волков: приручите волка костями или подойдите к своим волкам. Нажмите 0/R/F5, чтобы повторно проверить отряд.");
     private static final Component STALE_SQUAD_HELP = Component.literal("Состав отряда не подтверждён сервером. Нажмите 0/R/F5, среднюю кнопку мыши или заголовок панели и дождитесь ответа сервера.");
-    private static final Component PENDING_SQUAD_HELP = Component.literal("Обновляем состав отряда. Дождитесь ответа сервера перед отправкой приказа.");
+    private static final Component PENDING_SQUAD_HELP = Component.literal("Проверяем отряд: обычные приказы ждут сервер. Экстренное отступление доступно по 4/Backspace.");
     private static final Component INACTIVE_PLAYER_HELP = Component.literal("Нельзя отдавать приказы отряду в режиме наблюдателя или после гибели.");
     // Disabled commands share immutable status tooltips. Reusing one instance per
     // state avoids six allocations whenever a verification starts or times out.
@@ -528,7 +528,7 @@ public final class ReputationArmyScreen extends Screen {
         String headingText = playerInactive
             ? (minecraft.player.isSpectator() ? "Режим наблюдателя" : "Игрок погиб")
             : height < 165
-                ? (refreshing ? "Проверка · " + manualRefreshSecondsRemaining() + " с"
+                ? (refreshing ? "4: отступить · проверка " + manualRefreshSecondsRemaining() + " с"
                     : refreshFailed ? "4: отступить · R: повторить"
                     : staleSquad ? "4: отступить · R: обновить"
                     : available == 0 ? "0/R/F5 · нет волков" : "Отряд: " + available + " · " + squadSnapshotSecondsRemaining() + " с")
@@ -552,7 +552,7 @@ public final class ReputationArmyScreen extends Screen {
             : 0xFF45301B;
         g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + (height < 105 ? 1 : 8), headingColor, false);
         String count = playerInactive ? "Приказы временно недоступны"
-            : refreshing ? "Проверка: " + manualRefreshSecondsRemaining() + " с · было: " + available
+            : refreshing ? "Проверка " + manualRefreshSecondsRemaining() + " с · 4/Backspace: отступить"
             : refreshFailed ? "Backspace/4 · отступить · R: повторить"
             : staleSquad ? "Backspace/4 · отступить · R: обновить"
             : available == 0 ? "0/R/F5 · нет волков рядом" : "Волки: " + available + " · проверено, ещё " + squadSnapshotSecondsRemaining() + " с";
@@ -641,7 +641,7 @@ public final class ReputationArmyScreen extends Screen {
                 // Emergency retreat remains available with a stale or pending
                 // squad snapshot; its preview must not claim it is disabled.
                 && !(selectedOrder == 3 && canRetreat())
-                ? (refreshing ? "Ожидание ответа сервера"
+                ? (refreshing ? "4/Backspace: отступить · ждём сервер"
                     : refreshFailed || staleSquad ? "4/Backspace: отступить · R: обновить"
                     : playerInactive ? "Приказы сейчас недоступны"
                     : "0/R/F5 · проверить волков рядом")
