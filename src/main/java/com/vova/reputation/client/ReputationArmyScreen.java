@@ -373,7 +373,15 @@ public final class ReputationArmyScreen extends Screen {
     }
 
     private void issue(int order) {
-        if (!canIssueOrders()) {
+        // Retreat (Backspace) is a safety override. The server independently
+        // checks ownership, range, player state and the destination, so an
+        // expired overview cannot strand wolves in combat during network lag.
+        // Other commands still require a fresh server-confirmed snapshot.
+        boolean emergencyRetreat = order == 3;
+        if ((!emergencyRetreat && !canIssueOrders())
+                || (emergencyRetreat && (!isOriginalDimension() || !isPlayerClockValid()
+                    || minecraft.player == null || !minecraft.player.isAlive()
+                    || minecraft.player.isSpectator()))) {
             if (minecraft != null && minecraft.player != null) minecraft.player.displayClientMessage(unavailableHelp(), true);
             return;
         }
@@ -744,11 +752,11 @@ public final class ReputationArmyScreen extends Screen {
                 && (modifiers & (GLFW.GLFW_MOD_SHIFT | GLFW.GLFW_MOD_CONTROL
                     | GLFW.GLFW_MOD_ALT | GLFW.GLFW_MOD_SUPER)) == 0) {
             pendingWheelScroll = 0;
-            if (canIssueOrders()) {
-                issue(3);
-            } else if (minecraft != null && minecraft.player != null) {
-                minecraft.player.displayClientMessage(unavailableHelp(), true);
-            }
+            // Emergency disengage is always server-validated. A stale or timed-out
+            // squad overview must not prevent the owner from stopping a fight.
+            // Unlike ordinary orders this sends no movement command unless the
+            // server confirms eligible owned wolves and a safe rally point.
+            issue(3);
             return true;
         }
         // Refresh with R or F5 without closing the panel. F5 is useful when R is
