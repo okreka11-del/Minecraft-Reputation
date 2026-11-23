@@ -950,6 +950,19 @@ public final class ReputationArmyScreen extends Screen {
             return true;
         }
         if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+            // Right-clicking the emergency retreat control should perform the
+            // visible safety action, not silently close the panel. Right-click
+            // anywhere else still dismisses the tactical overlay as before.
+            // The server independently validates the retreat and its targets.
+            if (orderButtons.size() > 3) {
+                Button retreat = orderButtons.get(3);
+                if (retreat.active && retreat.visible
+                        && mouseX >= retreat.getX() && mouseX < retreat.getX() + retreat.getWidth()
+                        && mouseY >= retreat.getY() && mouseY < retreat.getY() + retreat.getHeight()) {
+                    issue(3);
+                    return true;
+                }
+            }
             onClose();
             return true;
         }
