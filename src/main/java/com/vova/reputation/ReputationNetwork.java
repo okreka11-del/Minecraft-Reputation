@@ -475,7 +475,16 @@ public final class ReputationNetwork {
                                 || feet.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
                                 || head.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
                                 || feet.is(net.minecraft.world.level.block.Blocks.CACTUS)
-                                || head.is(net.minecraft.world.level.block.Blocks.CACTUS)) {
+                                || head.is(net.minecraft.world.level.block.Blocks.CACTUS)
+                                // A portal has no solid collision and would otherwise be
+                                // accepted as a safe melee approach. Wolves could enter
+                                // another dimension while chasing a marked monster.
+                                || feet.is(net.minecraft.world.level.block.Blocks.NETHER_PORTAL)
+                                || head.is(net.minecraft.world.level.block.Blocks.NETHER_PORTAL)
+                                || feet.is(net.minecraft.world.level.block.Blocks.END_PORTAL)
+                                || head.is(net.minecraft.world.level.block.Blocks.END_PORTAL)
+                                || feet.is(net.minecraft.world.level.block.Blocks.END_GATEWAY)
+                                || head.is(net.minecraft.world.level.block.Blocks.END_GATEWAY)) {
                             continue;
                         }
                         // A wolf needs a walkable floor and enough room for its body.
