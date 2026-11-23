@@ -416,6 +416,8 @@ public final class ReputationArmyScreen extends Screen {
     // Wolves can walk into range, leave it or dismount without another key press.
     // Scan at most once every two seconds; the server still validates and throttles.
     @Override public void tick() {
+        // A queued tick from an old screen must never close a replacement GUI.
+        if (minecraft == null || minecraft.screen != this) return;
         super.tick();
         // Portal travel can leave this client-side Screen alive briefly while
         // the server switches levels. Close instead of showing stale orders.
@@ -754,6 +756,8 @@ public final class ReputationArmyScreen extends Screen {
     }
 
     @Override public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        // Stale queued input must not dismiss a newer screen after replacement.
+        if (minecraft == null || minecraft.screen != this) return true;
         // A portal transfer or respawn can happen before the next screen tick.
         // Reject input on the old tactical panel immediately.
         if (!isOriginalDimension() || !isPlayerClockValid()) {
@@ -933,6 +937,8 @@ public final class ReputationArmyScreen extends Screen {
     // blur-free panel and needs to return to normal camera control quickly.
     // Only left-click may activate an order button.
     @Override public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        // Ignore delayed clicks after a different GUI has become active.
+        if (minecraft == null || minecraft.screen != this) return true;
         if (!isOriginalDimension() || !isPlayerClockValid()) {
             onClose();
             return true;
@@ -1032,6 +1038,8 @@ public final class ReputationArmyScreen extends Screen {
     // sending any order. This allows quick one-handed selection while preserving
     // Enter/Space activation and the existing numbered shortcuts.
     @Override public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        // An old wheel event must not close the replacement screen.
+        if (minecraft == null || minecraft.screen != this) return true;
         if (!isOriginalDimension() || !isPlayerClockValid()) {
             onClose();
             return true;
