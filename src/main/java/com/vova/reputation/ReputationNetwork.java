@@ -890,6 +890,23 @@ public final class ReputationNetwork {
                             attackFreezing++;
                             continue;
                         }
+                        // A wolf already standing in a damaging plant must be
+                        // allowed to escape instead of being forced into melee.
+                        // Check both body blocks: tall berry bushes and wither roses
+                        // can hurt a pet even when the marked monster stands safely.
+                        var wolfFeet = wolf.blockPosition();
+                        var wolfHead = wolfFeet.above();
+                        var wolfFeetState = wolf.level().getBlockState(wolfFeet);
+                        var wolfHeadState = wolf.level().getBlockState(wolfHead);
+                        if (wolfFeetState.is(net.minecraft.world.level.block.Blocks.CACTUS)
+                                || wolfHeadState.is(net.minecraft.world.level.block.Blocks.CACTUS)
+                                || wolfFeetState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                                || wolfHeadState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                                || wolfFeetState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
+                                || wolfHeadState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)) {
+                            attackBurning++;
+                            continue;
+                        }
                         // Keep critically wounded wolves out of offensive orders.
                         // They retain their current stance and can still receive
                         // follow, guard or retreat commands from their owner.
