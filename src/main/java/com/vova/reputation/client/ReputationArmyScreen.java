@@ -90,6 +90,7 @@ public final class ReputationArmyScreen extends Screen {
     private static final Tooltip STALE_SQUAD_TOOLTIP = Tooltip.create(STALE_SQUAD_HELP);
     private static final Tooltip PENDING_SQUAD_TOOLTIP = Tooltip.create(PENDING_SQUAD_HELP);
     private static final Tooltip INACTIVE_PLAYER_TOOLTIP = Tooltip.create(INACTIVE_PLAYER_HELP);
+    private static final Tooltip CLOSE_TOOLTIP = Tooltip.create(Component.literal("7 — Закрыть панель приказов без отправки команды. G или Esc также закрывают панель."));
 
     private Tooltip unavailableTooltip() {
         if (minecraft != null && minecraft.player != null
@@ -301,6 +302,10 @@ public final class ReputationArmyScreen extends Screen {
         orderButtons.add(addRenderableWidget(waypoint));
         closeButton = addRenderableWidget(Button.builder(commandLabel(7, "Закрыть", buttonWidth), b -> onClose())
             .bounds(buttonX, firstButtonY + 6 * (buttonHeight + buttonGap), buttonWidth, buttonHeight).build());
+        // Compact GUI scales may show only the numeric shortcut. Keep the full
+        // meaning of Close discoverable via the same vanilla tooltip system as
+        // the six squad orders, without scaling text or drawing another overlay.
+        closeButton.setTooltip(CLOSE_TOOLTIP);
         // Keyboard/controller navigation should start on an actionable control.
         // When the squad is unavailable, focus Close instead of a disabled order.
         if (closeWasFocused && closeButton != null) {
