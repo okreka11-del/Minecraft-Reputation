@@ -406,6 +406,11 @@ public final class ReputationNetwork {
                             || targetHeadState.is(net.minecraft.world.level.block.Blocks.SOUL_FIRE)
                             // Thorny plants and powder snow can injure or trap a pack
                             // even though they do not form solid collision blocks.
+                            // Cactus hurts wolves on contact even when the monster itself
+                            // is not burning. Check both occupied target cells before
+                            // committing the squad to melee pursuit.
+                            || targetFeetState.is(net.minecraft.world.level.block.Blocks.CACTUS)
+                            || targetHeadState.is(net.minecraft.world.level.block.Blocks.CACTUS)
                             || targetFeetState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
                             || targetHeadState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
                             || targetFeetState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
