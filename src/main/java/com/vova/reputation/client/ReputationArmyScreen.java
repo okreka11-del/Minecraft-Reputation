@@ -180,6 +180,9 @@ public final class ReputationArmyScreen extends Screen {
 
     /** Update the authoritative count without recreating the menu or losing focus. */
     public void updateSquadCount(int count) {
+        // A delayed reply may arrive after another GUI replaces this panel.
+        // Do not close that newer screen or revive the obsolete squad overview.
+        if (minecraft == null || minecraft.screen != this) return;
         // A delayed server reply can arrive after a portal transfer or respawn,
         // before the next screen tick has closed this old menu. Never let that
         // reply overwrite the old timestamp and re-enable stale commands.
@@ -470,6 +473,9 @@ public final class ReputationArmyScreen extends Screen {
     }
 
     @Override public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+        // A queued render from a replaced screen must not paint a ghost panel
+        // over the book, trading screen or another active interface.
+        if (minecraft == null || minecraft.screen != this) return;
         refreshOrderAvailability();
         // Keep the world fully visible behind squad commands; no fullscreen dim layer.
         int w = Math.max(1, Math.min(238, width - 16));
