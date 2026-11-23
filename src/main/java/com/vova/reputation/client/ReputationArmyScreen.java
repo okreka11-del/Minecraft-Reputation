@@ -295,7 +295,10 @@ public final class ReputationArmyScreen extends Screen {
                 && orderButtons.get(previousFocus).active) {
             setInitialFocus(orderButtons.get(previousFocus));
         } else {
-            setInitialFocus(canIssueOrders() ? follow : closeButton);
+            // A stale squad overview still permits emergency disengage. Give
+            // keyboard/controller users immediate access to that safety action
+            // instead of focusing Close while the retreat button is enabled.
+            setInitialFocus(canIssueOrders() ? follow : canRetreat() ? disengage : closeButton);
         }
     }
 
