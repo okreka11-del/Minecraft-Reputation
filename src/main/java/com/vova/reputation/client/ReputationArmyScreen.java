@@ -1026,6 +1026,23 @@ public final class ReputationArmyScreen extends Screen {
                     return true;
                 }
             }
+            // Right-clicking an enabled command should not discard the tactical
+            // panel. Show its purpose without dispatching a combat order; only
+            // left-click or the numbered shortcut can execute it. This is useful
+            // for touchpad users who inspect commands with a secondary click.
+            for (int i = 0; i < orderButtons.size(); i++) {
+                Button orderButton = orderButtons.get(i);
+                if (orderButton.visible && orderButton.active
+                        && mouseX >= orderButton.getX()
+                        && mouseX < orderButton.getX() + orderButton.getWidth()
+                        && mouseY >= orderButton.getY()
+                        && mouseY < orderButton.getY() + orderButton.getHeight()) {
+                    if (minecraft.player != null) {
+                        minecraft.player.displayClientMessage(Component.literal(ORDER_PREVIEWS[i]), true);
+                    }
+                    return true;
+                }
+            }
             onClose();
             return true;
         }
