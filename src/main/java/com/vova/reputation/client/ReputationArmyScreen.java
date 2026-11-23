@@ -392,6 +392,10 @@ public final class ReputationArmyScreen extends Screen {
     }
 
     private void issue(int order) {
+        // A queued click or key event can outlive this overlay when another screen
+        // replaces it (for example on disconnect or dimension transition). Never
+        // send a combat order from an inactive tactical screen.
+        if (minecraft == null || minecraft.screen != this) return;
         // Retreat (Backspace) is a safety override. The server independently
         // checks ownership, range, player state and the destination, so an
         // expired overview cannot strand wolves in combat during network lag.
@@ -690,6 +694,9 @@ public final class ReputationArmyScreen extends Screen {
     // One shared refresh path keeps keyboard and mouse input subject to the
     // same client cooldown and server-authoritative response handling.
     private void requestManualRefresh() {
+        // Ignore late input delivered after this screen has been replaced.
+        // Otherwise a stale heading click could request a squad scan in a new UI.
+        if (minecraft == null || minecraft.screen != this) return;
         // A refresh packet from the old dimension could produce a misleading
         // squad snapshot after portal travel; wait for the new panel instead.
         // A respawn may reset the player clock before the next screen tick.
