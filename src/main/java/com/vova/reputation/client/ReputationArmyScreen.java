@@ -638,6 +638,9 @@ public final class ReputationArmyScreen extends Screen {
             // A focused but disabled order must explain why it cannot be used,
             // not advertise an action that the server will reject.
             String range = !canIssueOrders() && !hoveringClose && selectedOrder >= 0
+                // Emergency retreat remains available with a stale or pending
+                // squad snapshot; its preview must not claim it is disabled.
+                && !(selectedOrder == 3 && canRetreat())
                 ? (refreshing ? "Ожидание ответа сервера"
                     : refreshFailed || staleSquad ? "0/R/F5 · повторить проверку"
                     : playerInactive ? "Приказы сейчас недоступны"
