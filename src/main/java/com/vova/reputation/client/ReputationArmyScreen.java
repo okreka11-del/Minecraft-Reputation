@@ -904,7 +904,9 @@ public final class ReputationArmyScreen extends Screen {
             if (order == 6) {
                 // Closing the tactical overlay must remain possible without a squad.
                 onClose();
-            } else if (canIssueOrders()) {
+            } else if (order == 3 ? canRetreat() : canIssueOrders()) {
+                // Number 4 is the same emergency action as Backspace and the
+                // retreat button: a stale squad snapshot must not block it.
                 issue(order);
             } else if (minecraft != null && minecraft.player != null) {
                 // Keyboard shortcuts need the same guidance as disabled buttons.
@@ -976,7 +978,8 @@ public final class ReputationArmyScreen extends Screen {
         // numbered keyboard shortcuts already provide, without sending an order.
         if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && !canIssueOrders()) {
             for (Button orderButton : orderButtons) {
-                if (orderButton.visible && mouseX >= orderButton.getX()
+                if (orderButton.visible && !orderButton.active
+                        && mouseX >= orderButton.getX()
                         && mouseX < orderButton.getX() + orderButton.getWidth()
                         && mouseY >= orderButton.getY()
                         && mouseY < orderButton.getY() + orderButton.getHeight()) {
