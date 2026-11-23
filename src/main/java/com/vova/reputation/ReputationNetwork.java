@@ -813,6 +813,7 @@ public final class ReputationNetwork {
                 int leashed = 0;
                 int attackTooWounded = 0;
                 int attackBurning = 0;
+                int attackInDamagingPlants = 0;
                 int attackFreezing = 0;
                 int attackLowAir = 0;
                 int attackOutOfRange = 0;
@@ -904,7 +905,7 @@ public final class ReputationNetwork {
                                 || wolfHeadState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
                                 || wolfFeetState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
                                 || wolfHeadState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)) {
-                            attackBurning++;
+                            attackInDamagingPlants++;
                             continue;
                         }
                         // Keep critically wounded wolves out of offensive orders.
@@ -1354,7 +1355,7 @@ public final class ReputationNetwork {
                             + " не смогли начать движение. Уберите препятствия или подойдите ближе."), true);
                 } else if (payload.order() == 4 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                        "Атака не выполнена: " + attackTooWounded + " волков тяжело ранены (≤25% здоровья), " + attackBurning + " горят, " + attackFreezing + " замерзают, " + attackLowAir + " задыхаются в воде, " + attackOutOfRange + " слишком далеко, "
+                        "Атака не выполнена: " + attackTooWounded + " волков тяжело ранены (≤25% здоровья), " + attackBurning + " горят, " + attackInDamagingPlants + " находятся в опасных растениях, " + attackFreezing + " замерзают, " + attackLowAir + " задыхаются в воде, " + attackOutOfRange + " слишком далеко, "
                             + attackNoSight + " не видят цель, " + attackAllied + " состоят в команде цели, " + attackNoPath
                             + " не могут найти путь. Подведите отряд ближе или устраните препятствия."), true);
                 } else {
