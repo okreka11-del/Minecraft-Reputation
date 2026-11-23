@@ -529,8 +529,8 @@ public final class ReputationArmyScreen extends Screen {
             ? (minecraft.player.isSpectator() ? "Режим наблюдателя" : "Игрок погиб")
             : height < 165
                 ? (refreshing ? "Проверка · " + manualRefreshSecondsRemaining() + " с"
-                    : refreshFailed ? "0/R/F5 · нет ответа"
-                    : staleSquad ? "0/R/F5 · нет связи"
+                    : refreshFailed ? "4: отступить · R: повторить"
+                    : staleSquad ? "4: отступить · R: обновить"
                     : available == 0 ? "0/R/F5 · нет волков" : "Отряд: " + available + " · " + squadSnapshotSecondsRemaining() + " с")
                 : title.getString();
         // Preserve the actionable refresh shortcut even at very large GUI scales.
@@ -553,8 +553,8 @@ public final class ReputationArmyScreen extends Screen {
         g.drawString(font, heading, x + (w - font.width(heading)) / 2, y + (height < 105 ? 1 : 8), headingColor, false);
         String count = playerInactive ? "Приказы временно недоступны"
             : refreshing ? "Проверка: " + manualRefreshSecondsRemaining() + " с · было: " + available
-            : refreshFailed ? "0/R/F5 · сервер не ответил"
-            : staleSquad ? "0/R/F5 · состав отряда устарел"
+            : refreshFailed ? "Backspace/4 · отступить · R: повторить"
+            : staleSquad ? "Backspace/4 · отступить · R: обновить"
             : available == 0 ? "0/R/F5 · нет волков рядом" : "Волки: " + available + " · проверено, ещё " + squadSnapshotSecondsRemaining() + " с";
         if (height >= 165) {
             // Show server verification status without blur, overlays or extra render passes.
@@ -642,7 +642,7 @@ public final class ReputationArmyScreen extends Screen {
                 // squad snapshot; its preview must not claim it is disabled.
                 && !(selectedOrder == 3 && canRetreat())
                 ? (refreshing ? "Ожидание ответа сервера"
-                    : refreshFailed || staleSquad ? "0/R/F5 · повторить проверку"
+                    : refreshFailed || staleSquad ? "4/Backspace: отступить · R: обновить"
                     : playerInactive ? "Приказы сейчас недоступны"
                     : "0/R/F5 · проверить волков рядом")
                 : hoveringClose ? "Закрыть · вернуться в игру"
