@@ -69,8 +69,8 @@ public final class ReputationArmyScreen extends Screen {
         Tooltip.create(Component.literal("Атаковать — ударьте монстра не более 10 секунд назад. Цель должна быть видна в радиусе 24 блоков. Волки с 25% здоровья или меньше не атакуют; союзников, криперов, Хранителя и Иссушителя атаковать нельзя. Вода и опасные подходы также блокируют приказ.")),
         Tooltip.create(Component.literal("К точке взгляда — наведите прицел на блок в радиусе 24 блоков до открытия панели G. Волки идут только по безопасному доступному пути; тяжело раненые (25% здоровья или меньше) остаются на месте. Для экстренного возврата используйте «Отступить»."))
     };
-    private static final Component NO_SQUAD_HELP = Component.literal("Нет доступных волков: приручите волка костями или подойдите к своим волкам. Нажмите 0/R/F5, чтобы повторно проверить отряд.");
-    private static final Component STALE_SQUAD_HELP = Component.literal("Состав отряда не подтверждён сервером. Нажмите 0/R/F5, среднюю кнопку мыши или заголовок панели и дождитесь ответа сервера.");
+    private static final Component NO_SQUAD_HELP = Component.literal("Нет волков рядом: приручите волка или подойдите к своим питомцам. 0/R/F5 — проверить отряд; 4/Backspace — экстренно прекратить бой у доступных волков.");
+    private static final Component STALE_SQUAD_HELP = Component.literal("Состав отряда устарел. 0/R/F5, средняя кнопка мыши или заголовок — проверить снова; 4/Backspace — экстренное отступление.");
     private static final Component PENDING_SQUAD_HELP = Component.literal("Проверяем отряд: обычные приказы ждут сервер. Экстренное отступление доступно по 4/Backspace.");
     private static final Component INACTIVE_PLAYER_HELP = Component.literal("Нельзя отдавать приказы отряду в режиме наблюдателя или после гибели.");
     // Disabled commands share immutable status tooltips. Reusing one instance per
@@ -531,7 +531,7 @@ public final class ReputationArmyScreen extends Screen {
                 ? (refreshing ? "4: отступить · проверка " + manualRefreshSecondsRemaining() + " с"
                     : refreshFailed ? "4: отступить · R: повторить"
                     : staleSquad ? "4: отступить · R: обновить"
-                    : available == 0 ? "0/R/F5 · нет волков" : "Отряд: " + available + " · " + squadSnapshotSecondsRemaining() + " с")
+                     : available == 0 ? "4: отступить · 0: проверить" : "Отряд: " + available + " · " + squadSnapshotSecondsRemaining() + " с")
                 : title.getString();
         // Preserve the actionable refresh shortcut even at very large GUI scales.
         // Truncate the explanation after the shortcut, never the shortcut itself.
@@ -555,7 +555,7 @@ public final class ReputationArmyScreen extends Screen {
             : refreshing ? "Проверка " + manualRefreshSecondsRemaining() + " с · 4/Backspace: отступить"
             : refreshFailed ? "Backspace/4 · отступить · R: повторить"
             : staleSquad ? "Backspace/4 · отступить · R: обновить"
-            : available == 0 ? "0/R/F5 · нет волков рядом" : "Волки: " + available + " · проверено, ещё " + squadSnapshotSecondsRemaining() + " с";
+            : available == 0 ? "Нет волков рядом · 4: отступить · R: проверить" : "Волки: " + available + " · проверено, ещё " + squadSnapshotSecondsRemaining() + " с";
         if (height >= 165) {
             // Show server verification status without blur, overlays or extra render passes.
             // Red = unavailable/stale, amber = pending, green = confirmed squad.
