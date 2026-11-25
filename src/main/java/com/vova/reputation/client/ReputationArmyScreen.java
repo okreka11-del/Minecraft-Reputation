@@ -957,10 +957,10 @@ public final class ReputationArmyScreen extends Screen {
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
-    // Right-click dismisses the tactical overlay without issuing an order.
+    // Right-click outside the tactical overlay dismisses it without issuing an order.
     // This is especially useful when the player spots a threat behind the
     // blur-free panel and needs to return to normal camera control quickly.
-    // Only left-click may activate an order button.
+    // Only left-click activates ordinary orders; retreat is an emergency exception.
     @Override public boolean mouseClicked(double mouseX, double mouseY, int button) {
         // Ignore delayed clicks after a different GUI has become active.
         if (minecraft == null || minecraft.screen != this) return true;
@@ -1002,7 +1002,7 @@ public final class ReputationArmyScreen extends Screen {
             }
             // Right-clicking the emergency retreat control should perform the
             // visible safety action, not silently close the panel. Right-click
-            // anywhere else still dismisses the tactical overlay as before.
+            // outside the panel still dismisses the tactical overlay.
             // The server independently validates the retreat and its targets.
             if (orderButtons.size() > 3) {
                 Button retreat = orderButtons.get(3);
@@ -1043,7 +1043,17 @@ public final class ReputationArmyScreen extends Screen {
                     return true;
                 }
             }
-            onClose();
+            // Secondary clicks on empty space inside the panel are harmless.
+            // Keep the overview open when inspecting gaps or its status area;
+            // the explicit Close control and clicks on the world still dismiss it.
+            int panelBottom = Math.min(height - 2, panelY + headerHeight()
+                + 7 * commandButtonHeight() + 6 * commandButtonGap() + 8);
+            if (closeButton != null && closeButton.isMouseOver(mouseX, mouseY)) {
+                onClose();
+            } else if (mouseX < panelX - 3 || mouseX >= panelX + panelWidth + 3
+                    || mouseY < panelY - 3 || mouseY >= panelBottom) {
+                onClose();
+            }
             return true;
         }
         // A click on the visible world outside the tactical panel dismisses it
