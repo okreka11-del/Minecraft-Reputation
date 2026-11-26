@@ -961,10 +961,10 @@ public final class ReputationNetwork {
                             continue;
                         }
                         // Optional travel must not override a wolf escaping fire, freezing
-                        // or drowning. Preserve its current stance and navigation;
+                        // or immersion in water/lava. Preserve its current stance and navigation;
                         // Follow and emergency Retreat remain available.
-                        if (wolf.isOnFire() || wolf.isInPowderSnow || wolf.isFullyFrozen()
-                                || (wolf.isInWaterOrBubble() && wolf.getAirSupply() <= 60)) {
+                        if (wolf.isOnFire() || wolf.isInLava() || wolf.isInPowderSnow || wolf.isFullyFrozen()
+                                || wolf.isInWaterOrBubble()) {
                             waypointUnsafeWolf++;
                             continue;
                         }
