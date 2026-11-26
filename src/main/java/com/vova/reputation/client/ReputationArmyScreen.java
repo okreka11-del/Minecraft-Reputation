@@ -455,6 +455,10 @@ public final class ReputationArmyScreen extends Screen {
             manualRefreshTimedOut = true;
             refreshOrderAvailability();
         }
+        // Update controls on the game tick even when rendering is throttled.
+        // In particular, death/spectator transitions and expired snapshots must
+        // not leave keyboard focus on an unavailable command.
+        refreshOrderAvailability();
         if (minecraft.player == null || !minecraft.player.isAlive()
                 || minecraft.player.isSpectator()) return;
         int now = minecraft.player.tickCount;
