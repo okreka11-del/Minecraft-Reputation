@@ -121,7 +121,7 @@ public final class ReputationArmyScreen extends Screen {
         // A snapshot is valid for strictly less than six seconds. At the exact
         // 120-tick boundary the countdown reaches zero, so commands must
         // already be disabled rather than remaining usable for one extra tick.
-        return now >= lastSquadResponseTick && now - lastSquadResponseTick >= 120;
+        return now < lastSquadResponseTick || (long) now - lastSquadResponseTick >= 120;
     }
 
     private boolean hasManualRefreshExpired() {
