@@ -968,6 +968,19 @@ public final class ReputationNetwork {
                             waypointUnsafeWolf++;
                             continue;
                         }
+                        // As with attack orders, do not interrupt escape from damaging plants.
+                        var waypointFeet = wolf.blockPosition();
+                        var waypointFeetState = wolf.level().getBlockState(waypointFeet);
+                        var waypointHeadState = wolf.level().getBlockState(waypointFeet.above());
+                        if (waypointFeetState.is(net.minecraft.world.level.block.Blocks.CACTUS)
+                                || waypointHeadState.is(net.minecraft.world.level.block.Blocks.CACTUS)
+                                || waypointFeetState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                                || waypointHeadState.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)
+                                || waypointFeetState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)
+                                || waypointHeadState.is(net.minecraft.world.level.block.Blocks.WITHER_ROSE)) {
+                            waypointUnsafeWolf++;
+                            continue;
+                        }
                         // Keep waypoint orders local to each wolf as well as the owner.
                         // A wolf at the far edge of the squad radius must not be sent
                         // up to 48 blocks away across unloaded or dangerous terrain.
