@@ -116,7 +116,7 @@ public final class ReputationArmyScreen extends Screen {
     }
 
     private boolean isSquadSnapshotStale() {
-        if (minecraft == null || minecraft.player == null || lastSquadResponseTick == Integer.MIN_VALUE) return false;
+        if (minecraft == null || minecraft.player == null || lastSquadResponseTick == Integer.MIN_VALUE) return true;
         int now = minecraft.player.tickCount;
         // A snapshot is valid for strictly less than six seconds. At the exact
         // 120-tick boundary the countdown reaches zero, so commands must
