@@ -110,9 +110,9 @@ public final class ReputationArmyScreen extends Screen {
     private int squadSnapshotSecondsRemaining() {
         if (minecraft == null || minecraft.player == null
                 || lastSquadResponseTick == Integer.MIN_VALUE) return 0;
-        int elapsed = minecraft.player.tickCount - lastSquadResponseTick;
-        if (elapsed < 0) return 0;
-        return Math.max(0, (120 - elapsed + 19) / 20);
+        long elapsed = (long) minecraft.player.tickCount - lastSquadResponseTick;
+        if (elapsed < 0 || elapsed >= 120) return 0;
+        return (int) ((120 - elapsed + 19) / 20);
     }
 
     private boolean isSquadSnapshotStale() {
