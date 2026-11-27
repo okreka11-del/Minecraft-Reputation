@@ -289,7 +289,7 @@ public final class ReputationNetwork {
                     // Do not send tame wolves into a fight they cannot win. A monster
                     // made invulnerable by a map, command or scripted encounter cannot
                     // take ordinary melee damage; preserve the squad's existing stance.
-                    if (candidate.isInvulnerable() || candidate.isInvulnerableTo(player.damageSources().mobAttack(player))) {
+                    if (candidate.isInvulnerable()) {
                         player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                             "Цель неуязвима: приказ атаки отменён, чтобы не подвергать волков опасности."), true);
                         return;
@@ -828,6 +828,7 @@ public final class ReputationNetwork {
                 int attackOutOfRange = 0;
                 int attackNoSight = 0;
                 int attackAllied = 0;
+                int attackImmune = 0;
                 int attackNoPath = 0;
                 int waypointUnsafeWolf = 0;
                 int waypointTooWounded = 0;
@@ -877,6 +878,10 @@ public final class ReputationNetwork {
                     if (payload.order() == 4) {
                         // Scoreboard teams can differ between the owner and individual pets.
                         // Never override a wolf's stance to attack its own teammate.
+                        if (attackTarget.isInvulnerableTo(wolf.damageSources().mobAttack(wolf))) {
+                            attackImmune++;
+                            continue;
+                        }
                         if (wolf.isAlliedTo(attackTarget)) {
                             attackAllied++;
                             continue;
@@ -1378,7 +1383,7 @@ public final class ReputationNetwork {
                 } else if (payload.order() == 4 && changed == 0) {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                         "Атака не выполнена: " + attackTooWounded + " волков тяжело ранены (≤25% здоровья), " + attackBurning + " горят, " + attackInDamagingPlants + " находятся в опасных растениях, " + attackFreezing + " замерзают, " + attackLowAir + " находятся в воде, " + attackOutOfRange + " слишком далеко, "
-                            + attackNoSight + " не видят цель, " + attackAllied + " состоят в команде цели, " + attackNoPath
+                            + attackNoSight + " не видят цель, " + attackImmune + " не могут нанести цели урон, " + attackAllied + " состоят в команде цели, " + attackNoPath
                             + " не могут найти путь. Подведите отряд ближе или устраните препятствия."), true);
                 } else {
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
