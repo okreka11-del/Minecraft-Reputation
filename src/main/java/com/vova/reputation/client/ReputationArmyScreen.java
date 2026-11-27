@@ -558,7 +558,7 @@ public final class ReputationArmyScreen extends Screen {
         // Compact layouts omit the secondary status row, so surface pending and
         // failed server refreshes in the heading instead of hiding the feedback.
         boolean refreshing = isManualRefreshPending();
-        boolean staleSquad = !playerInactive && (isSquadSnapshotStale() || hasManualRefreshExpired());
+        boolean staleSquad = !playerInactive && !refreshing && (isSquadSnapshotStale() || hasManualRefreshExpired());
         boolean refreshFailed = manualRefreshTimedOut || hasManualRefreshExpired();
         String headingText = playerInactive
             ? (minecraft.player.isSpectator() ? "Режим наблюдателя" : "Игрок погиб")
