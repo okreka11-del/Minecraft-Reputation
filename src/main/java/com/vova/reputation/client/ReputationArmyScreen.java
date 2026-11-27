@@ -793,6 +793,8 @@ public final class ReputationArmyScreen extends Screen {
             onClose();
             return true;
         }
+        // Synchronize widget hitboxes and focus before processing input between ticks.
+        refreshOrderAvailability();
         // The configurable army key takes precedence over numeric shortcuts.
         // Otherwise remapping G to 1-7 would accidentally issue an order instead
         // of closing the panel (and a remapped navigation key would move focus).
@@ -972,6 +974,8 @@ public final class ReputationArmyScreen extends Screen {
             onClose();
             return true;
         }
+        // Synchronize widget hitboxes and focus before processing input between ticks.
+        refreshOrderAvailability();
         // Do not carry a partial trackpad gesture into a mouse-selected command.
         pendingWheelScroll = 0;
         if (button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE) {
@@ -1113,6 +1117,8 @@ public final class ReputationArmyScreen extends Screen {
             onClose();
             return true;
         }
+        // Synchronize widget hitboxes and focus before processing input between ticks.
+        refreshOrderAvailability();
         // Wheel navigation is local to the tactical panel. Scrolling over the
         // visible world must not silently change the selected combat order.
         // Discard a partial trackpad gesture on exit so returning to the panel
