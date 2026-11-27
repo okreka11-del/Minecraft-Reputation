@@ -247,7 +247,7 @@ public final class ReputationArmyScreen extends Screen {
         // Recreating widgets otherwise jumps focus back to the first command,
         // potentially selecting a different order just before Enter is pressed.
         int previousFocus = orderButtons.indexOf(getFocused());
-        boolean closeWasFocused = getFocused() == closeButton;
+        boolean closeWasFocused = closeButton != null && getFocused() == closeButton;
         orderButtons.clear();
         pendingWheelScroll = 0;
         closeButton = null;
