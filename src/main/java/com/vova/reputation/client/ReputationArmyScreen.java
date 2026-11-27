@@ -80,7 +80,7 @@ public final class ReputationArmyScreen extends Screen {
         Component.literal("Приказ «Атаковать» отправлен серверу"),
         Component.literal("Приказ «К точке» отправлен серверу")
     };
-    private static final Component NO_SQUAD_HELP = Component.literal("Нет волков рядом: приручите волка или подойдите к своим питомцам. 0/R/F5 — проверить отряд; 4/Backspace — экстренно прекратить бой у доступных волков.");
+    private static final Component NO_SQUAD_HELP = Component.literal("Нет волков рядом: приручите волка или подойдите к своим питомцам. 0/R/F5, средняя кнопка мыши или заголовок — проверить отряд; 4/Backspace — экстренно прекратить бой у доступных волков.");
     private static final Component STALE_SQUAD_HELP = Component.literal("Состав отряда устарел. 0/R/F5, средняя кнопка мыши или заголовок — проверить снова; 4/Backspace — экстренное отступление.");
     private static final Component PENDING_SQUAD_HELP = Component.literal("Проверяем отряд: обычные приказы ждут сервер. Экстренное отступление доступно по 4/Backspace.");
     private static final Component INACTIVE_PLAYER_HELP = Component.literal("Нельзя отдавать приказы отряду в режиме наблюдателя или после гибели.");
@@ -187,7 +187,7 @@ public final class ReputationArmyScreen extends Screen {
 
     public ReputationArmyScreen(int available) {
         super(Component.literal("Отряд — приказы"));
-        this.available = available;
+        this.available = Math.max(0, available);
     }
 
     /** Update the authoritative count without recreating the menu or losing focus. */
@@ -1030,7 +1030,9 @@ public final class ReputationArmyScreen extends Screen {
                         && mouseX < orderButton.getX() + orderButton.getWidth()
                         && mouseY >= orderButton.getY()
                         && mouseY < orderButton.getY() + orderButton.getHeight()) {
-                    minecraft.player.displayClientMessage(unavailableHelp(), true);
+                    if (minecraft.player != null) {
+                        minecraft.player.displayClientMessage(unavailableHelp(), true);
+                    }
                     return true;
                 }
             }
