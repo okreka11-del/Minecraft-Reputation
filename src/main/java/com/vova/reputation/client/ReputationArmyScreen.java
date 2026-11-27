@@ -150,7 +150,7 @@ public final class ReputationArmyScreen extends Screen {
         // Input can arrive between a dimension transfer and the next screen tick.
         // Reject stale orders immediately instead of relying on tick() to close us.
         return minecraft != null && minecraft.player != null && minecraft.player == openedPlayer
-            && openedDimension != null && minecraft.player.level().dimension() == openedDimension;
+            && openedDimension != null && openedDimension.equals(minecraft.player.level().dimension());
     }
 
     // A respawn or client world replacement can reset the player tick counter
@@ -1199,7 +1199,8 @@ public final class ReputationArmyScreen extends Screen {
         // Otherwise a three-notch burst can skip straight into a combat order
         // before the player has seen which command received focus.
         int next = current < 0
-            ? (direction > 0 ? 0 : selectable.size() - 1)
+            ? (direction > 0 ? Math.min(steps - 1, selectable.size() - 1)
+                : Math.max(0, selectable.size() - steps))
             // Stop at the first/last control instead of wrapping from Close
             // to Attack. Further wheel notches at the edge are harmless.
             : Math.max(0, Math.min(selectable.size() - 1, current + direction * steps));
