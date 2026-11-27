@@ -289,7 +289,7 @@ public final class ReputationNetwork {
                     // Do not send tame wolves into a fight they cannot win. A monster
                     // made invulnerable by a map, command or scripted encounter cannot
                     // take ordinary melee damage; preserve the squad's existing stance.
-                    if (candidate.isInvulnerable()) {
+                    if (candidate.isInvulnerable() || candidate.isInvulnerableTo(player.damageSources().mobAttack(player))) {
                         player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                             "Цель неуязвима: приказ атаки отменён, чтобы не подвергать волков опасности."), true);
                         return;
