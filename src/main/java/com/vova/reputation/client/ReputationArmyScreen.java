@@ -415,6 +415,7 @@ public final class ReputationArmyScreen extends Screen {
         // replaces it (for example on disconnect or dimension transition). Never
         // send a combat order from an inactive tactical screen.
         if (minecraft == null || minecraft.screen != this) return;
+        if (order < 0 || order >= ORDER_SENT_MESSAGES.length) return;
         // Retreat (Backspace) is a safety override. The server independently
         // checks ownership, range, player state and the destination, so an
         // expired overview cannot strand wolves in combat during network lag.
@@ -499,6 +500,8 @@ public final class ReputationArmyScreen extends Screen {
         // A queued render from a replaced screen must not paint a ghost panel
         // over the book, trading screen or another active interface.
         if (minecraft == null || minecraft.screen != this) return;
+        // Do not paint the previous dimension's squad during the frame before tick closes it.
+        if (!isOriginalDimension() || !isPlayerClockValid()) return;
         refreshOrderAvailability();
         // Keep the world fully visible behind squad commands; no fullscreen dim layer.
         int w = Math.max(1, Math.min(238, width - 16));
