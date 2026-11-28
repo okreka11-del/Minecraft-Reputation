@@ -1,0 +1,127 @@
+package com.vova.reputation.client;
+
+import com.vova.reputation.ReputationNetwork;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import net.neoforged.neoforge.network.PacketDistributor;
+
+/** Pixel-art, command-free villager conversation panel. */
+public final class ReputationDialogueScreen extends Screen {
+    private final int entityId;
+    private final String greeting;
+    private final int score;
+    private String response = "";
+    public ReputationDialogueScreen(int entityId, int score, String greeting) {
+        super(Component.literal("Разговор с жителем"));
+        this.entityId = entityId;
+        this.score = score;
+        this.greeting = greeting;
+    }
+    private int panelWidth() { return Math.max(1, Math.min(250, width - 12)); }
+    private int panelHeight() { return Math.max(1, Math.min(155, height - 12)); }
+    private int panelX() { return (width - panelWidth()) / 2; }
+    private int panelY() { return (height - panelHeight()) / 2; }
+
+    // Keep compact buttons readable without clipping labels into neighboring actions.
+    // Full names remain available on hover and to keyboard/controller focus.
+    private Component fittedButtonLabel(String label, int buttonWidth) {
+        int maxWidth = Math.max(0, buttonWidth - 8);
+        if (font.width(label) <= maxWidth) return Component.literal(label);
+        String ellipsis = "…";
+        if (font.width(ellipsis) > maxWidth) return Component.literal("");
+        return Component.literal(font.plainSubstrByWidth(label, maxWidth - font.width(ellipsis)) + ellipsis);
+    }
+
+    @Override protected void init() {
+        // Keep both action rows inside compact GUI-scale viewports. The old
+        // fixed 57px footer could place the first row above the panel, while
+        // its fixed padding could push the second column outside narrow panels.
+        int w = panelWidth(), h = panelHeight();
+        int padding = Math.min(10, Math.max(0, (w - 2) / 4));
+        int gap = Math.min(6, Math.max(0, w - 2 * padding - 2));
+        int buttonWidth = Math.max(1, (w - 2 * padding - gap) / 2);
+        int buttonHeight = Math.max(1, Math.min(20, (h - 4) / 2));
+        int rowGap = Math.min(6, Math.max(0, h - 2 * buttonHeight - 2));
+        int x = panelX() + padding;
+        int y = panelY() + Math.max(0, h - 5 - 2 * buttonHeight - rowGap);
+        Button talkButton = addRenderableWidget(Button.builder(fittedButtonLabel("Поговорить", buttonWidth), b -> {
+            response = score <= -80 ? "Не причиняй вреда нашей деревне!"
+                : score >= 151 ? "Спасибо, что защищаешь нас!"
+                : score >= 100 ? "Мы рады видеть нашего союзника!"
+                : "Наша деревня живёт торговлей и трудом.";
+            // Compact GUI scales hide the response line; keep the answer readable.
+            if (panelHeight() < 120 && minecraft != null && minecraft.player != null) {
+                minecraft.player.displayClientMessage(Component.literal(response), true);
+            }
+        }).bounds(x, y, buttonWidth, buttonHeight).build());
+        Button tradeButton = addRenderableWidget(Button.builder(fittedButtonLabel("Торговля", buttonWidth), b -> {
+            PacketDistributor.sendToServer(new ReputationNetwork.DialogueAction(entityId, 1));
+            onClose();
+        }).bounds(x + buttonWidth + gap, y, buttonWidth, buttonHeight).build());
+        Button relationButton = addRenderableWidget(Button.builder(fittedButtonLabel("Отношения", buttonWidth), b -> {
+            response = score < 0 ? "Жители относятся к тебе с опаской."
+                : score >= 151 ? "Жители доверяют тебе свою безопасность."
+                : "Отношения зависят от твоих поступков.";
+            if (panelHeight() < 120 && minecraft != null && minecraft.player != null) {
+                minecraft.player.displayClientMessage(Component.literal(response), true);
+            }
+        }).bounds(x, y + buttonHeight + rowGap, buttonWidth, buttonHeight).build());
+        Button closeButton = addRenderableWidget(Button.builder(fittedButtonLabel("Закрыть", buttonWidth), b -> onClose())
+            .bounds(x + buttonWidth + gap, y + buttonHeight + rowGap, buttonWidth, buttonHeight).build());
+        talkButton.setTooltip(Tooltip.create(Component.literal("Поговорить")));
+        tradeButton.setTooltip(Tooltip.create(Component.literal("Торговля")));
+        relationButton.setTooltip(Tooltip.create(Component.literal("Отношения")));
+        closeButton.setTooltip(Tooltip.create(Component.literal("Закрыть")));
+    }
+    // Constrain server-provided text without fractional font transforms.
+    private void drawFittedCentered(GuiGraphics g, String value, int y) {
+        String safe = value == null ? "" : value;
+        int maxWidth = Math.max(1, panelWidth() - 30);
+        if (font.width(safe) > maxWidth) {
+            String ellipsis = font.width("...") <= maxWidth ? "..." : "";
+            safe = font.plainSubstrByWidth(safe, Math.max(0, maxWidth - font.width(ellipsis))) + ellipsis;
+        }
+        // drawCenteredString adds a shadow pass, which doubles dark bitmap glyph edges.
+        // Keep the conversation text centered on integer GUI pixels with one crisp pass.
+        int textX = panelX() + (panelWidth() - font.width(safe)) / 2;
+        g.drawString(font, safe, textX, y, 0xFF49301F, false);
+    }
+
+    // Preserve the full dialogue when the pixel-font line is clipped.
+    private void showFullTextOnHover(GuiGraphics g, String value, int textY, int mouseX, int mouseY) {
+        if (value == null || value.isEmpty() || font.width(value) <= Math.max(1, panelWidth() - 30)) return;
+        if (mouseX >= panelX() && mouseX < panelX() + panelWidth()
+            && mouseY >= textY - 2 && mouseY < textY + font.lineHeight + 2) {
+            g.renderTooltip(font, Component.literal(value), mouseX, mouseY);
+        }
+    }
+
+    // Do not invoke vanilla's blurred/dimmed menu background for conversations.
+    @Override public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+        // The world remains visible while the pixel-art dialogue panel is open.
+    }
+
+    @Override public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+        int x = panelX(), y = panelY();
+        int w = panelWidth(), h = panelHeight();
+        g.fill(x - 3, y - 3, x + w + 3, y + h + 3, 0xFF302018);
+        g.fill(x, y, x + w, y + h, 0xFFD3B483);
+        g.fill(x + 5, y + 5, x + w - 5, y + h - 5, 0xFFF1DEB6);
+        // Crisp inset frame and decorative gold title separator.
+        g.fill(x + 5, y + 5, x + w - 5, y + 7, 0xFFB5843B);
+        g.fill(x + 9, y + 30, x + w - 9, y + 32, 0xFFB5843B);
+        g.fill(x + 7, y + h - 8, x + w - 7, y + h - 6, 0xFF8C6034);
+        // Prioritize usable actions over decorative text on very short screens.
+        // Never draw dialogue underneath the buttons at large GUI scales.
+        if (h >= 65) drawFittedCentered(g, title.getString(), y + (h < 120 ? 8 : 13));
+        if (h >= 95) drawFittedCentered(g, greeting, y + (h < 120 ? 28 : 45));
+        if (h >= 120) drawFittedCentered(g, response, y + 66);
+        super.render(g, mouseX, mouseY, partialTick);
+        if (h >= 95) showFullTextOnHover(g, greeting, y + (h < 120 ? 28 : 45), mouseX, mouseY);
+        if (h >= 120) showFullTextOnHover(g, response, y + 66, mouseX, mouseY);
+    }
+    @Override public boolean isPauseScreen() { return false; }
+}
